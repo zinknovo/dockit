@@ -39,11 +39,13 @@ def health():
 class RegisterIn(BaseModel):
     email: EmailStr
     password: str
+    remember_me: bool = False
 
 
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
+    remember_me: bool = False
 
 
 class ClassifyIn(BaseModel):
@@ -69,7 +71,7 @@ def register(body: RegisterIn):
     if get_user_by_email(body.email):
         raise HTTPException(400, "邮箱已注册")
     uid = create_user(body.email, hash_password(body.password))
-    token = create_token(uid)
+    token = create_token(uid, remember_me=body.remember_me)
     AUTH_TOTAL.labels(action="register").inc()
     return {"token": token, "tier": "free", "limit": TIER_LIMITS["free"]}
 
@@ -80,7 +82,7 @@ def login(body: LoginIn):
     if not u or not verify_password(body.password, u["password_hash"]):
         raise HTTPException(401, "邮箱或密码错误")
     AUTH_TOTAL.labels(action="login").inc()
-    token = create_token(u["id"])
+    token = create_token(u["id"], remember_me=body.remember_me)
     return {
         "token": token,
         "tier": u["tier"],

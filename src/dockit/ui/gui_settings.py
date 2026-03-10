@@ -69,7 +69,9 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
     v_pw = tk.StringVar()
     ctk.CTkEntry(dlg, textvariable=v_pw, width=260, show="*").grid(row=1, column=1, padx=12, pady=8)
     v_is_register = tk.BooleanVar(value=False)
+    v_remember = tk.BooleanVar(value=True)
     ctk.CTkCheckBox(dlg, text="注册新账号", variable=v_is_register).grid(row=2, column=1, sticky="w", padx=12, pady=4)
+    ctk.CTkCheckBox(dlg, text="记住登录（30 天）", variable=v_remember).grid(row=3, column=1, sticky="w", padx=12, pady=4)
 
     def submit():
         email, pw = v_email.get().strip(), v_pw.get()
@@ -78,7 +80,8 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
             return
         path = "/api/auth/register" if v_is_register.get() else "/api/auth/login"
         url = f"{base}{path}"
-        body = json.dumps({"email": email, "password": pw}).encode("utf-8")
+        payload = {"email": email, "password": pw, "remember_me": v_remember.get()}
+        body = json.dumps(payload).encode("utf-8")
         req = Request(url, data=body, method="POST", headers={"Content-Type": "application/json"})
         try:
             with urlopen(req, timeout=15) as r:
@@ -98,7 +101,7 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
         except (URLError, json.JSONDecodeError) as e:
             messagebox.showerror("错误", str(e), parent=dlg)
 
-    ctk.CTkButton(dlg, text="确定", command=submit, width=100).grid(row=3, column=1, pady=16, sticky="w", padx=12)
+    ctk.CTkButton(dlg, text="确定", command=submit, width=100).grid(row=4, column=1, pady=16, sticky="w", padx=12)
 
 
 def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root: ctk.CTk, refs: dict) -> None:
@@ -201,8 +204,11 @@ def _build_deadlines_tab(tab: ctk.CTkFrame, config_path: Path, refresh_callback)
     """期限 Tab"""
     from ..db.db import list_deadlines
 
-    scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+    # 黑底白字，深色模式下保证可读
+    scroll = ctk.CTkScrollableFrame(tab, fg_color=("gray90", "gray17"))
     scroll.pack(fill="both", expand=True)
+    label_fg = ("gray90", "gray17")
+    label_text = ("gray10", "white")
 
     def load():
         for w in scroll.winfo_children():
@@ -210,18 +216,18 @@ def _build_deadlines_tab(tab: ctk.CTkFrame, config_path: Path, refresh_callback)
         cfg = load_config(config_path)
         archive_dir = expand_path(cfg.get("archive_dir", "") or "")
         if not archive_dir:
-            ctk.CTkLabel(scroll, text="请先在设置中配置归档目录").pack(anchor="w", pady=8)
+            ctk.CTkLabel(scroll, text="请先在设置中配置归档目录", fg_color=label_fg, text_color=label_text).pack(anchor="w", pady=8)
             return
         rows = list_deadlines(archive_dir)
         if not rows:
-            ctk.CTkLabel(scroll, text="暂无期限记录").pack(anchor="w", pady=8)
+            ctk.CTkLabel(scroll, text="暂无期限记录", fg_color=label_fg, text_color=label_text).pack(anchor="w", pady=8)
             return
-        ctk.CTkLabel(scroll, text="关键期限", font=ctk.CTkFont(weight="bold")).pack(anchor="w", pady=(0, 8))
+        ctk.CTkLabel(scroll, text="关键期限", font=ctk.CTkFont(weight="bold"), fg_color=label_fg, text_color=label_text).pack(anchor="w", pady=(0, 8))
         for r in rows:
             text = f"{r['due_date']}  {r['deadline_type']}  {r['case_number']}"
             if r.get("is_completed"):
                 text += "  已完成"
-            ctk.CTkLabel(scroll, text=text, anchor="w").pack(fill="x", pady=2)
+            ctk.CTkLabel(scroll, text=text, anchor="w", fg_color=label_fg, text_color=label_text).pack(fill="x", pady=2)
 
     load()
     if refresh_callback:
