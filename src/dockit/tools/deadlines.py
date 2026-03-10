@@ -65,7 +65,8 @@ if __name__ == "__main__":
     import yaml
 
     logging.basicConfig(level=logging.INFO)
-    config_path = Path(__file__).resolve().parents[2] / "config.yaml"
+    from ..config_path import get_config_path
+    config_path = get_config_path()
     with open(config_path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
     raw = config["archive_dir"].replace("$HOME", os.path.expanduser("~"))

@@ -23,6 +23,7 @@ from db import (
     is_subscription_active,
     update_subscription,
 )
+from billing import can_use_classify, get_user_limit
 from llm import classify as llm_classify
 from metrics import AUTH_TOTAL, CLASSIFY_ERRORS, CLASSIFY_TOTAL, metrics_content
 
@@ -73,7 +74,7 @@ def register(body: RegisterIn):
     uid = create_user(body.email, hash_password(body.password))
     token = create_token(uid, remember_me=body.remember_me)
     AUTH_TOTAL.labels(action="register").inc()
-    return {"token": token, "tier": "free", "limit": TIER_LIMITS["free"]}
+    return {"token": token, "tier": "free", "limit": get_user_limit({"tier": "free"})}
 
 
 @app.post("/api/auth/login")
@@ -86,7 +87,7 @@ def login(body: LoginIn):
     return {
         "token": token,
         "tier": u["tier"],
-        "limit": TIER_LIMITS.get(u["tier"], 50),
+        "limit": get_user_limit(u),
         "subscription_ends_at": u.get("subscription_ends_at"),
         "subscription_active": is_subscription_active(u),
     }
@@ -95,7 +96,7 @@ def login(body: LoginIn):
 @app.get("/api/usage")
 def usage(uid: int = Depends(get_current_uid)):
     u = get_user_by_id(uid)
-    limit = TIER_LIMITS.get(u["tier"], 50)
+    limit = get_user_limit(u)
     count = get_monthly_usage(uid)
     sub_active = is_subscription_active(u)
     return {
@@ -110,12 +111,9 @@ def usage(uid: int = Depends(get_current_uid)):
 @app.post("/api/classify")
 def classify(body: ClassifyIn, uid: int = Depends(get_current_uid)):
     u = get_user_by_id(uid)
-    if not is_subscription_active(u):
-        raise HTTPException(402, "订阅已过期，请续费后使用")
-    limit = TIER_LIMITS.get(u["tier"], 50)
-    used = get_monthly_usage(uid)
-    if used >= limit:
-        raise HTTPException(402, f"本月额度已用尽 ({limit} 次)，请升级付费版")
+    ok, err = can_use_classify(u)
+    if not ok:
+        raise HTTPException(402, err or "超出额度")
 
     try:
         result = llm_classify(body.text)

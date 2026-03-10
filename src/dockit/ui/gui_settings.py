@@ -24,8 +24,8 @@ def _get_logger():
 
 
 def load_config(path: Path) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    from ..config_path import ensure_config
+    return ensure_config(path)
 
 
 def save_config(path: Path, config: dict) -> None:
@@ -71,7 +71,7 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
     v_is_register = tk.BooleanVar(value=False)
     v_remember = tk.BooleanVar(value=True)
     ctk.CTkCheckBox(dlg, text="注册新账号", variable=v_is_register).grid(row=2, column=1, sticky="w", padx=12, pady=4)
-    ctk.CTkCheckBox(dlg, text="记住登录（30 天）", variable=v_remember).grid(row=3, column=1, sticky="w", padx=12, pady=4)
+    ctk.CTkCheckBox(dlg, text="记住登录（1 年）", variable=v_remember).grid(row=3, column=1, sticky="w", padx=12, pady=4)
 
     def submit():
         email, pw = v_email.get().strip(), v_pw.get()
@@ -236,7 +236,8 @@ def _build_deadlines_tab(tab: ctk.CTkFrame, config_path: Path, refresh_callback)
 
 def run_settings(config_path: Path | None = None) -> None:
     if config_path is None:
-        config_path = Path(__file__).resolve().parents[3] / "config.yaml"
+        from ..config_path import get_config_path
+        config_path = get_config_path()
     config = load_config(config_path)
 
     ctk.set_appearance_mode("system")

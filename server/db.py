@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS usage (
 CREATE INDEX IF NOT EXISTS idx_usage_user_month ON usage(user_id, month);
 """
 
-TIER_LIMITS = {"free": 50, "monthly": 999999, "annual": 999999}
+# 测试阶段：全部免费
+TIER_LIMITS = {"free": 999999, "monthly": 999999, "annual": 999999}
+# 正式收费: {"free": 50, "monthly": 999999, "annual": 999999}
 
 
 def _get_conn():

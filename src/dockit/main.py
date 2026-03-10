@@ -29,14 +29,10 @@ logger = logging.getLogger(__name__)
 
 
 def load_config(config_path: str | Path = None) -> dict:
-    """加载 YAML 配置"""
-    if config_path is None:
-        config_path = Path(__file__).resolve().parents[2] / "config.yaml"
-    path = Path(config_path)
-    if not path.exists():
-        raise FileNotFoundError(f"配置文件不存在: {path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    """加载 YAML 配置，不存在则自动创建默认（开箱即用）"""
+    from .config_path import get_config_path, ensure_config
+    path = Path(config_path) if config_path else get_config_path()
+    return ensure_config(path)
 
 
 def _log_time():
@@ -166,7 +162,8 @@ def main() -> int:
     parser.add_argument("--tray", action="store_true", help="系统托盘模式")
     args = parser.parse_args()
 
-    config_path = Path(__file__).resolve().parents[2] / "config.yaml"
+    from .config_path import get_config_path
+    config_path = get_config_path()
     config = load_config(config_path)
 
     # 扩展路径
@@ -201,14 +198,15 @@ def main() -> int:
         print(timeline_text(config["archive_dir"]))
         return 0
 
-    # watch 模式：必须先配置 api_base_url + api_token
+    # watch 模式：必须先登录
     llm = config.get("llm") or {}
     api_base = llm.get("api_base_url") or os.environ.get("DOCKIT_API_BASE_URL")
     api_token = llm.get("api_token") or os.environ.get("DOCKIT_API_TOKEN")
     if not api_base or not api_token:
-        logger.error("未配置后端 API。请在 config.yaml 的 llm 下设置 api_base_url 和 api_token，或设置环境变量 DOCKIT_API_BASE_URL、DOCKIT_API_TOKEN")
-        logger.error("请先登录获取 token：curl -X POST <api_base>/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"...\",\"password\":\"...\"}'")
-        return 1
+        logger.info("请先登录")
+        from .ui.gui_settings import run_settings
+        run_settings()
+        return 0
 
     if args.auto:
         config["mode"] = "auto"

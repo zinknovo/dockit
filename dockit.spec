@@ -15,6 +15,7 @@ a = Analysis(
     binaries=[],
     datas=ctk_datas,
     hiddenimports=[
+        "dockit.config_path",
         "pystray._win32",
         "PIL._tkinter_finder",
         "watchdog.observers",

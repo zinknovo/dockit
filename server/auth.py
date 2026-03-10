@@ -9,7 +9,8 @@ from jose import JWTError, jwt
 SECRET = os.environ.get("DOCKIT_SECRET", "change-me-in-production")
 ALGORITHM = "HS256"
 EXPIRE_HOURS = 24 * 7
-EXPIRE_HOURS_REMEMBER = 24 * 30  # 30 天
+# 记住登录：1 年
+EXPIRE_HOURS_REMEMBER = 24 * 365
 
 
 def hash_password(pw: str) -> str:
