@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dockit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v"
+markers = [
+    "slow: marks tests as slow (e.g. watcher with real observer)",
+    "integration: marks integration tests (require server or external deps)",
+]
+
+[tool.coverage.run]
+source = ["src/dockit"]
+omit = [
+    "tests/*", "server/*", "scripts/*",
+    "*/main.py", "*/tray.py", "*/deadlines.py", "*/classifier.py",
+    "*/gui_settings.py",  # UI only, requires display
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+
+[project]
+name = "dockit"
+version = "0.1.0"
+description = "法律文书自动归档工具 MVP"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "python-dotenv>=1.0.0",
+    "watchdog>=4.0.0",
+    "pdfplumber>=0.11.0",
+    "openai>=1.12.0",
+    "PyYAML>=6.0.0",
+    "openpyxl>=3.1.0",
+    "plyer>=2.1.0",
+    "reportlab>=4.0.0",
+    "pytesseract>=0.3.10",
+    "python-docx>=1.0.0",
+    "pystray>=0.19.0",
+    "customtkinter>=5.2.0",
+]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.0.0"]
+
+[project.scripts]
+dockit = "dockit.main:main"

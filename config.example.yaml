@@ -1,0 +1,20 @@
+watch_dir: "$HOME/Downloads"
+archive_dir: "$HOME/Desktop/Dockit归档"
+extensions:
+  - .pdf
+  - .docx
+  - .jpg
+  - .jpeg
+  - .png
+filename_template: "{document_type}_{plaintiff}v{defendant}_{date}"
+max_party_name_length: 10
+folder_template: "{case_number}_{cause_of_action}"
+llm:
+  api_base_url: "https://your-app.onrender.com"  # 部署后的 Render 地址
+  api_token: ""  # 登录后获得
+prefilter:
+  enabled: true
+mode: confirm
+reminders:
+  enabled: true
+  default_days_before: 3

@@ -1,0 +1,16 @@
+.env
+.venv/
+.pnpm-store/
+.cursor/
+server/.venv/
+test_*.pdf
+__pycache__/
+*.pyc
+.coverage
+.pytest_cache/
+node_modules/
+dist/
+build/
+*.egg-info/
+config.yaml
+supabase/.temp/

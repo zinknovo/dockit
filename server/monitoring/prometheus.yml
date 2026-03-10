@@ -1,0 +1,9 @@
+# Prometheus 抓取 Dockit 后端 /metrics
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: dockit
+    static_configs:
+      - targets: ["host.docker.internal:8000"]  # 宿主机上的 Dockit 后端
+    metrics_path: /metrics

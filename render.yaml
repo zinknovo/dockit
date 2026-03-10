@@ -1,0 +1,18 @@
+# Render Blueprint - Dockit API Server
+# 使用 Supabase PostgreSQL，需在 Dashboard 手动设置：DATABASE_URL, DOCKIT_SECRET, LLM_API_KEY
+services:
+  - type: web
+    runtime: python
+    name: dockit-api
+    rootDir: server
+    buildCommand: pip install .
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DOCKIT_SECRET
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
