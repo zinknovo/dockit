@@ -1,7 +1,8 @@
 # PyInstaller spec for Dockit desktop client
 # Usage: pyinstaller dockit.spec
-# Output: dist/dockit/ (macOS/Linux) or dist/dockit/ (Windows)
+# Output: macOS → dist/Dockit.app，Windows → dist/dockit/
 
+import sys
 from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
@@ -10,7 +11,7 @@ block_cipher = None
 ctk_datas = collect_data_files("customtkinter", include_py_files=False)
 
 a = Analysis(
-    ["src/dockit/__main__.py"],
+    ["src/run_dockit.py"],
     pathex=["src"],
     binaries=[],
     datas=ctk_datas,
@@ -47,7 +48,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # 保留控制台以便 --confirm 模式输出
+    console=False,  # GUI 应用，不弹终端
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -65,3 +66,16 @@ coll = COLLECT(
     upx_exclude=[],
     name="dockit",
 )
+
+# macOS: 打成 .app，必须带 .app 后缀才被系统识别为应用（不弹终端）
+if sys.platform == "darwin":
+    app = BUNDLE(
+        coll,
+        name="Dockit.app",
+        icon=None,
+        bundle_identifier="com.dockit.app",
+        info_plist={
+            "NSHighResolutionCapable": True,
+            "LSUIElement": False,
+        },
+    )

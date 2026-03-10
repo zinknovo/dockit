@@ -49,16 +49,21 @@ def _fetch_usage(api_base: str, token: str) -> dict | None:
         return None
 
 
-def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, on_success=None) -> None:
-    """弹出登录/注册对话框"""
-    base = v_api_base.get().strip().rstrip("/")
-    if not base:
-        messagebox.showwarning("提示", "请先填写 API 地址")
-        return
+def _get_api_base(config: dict) -> str:
+    """API 地址：优先配置，否则默认"""
+    from ..config_path import DEFAULT_API_BASE
+    llm = config.get("llm") or {}
+    return (llm.get("api_base_url") or DEFAULT_API_BASE).strip().rstrip("/")
+
+
+def _auth_dialog(parent: ctk.CTk, api_base: str, v_token: tk.StringVar, is_register: bool, on_success=None) -> None:
+    """登录或注册对话框（分开两个入口）"""
+    title = "注册" if is_register else "登录"
+    path = "/api/auth/register" if is_register else "/api/auth/login"
 
     dlg = ctk.CTkToplevel(parent)
-    dlg.title("登录 / 注册")
-    dlg.geometry("340x200")
+    dlg.title(title)
+    dlg.geometry("340x180")
     dlg.transient(parent)
     dlg.grab_set()
 
@@ -68,18 +73,15 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
     ctk.CTkLabel(dlg, text="密码").grid(row=1, column=0, padx=12, pady=8, sticky="w")
     v_pw = tk.StringVar()
     ctk.CTkEntry(dlg, textvariable=v_pw, width=260, show="*").grid(row=1, column=1, padx=12, pady=8)
-    v_is_register = tk.BooleanVar(value=False)
     v_remember = tk.BooleanVar(value=True)
-    ctk.CTkCheckBox(dlg, text="注册新账号", variable=v_is_register).grid(row=2, column=1, sticky="w", padx=12, pady=4)
-    ctk.CTkCheckBox(dlg, text="记住登录（1 年）", variable=v_remember).grid(row=3, column=1, sticky="w", padx=12, pady=4)
+    ctk.CTkCheckBox(dlg, text="记住登录（1 年）", variable=v_remember).grid(row=2, column=1, sticky="w", padx=12, pady=4)
 
     def submit():
         email, pw = v_email.get().strip(), v_pw.get()
         if not email or not pw:
             messagebox.showwarning("提示", "请输入邮箱和密码", parent=dlg)
             return
-        path = "/api/auth/register" if v_is_register.get() else "/api/auth/login"
-        url = f"{base}{path}"
+        url = f"{api_base}{path}"
         payload = {"email": email, "password": pw, "remember_me": v_remember.get()}
         body = json.dumps(payload).encode("utf-8")
         req = Request(url, data=body, method="POST", headers={"Content-Type": "application/json"})
@@ -90,18 +92,35 @@ def _do_login(parent: ctk.CTk, v_api_base: tk.StringVar, v_token: tk.StringVar, 
             if token:
                 v_token.set(token)
                 dlg.destroy()
-                messagebox.showinfo("成功", "已自动填入 Token，请点击保存", parent=parent)
+                messagebox.showinfo("成功", "登录成功，请点击保存", parent=parent)
                 if on_success:
                     on_success()
             else:
                 messagebox.showerror("失败", "未返回 token", parent=dlg)
         except HTTPError as e:
             err = e.read().decode("utf-8", errors="replace") if e.fp else str(e)
-            messagebox.showerror("请求失败", err[:200], parent=dlg)
+            try:
+                err_obj = json.loads(err)
+                msg = err_obj.get("detail", err)[:150]
+            except json.JSONDecodeError:
+                msg = err[:150]
+            messagebox.showerror("请求失败", msg, parent=dlg)
         except (URLError, json.JSONDecodeError) as e:
             messagebox.showerror("错误", str(e), parent=dlg)
 
-    ctk.CTkButton(dlg, text="确定", command=submit, width=100).grid(row=4, column=1, pady=16, sticky="w", padx=12)
+    ctk.CTkButton(dlg, text="确定", command=submit, width=100).grid(row=3, column=1, pady=16, sticky="w", padx=12)
+
+
+def _fetch_me(api_base: str, token: str) -> str | None:
+    """GET /api/me 返回邮箱，失败返回 None"""
+    url = f"{api_base}/api/me"
+    req = Request(url, headers={"Authorization": f"Bearer {token}"})
+    try:
+        with urlopen(req, timeout=10) as r:
+            data = json.loads(r.read().decode("utf-8"))
+            return data.get("email", "")
+    except (HTTPError, URLError, json.JSONDecodeError):
+        return None
 
 
 def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root: ctk.CTk, refs: dict) -> None:
@@ -130,24 +149,59 @@ def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root
     v_prefilter = tk.BooleanVar(value=prefilter.get("enabled", True))
     ctk.CTkCheckBox(tab, text="开启预筛（非法律文书跳过 LLM，节省用量）", variable=v_prefilter).pack(anchor="w", pady=(0, 16))
 
-    ctk.CTkLabel(tab, text="API 地址").pack(anchor="w", pady=(0, 4))
+    # 账号：不展示 API 地址和 Token，只展示登录态
+    ctk.CTkLabel(tab, text="账号").pack(anchor="w", pady=(0, 4))
     llm = config.get("llm") or {}
-    v_api_base = tk.StringVar(value=llm.get("api_base_url") or "http://localhost:8000")
     v_token = tk.StringVar(value=llm.get("api_token") or "")
-    refs["api_base"] = v_api_base
     refs["token"] = v_token
-    ctk.CTkEntry(tab, textvariable=v_api_base, height=36).pack(fill="x", pady=(0, 12))
+    api_base = _get_api_base(config)
+    refs["api_base_str"] = api_base
 
-    ctk.CTkLabel(tab, text="API Token（登录后自动填入）").pack(anchor="w", pady=(0, 4))
-    f5 = ctk.CTkFrame(tab, fg_color="transparent")
-    f5.pack(fill="x", pady=(0, 16))
-    ctk.CTkEntry(f5, textvariable=v_token, height=36, show="*").pack(side="left", fill="x", expand=True, padx=(0, 8))
+    f_account = ctk.CTkFrame(tab, fg_color="transparent")
+    f_account.pack(fill="x", pady=(0, 16))
+
+    lbl_status = ctk.CTkLabel(f_account, text="加载中…")
+    lbl_status.pack(side="left", padx=(0, 12))
+
+    def refresh_status():
+        token = v_token.get().strip()
+        if not token:
+            lbl_status.configure(text="未登录")
+            return
+        email = _fetch_me(api_base, token)
+        if email:
+            lbl_status.configure(text=f"已登录 ({email})")
+        else:
+            lbl_status.configure(text="已登录")
+
     def do_login():
-        _do_login(root, v_api_base, v_token, on_success=lambda: getattr(root, "refresh_usage", lambda: None)())
-    ctk.CTkButton(f5, text="登录 / 注册", width=100, command=do_login).pack(side="right")
+        _auth_dialog(root, api_base, v_token, is_register=False, on_success=lambda: (refresh_status(), _update_buttons(), getattr(root, "refresh_usage", lambda: None)()))
+
+    def do_register():
+        _auth_dialog(root, api_base, v_token, is_register=True, on_success=lambda: (refresh_status(), _update_buttons(), getattr(root, "refresh_usage", lambda: None)()))
+
+    def do_logout():
+        v_token.set("")
+        refresh_status()
+        _update_buttons()
+        getattr(root, "refresh_usage", lambda: None)()
+
+    def _update_buttons():
+        for w in list(f_account.winfo_children()):
+            if isinstance(w, ctk.CTkButton):
+                w.destroy()
+        if v_token.get().strip():
+            ctk.CTkButton(f_account, text="退出登录", width=80, command=do_logout).pack(side="left")
+        else:
+            ctk.CTkButton(f_account, text="登录", width=70, command=do_login).pack(side="left", padx=(0, 8))
+            ctk.CTkButton(f_account, text="注册", width=70, command=do_register).pack(side="left")
+
+    refresh_status()
+    _update_buttons()
 
     def on_save():
         try:
+            from ..config_path import DEFAULT_API_BASE
             cfg = load_config(config_path)
             cfg["watch_dir"] = v_watch.get().strip()
             cfg["archive_dir"] = v_archive.get().strip()
@@ -156,7 +210,7 @@ def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root
             cfg["prefilter"]["enabled"] = v_prefilter.get()
             if "llm" not in cfg:
                 cfg["llm"] = {}
-            cfg["llm"]["api_base_url"] = v_api_base.get().strip()
+            cfg["llm"]["api_base_url"] = refs.get("api_base_str") or DEFAULT_API_BASE
             cfg["llm"]["api_token"] = v_token.get().strip()
             save_config(config_path, cfg)
             messagebox.showinfo("保存成功", "设置已保存")
@@ -179,7 +233,7 @@ def _build_usage_tab(tab: ctk.CTkFrame, get_api_and_token, refresh_callback) -> 
     def load():
         api_base, token = get_api_and_token()
         if not api_base or not token:
-            lbl.configure(text="请先在设置中配置 API 地址并登录")
+            lbl.configure(text="请先在设置中登录")
             return
         data = _fetch_usage(api_base, token)
         if data is None:
@@ -270,8 +324,9 @@ def run_settings(config_path: Path | None = None) -> None:
 
     _build_settings_tab(tabview.tab("设置"), config_path, config, root, refs)
     def get_api_and_token():
-        a, t = refs.get("api_base"), refs.get("token")
-        return (a.get() if a else "", t.get() if t else "")
+        api = refs.get("api_base_str", "")
+        tok = refs.get("token")
+        return (api, tok.get() if tok else "")
     _build_usage_tab(tabview.tab("用量"), get_api_and_token, refresh_handlers)
     _build_deadlines_tab(tabview.tab("期限"), config_path, refresh_handlers)
 

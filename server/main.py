@@ -93,6 +93,15 @@ def login(body: LoginIn):
     }
 
 
+@app.get("/api/me")
+def me(uid: int = Depends(get_current_uid)):
+    """当前登录用户信息"""
+    u = get_user_by_id(uid)
+    if not u:
+        raise HTTPException(401, "用户不存在")
+    return {"email": u.get("email", "")}
+
+
 @app.get("/api/usage")
 def usage(uid: int = Depends(get_current_uid)):
     u = get_user_by_id(uid)
