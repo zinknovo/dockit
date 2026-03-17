@@ -1,0 +1,68 @@
+name: Release and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    name: Deploy to Aliyun FC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Serverless Devs
+        run: npm install -g @serverless-devs/s
+
+      - name: Configure Aliyun Credentials
+        run: |
+          s config add --AccessKeyID ${{ secrets.ALIYUN_AK_ID }} --AccessKeySecret ${{ secrets.ALIYUN_AK_SECRET }} --AccountID ${{ secrets.ALIYUN_ACCOUNT_ID }} -a default
+
+      - name: Deploy Backend
+        working-directory: ./server
+        run: s deploy -y
+
+  build-windows:
+    name: Build Windows Installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: uv sync --extra build
+
+      - name: Build EXE with PyInstaller
+        run: uv run pyinstaller dockit.spec --noconfirm --clean
+
+      - name: Compile Inno Setup Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: scripts\build_installer.iss
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Dockit-Windows-Installer
+          path: dist\Dockit_Setup_v1.0.exe

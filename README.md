@@ -201,7 +201,12 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ./scripts/build-client.sh
 ```
 
-输出：`dist/dockit/`（含可执行文件及依赖）。首次使用前复制 `config.example.yaml` 为 `config.yaml` 并填写 `llm.api_base_url`。
+输出：`dist/dockit/`（含可执行文件及依赖）。macOS 为 `dist/Dockit.app`。
+
+**打包后配置与日志**（自动创建，无需手动复制）：
+- macOS：`~/Library/Application Support/Dockit/config.yaml`
+- Windows：`%APPDATA%\Dockit\config.yaml`
+- 日志（排查用）：`{上述目录}/Logs/dockit.log`
 
 ## 修正反馈
 

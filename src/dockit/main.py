@@ -27,6 +27,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# 打包后写入日志文件，便于排查（无控制台时用户无法看到输出）
+def _setup_packaged_logging() -> None:
+    if not getattr(sys, "frozen", False):
+        return
+    try:
+        from .config_path import _app_support_dir
+        log_dir = _app_support_dir() / "Logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        from logging.handlers import RotatingFileHandler
+        h = RotatingFileHandler(log_dir / "dockit.log", maxBytes=500_000, backupCount=2, encoding="utf-8")
+        h.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+        logging.getLogger().addHandler(h)
+    except Exception as e:
+        logger.warning("打包模式日志文件初始化失败: %s", e)
+
 
 def load_config(config_path: str | Path = None) -> dict:
     """加载 YAML 配置，不存在则自动创建默认（开箱即用）"""
@@ -153,7 +168,36 @@ def _make_on_confirm(config: dict):
     return on_confirm
 
 
+def _is_already_running(port=12345):
+    """通过监听固定端口确保单例运行"""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("127.0.0.1", port))
+        # 保持引用，不关闭，直到进程结束
+        globals()["_instance_lock_socket"] = s
+        return False
+    except socket.error:
+        return True
+
+
 def main() -> int:
+    # 单例检查
+    if _is_already_running():
+        msg = "Dockit 已经在运行中（检测到端口 12345 已占用），请检查系统托盘或任务管理器。"
+        logger.error(msg)
+        if getattr(sys, "frozen", False):
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Dockit", msg)
+            root.destroy()
+        else:
+            print(msg)
+        return 0
+
+    _setup_packaged_logging()
     import argparse
     parser = argparse.ArgumentParser(description="Dockit 法律文书自动归档")
     parser.add_argument("cmd", nargs="?", default="watch", help="watch|calendar|timeline|prefilter-stats|settings")
@@ -198,16 +242,7 @@ def main() -> int:
         print(timeline_text(config["archive_dir"]))
         return 0
 
-    # watch 模式：必须先登录
-    llm = config.get("llm") or {}
-    api_base = llm.get("api_base_url") or os.environ.get("DOCKIT_API_BASE_URL")
-    api_token = llm.get("api_token") or os.environ.get("DOCKIT_API_TOKEN")
-    if not api_base or not api_token:
-        logger.info("请先登录")
-        from .ui.gui_settings import run_settings
-        run_settings()
-        return 0
-
+    # watch 模式：直接启动，无 token 时分类失败会移入 _未识别
     if args.auto:
         config["mode"] = "auto"
     elif args.confirm:
@@ -216,10 +251,24 @@ def main() -> int:
     on_classified = _make_on_classified(config)
     on_confirm = _make_on_confirm(config)
 
+    logger.info("配置路径: %s", config_path)
+    logger.info("监听: %s → 归档: %s", config["watch_dir"], config["archive_dir"])
+
     if args.tray:
         try:
             from .ui.tray import run_tray
-            observer = start_watching(config, on_classified, on_confirm)
+            try:
+                observer = start_watching(config, on_classified, on_confirm, config_path=config_path)
+            except RuntimeError as e:
+                logger.error("%s", e)
+                if getattr(sys, "frozen", False):
+                    import tkinter as tk
+                    from tkinter import messagebox
+                    root = tk.Tk()
+                    root.withdraw()
+                    messagebox.showerror("Dockit", str(e))
+                    root.destroy()
+                return 1
             stop_flag = []
 
             def stop_watcher():
@@ -238,7 +287,18 @@ def main() -> int:
             return 1
     else:
         logger.info("Dockit 启动，模式: %s", config.get("mode", "confirm"))
-        observer = start_watching(config, on_classified, on_confirm)
+        try:
+            observer = start_watching(config, on_classified, on_confirm, config_path=config_path)
+        except RuntimeError as e:
+            logger.error("%s", e)
+            if getattr(sys, "frozen", False):
+                import tkinter as tk
+                from tkinter import messagebox
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showerror("Dockit", str(e))
+                root.destroy()
+            return 1
         try:
             observer.join()
         except KeyboardInterrupt:

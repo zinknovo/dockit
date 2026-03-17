@@ -1,9 +1,10 @@
-# classifier.py - 文书分类（仅走后端 API）
-"""调用官方后端 /api/classify 识别法律文书，不支持直连 LLM"""
+# classifier.py - 文书分类（后端 API 或直连 LLM）
+"""支持官方后端 /api/classify 或直连 LLM（无登录时用 OPENAI_API_KEY 测试）"""
 
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -11,6 +12,29 @@ from urllib.request import Request, urlopen
 from ..db.models import DocumentInfo
 
 logger = logging.getLogger(__name__)
+
+# 直连 LLM 用（无 api_token 时的回退）
+CASE_NUMBER_PATTERN = re.compile(r"（\d{4}）[\u4e00-\u9fa5]+\d+[\u4e00-\u9fa5]+\d+号")
+SYSTEM_PROMPT = """你是一个法律文书解析助手。请从以下文书中提取结构化信息，仅返回 JSON，不要包含任何其他文字或 markdown 标记。
+
+必须提取的字段：
+- document_type: 文书类型（传票/举证通知书/应诉通知书/民事裁定书/民事判决书/行政判决书/起诉状/答辩状/调解书/执行通知书/保全裁定书/其他）
+- case_number: 案号（如"（2024）京0105民初12345号"）
+- court_name: 法院名称
+- plaintiff: 原告（数组）
+- defendant: 被告（数组）
+- document_date: 文书日期（YYYY-MM-DD）
+- cause_of_action: 案由
+- hearing_time: 开庭时间（YYYY-MM-DD HH:mm）
+- hearing_location: 开庭地点
+- evidence_deadline: 举证期限
+- defense_deadline: 答辩期限
+- appeal_deadline: 上诉期限
+- judge: 审判长
+- panel_members: 合议庭成员（数组）
+- judgment_result: 判决/裁定摘要
+- judgment_amount: 判决金额
+字段不存在则 null。"""
 
 def _extract_first(arr: list | None) -> str | None:
     """从数组取第一个元素"""
@@ -78,13 +102,48 @@ def _raw_to_document_info(raw: dict) -> DocumentInfo:
     )
 
 
+def _classify_via_direct_llm(document_text: str) -> dict:
+    """无登录时直连 LLM（需 .env 中 OPENAI_API_KEY 或 LLM_API_KEY）"""
+    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY")
+    if not api_key:
+        raise ValueError("未配置 api_token，且无 OPENAI_API_KEY/LLM_API_KEY，无法分类。请登录或设置 .env")
+    from openai import OpenAI
+    client = OpenAI(
+        api_key=api_key,
+        base_url=os.environ.get("LLM_BASE_URL", "https://api.deepseek.com"),
+    )
+    model = os.environ.get("LLM_MODEL", "deepseek-chat")
+    resp = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": document_text},
+        ],
+        temperature=0.1,
+        response_format={"type": "json_object"},
+    )
+    raw = json.loads(resp.choices[0].message.content or "{}")
+    if not (raw.get("case_number") or str(raw.get("case_number", "")).strip()):
+        m = CASE_NUMBER_PATTERN.search(document_text)
+        if m:
+            raw["case_number"] = m.group(0)
+    plaintiffs = raw.get("plaintiff")
+    defendants = raw.get("defendant")
+    if isinstance(plaintiffs, str):
+        plaintiffs = [plaintiffs]
+    if isinstance(defendants, str):
+        defendants = [defendants]
+    raw["plaintiff"] = _extract_first(plaintiffs) if plaintiffs else None
+    raw["defendant"] = _extract_first(defendants) if defendants else None
+    return raw
+
+
 def classify(config: dict, document_text: str) -> DocumentInfo:
     """
-    调用官方后端 /api/classify 提取文书结构化信息。
-    必须配置 api_base_url 与 api_token，不支持直连 LLM。
+    提取文书结构化信息。优先走后端 API；无 token 时用 OPENAI_API_KEY 直连 LLM（测试用）。
 
     Args:
-        config: 配置字典，llm 下需有 api_base_url、api_token（或环境变量 DOCKIT_API_BASE_URL、DOCKIT_API_TOKEN）
+        config: 配置字典
         document_text: 文书全文
 
     Returns:
@@ -92,12 +151,10 @@ def classify(config: dict, document_text: str) -> DocumentInfo:
     """
     llm_config = config.get("llm") or {}
     api_base_url = llm_config.get("api_base_url") or os.environ.get("DOCKIT_API_BASE_URL")
-    api_token = llm_config.get("api_token") or os.environ.get("DOCKIT_API_TOKEN")
+    api_token = (llm_config.get("api_token") or "").strip() or os.environ.get("DOCKIT_API_TOKEN")
 
-    if not api_base_url or not api_token:
-        raise ValueError(
-            "请先登录并配置 api_base_url 与 api_token（config.yaml 或环境变量 DOCKIT_API_BASE_URL、DOCKIT_API_TOKEN）"
-        )
-
-    raw = _call_backend_api(api_base_url.strip(), api_token, document_text)
+    if api_base_url and api_token:
+        raw = _call_backend_api(api_base_url.rstrip("/"), api_token, document_text)
+    else:
+        raw = _classify_via_direct_llm(document_text)
     return _raw_to_document_info(raw)

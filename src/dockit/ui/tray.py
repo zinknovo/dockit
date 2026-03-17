@@ -67,10 +67,5 @@ def run_tray(config: dict, watch_callback=None) -> None:
     )
     icon = pystray.Icon("dockit", img, "Dockit 运行中", menu)
 
-    def run_watch():
-        if watch_callback:
-            watch_callback()
-
-    t = threading.Thread(target=run_watch, daemon=True)
-    t.start()
+    # watch_callback 仅在退出时调用以停止 watcher，勿在启动时调用
     icon.run()

@@ -37,16 +37,26 @@ def expand_path(p: str) -> str:
     return str(Path(p.replace("$HOME", os.path.expanduser("~"))).expanduser())
 
 
-def _fetch_usage(api_base: str, token: str) -> dict | None:
-    """GET /api/usage"""
+def _fetch_usage(api_base: str, token: str) -> tuple[dict | None, str | None]:
+    """GET /api/usage，返回 (data, err)，成功时 err 为 None"""
     base = api_base.rstrip("/")
     url = f"{base}/api/usage"
     req = Request(url, headers={"Authorization": f"Bearer {token}"})
     try:
         with urlopen(req, timeout=15) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except (HTTPError, URLError, json.JSONDecodeError):
-        return None
+            return (json.loads(r.read().decode("utf-8")), None)
+    except HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace") if e.fp else str(e)
+        try:
+            obj = json.loads(body)
+            detail = obj.get("detail", body)
+        except json.JSONDecodeError:
+            detail = body[:100] if body else f"HTTP {e.code}"
+        return (None, detail)
+    except URLError as e:
+        return (None, str(e.reason) if e.reason else "网络连接失败")
+    except (json.JSONDecodeError, OSError) as e:
+        return (None, str(e))
 
 
 def _get_api_base(config: dict) -> str:
@@ -125,18 +135,22 @@ def _fetch_me(api_base: str, token: str) -> str | None:
 
 def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root: ctk.CTk, refs: dict) -> None:
     """设置 Tab"""
-    def pick_dir(var: tk.StringVar, key: str):
+    refs["watch_dir_via_picker"] = config.get("watch_dir_via_picker", False)
+
+    def pick_dir(var: tk.StringVar, key: str, mark_via_picker: bool = False):
         val = var.get().strip() or expand_path(config.get(key, "~"))
         folder = filedialog.askdirectory(initialdir=val, title="选择目录")
         if folder:
             var.set(folder)
+            if mark_via_picker:
+                refs["watch_dir_via_picker"] = True
 
     ctk.CTkLabel(tab, text="监听目录").pack(anchor="w", pady=(0, 4))
     f1 = ctk.CTkFrame(tab, fg_color="transparent")
     f1.pack(fill="x", pady=(0, 12))
     v_watch = tk.StringVar(value=expand_path(config.get("watch_dir", "~/Downloads")))
     ctk.CTkEntry(f1, textvariable=v_watch, height=36).pack(side="left", fill="x", expand=True, padx=(0, 8))
-    ctk.CTkButton(f1, text="浏览", width=70, command=lambda: pick_dir(v_watch, "watch_dir")).pack(side="right")
+    ctk.CTkButton(f1, text="浏览", width=70, command=lambda: pick_dir(v_watch, "watch_dir", mark_via_picker=True)).pack(side="right")
 
     ctk.CTkLabel(tab, text="归档目录").pack(anchor="w", pady=(0, 4))
     f2 = ctk.CTkFrame(tab, fg_color="transparent")
@@ -204,6 +218,7 @@ def _build_settings_tab(tab: ctk.CTkFrame, config_path: Path, config: dict, root
             from ..config_path import DEFAULT_API_BASE
             cfg = load_config(config_path)
             cfg["watch_dir"] = v_watch.get().strip()
+            cfg["watch_dir_via_picker"] = refs.get("watch_dir_via_picker", False)
             cfg["archive_dir"] = v_archive.get().strip()
             if "prefilter" not in cfg:
                 cfg["prefilter"] = {}
@@ -227,6 +242,8 @@ def _build_usage_tab(tab: ctk.CTkFrame, get_api_and_token, refresh_callback) -> 
     """用量 Tab。get_api_and_token() -> (api_base, token)"""
     frame = ctk.CTkFrame(tab, fg_color="transparent")
     frame.pack(fill="both", expand=True)
+    f_btn = ctk.CTkFrame(frame, fg_color="transparent")
+    f_btn.pack(anchor="w", pady=(0, 8))
     lbl = ctk.CTkLabel(frame, text="加载中…")
     lbl.pack(expand=True)
 
@@ -235,9 +252,14 @@ def _build_usage_tab(tab: ctk.CTkFrame, get_api_and_token, refresh_callback) -> 
         if not api_base or not token:
             lbl.configure(text="请先在设置中登录")
             return
-        data = _fetch_usage(api_base, token)
+        lbl.configure(text="加载中…")
+        frame.update()
+        data, err = _fetch_usage(api_base, token)
+        if err:
+            lbl.configure(text=f"获取失败: {err}")
+            return
         if data is None:
-            lbl.configure(text="获取用量失败")
+            lbl.configure(text="获取用量失败（请检查网络）")
             return
         lines = [
             f"套餐: {data.get('tier', '-')}",
@@ -248,6 +270,8 @@ def _build_usage_tab(tab: ctk.CTkFrame, get_api_and_token, refresh_callback) -> 
         if data.get("subscription_active") is False:
             lines.append("订阅已过期")
         lbl.configure(text="\n".join(lines))
+
+    ctk.CTkButton(f_btn, text="刷新", width=60, command=load).pack(side="left")
 
     load()
     if refresh_callback:
@@ -329,6 +353,11 @@ def run_settings(config_path: Path | None = None) -> None:
         return (api, tok.get() if tok else "")
     _build_usage_tab(tabview.tab("用量"), get_api_and_token, refresh_handlers)
     _build_deadlines_tab(tabview.tab("期限"), config_path, refresh_handlers)
+
+    def _on_tab_change():
+        if tabview.get() == "用量":
+            refresh_handlers.get("usage", lambda: None)()
+    tabview.configure(command=lambda _: _on_tab_change())
 
     def refresh_usage():
         if "usage" in refresh_handlers:

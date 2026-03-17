@@ -2,11 +2,13 @@
 """使用 watchdog 监听文件夹，检测到新 PDF 后触发归档流程"""
 
 import logging
+import sys
 import time
 from pathlib import Path
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 
 from .classifier import classify
 from .extractor import extract_text
@@ -18,8 +20,8 @@ from ..tools.feedback import save_correction
 
 logger = logging.getLogger(__name__)
 
-# 新文件稳定等待时间（秒）
-SETTLE_SECONDS = 2
+# 新文件稳定等待时间（秒，下载完成/写入稳定后再处理）
+SETTLE_SECONDS = 3
 
 
 def _run_pipeline(
@@ -202,23 +204,60 @@ class DockitHandler(FileSystemEventHandler):
             )
 
 
+def _ensure_watch_dir_permission(config: dict, config_path: Path | None) -> None:
+    """
+    若监听目录未通过系统选择器取得权限（macOS .app 沙盒要求），则弹窗让用户选择。
+    用户选中后更新 config 并持久化；取消则抛出 RuntimeError。
+    """
+    if sys.platform != "darwin" or not getattr(sys, "frozen", False):
+        return
+    if config.get("watch_dir_via_picker"):
+        return
+    from tkinter import Tk, filedialog
+    root = Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    initial = str(Path(config.get("watch_dir", "~/Downloads")).expanduser())
+    folder = filedialog.askdirectory(
+        title="请选择要监听的下载文件夹",
+        initialdir=initial,
+    )
+    root.destroy()
+    if not folder:
+        raise RuntimeError("未选择监听目录，无法启动。请在弹窗中选择下载文件夹以获取访问权限。")
+    config["watch_dir"] = folder
+    config["watch_dir_via_picker"] = True
+    if config_path:
+        from ..config_path import update_config
+        update_config(config_path, {"watch_dir": folder, "watch_dir_via_picker": True})
+
+
 def start_watching(
     config: dict,
     on_classified,
     on_confirm,
+    config_path: Path | None = None,
 ) -> Observer:
     """
-    启动文件夹监听。
+    启动文件夹监听。macOS .app 下若监听目录未通过选择器取得权限，会先弹窗让用户选择。
 
     Returns:
         Observer 实例，调用 observer.join() 保持运行
     """
+    import os
+    _ensure_watch_dir_permission(config, config_path)
     watch_dir = Path(config["watch_dir"]).expanduser()
     watch_dir.mkdir(parents=True, exist_ok=True)
 
     handler = DockitHandler(config, on_classified, on_confirm)
-    observer = Observer()
-    observer.schedule(handler, str(watch_dir), recursive=False)
+    # macOS 上 FSEvents 在沙盒/受限环境会崩溃，默认用 PollingObserver；设 DOCKIT_USE_POLLING=0 可尝试 FSEvents
+    _default_poll = sys.platform == "darwin" or os.environ.get("DOCKIT_USE_POLLING") == "1"
+    use_polling = config.get("use_polling_observer", _default_poll)
+    if use_polling:
+        observer = PollingObserver()
+    else:
+        observer = Observer()
+    observer.schedule(handler, str(watch_dir), recursive=True)
     observer.start()
 
     def poll_pending():

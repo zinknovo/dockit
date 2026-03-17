@@ -1,0 +1,14 @@
+# .signore
+# 忽略不需要上传到阿里云的文件
+.venv/
+__pycache__/
+*.pyc
+.env
+.git/
+.vscode/
+.idea/
+tests/
+logs/
+*.zip
+node_modules/
+.DS_Store
