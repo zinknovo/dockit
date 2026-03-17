@@ -10,7 +10,7 @@ filename_template: "{document_type}_{plaintiff}v{defendant}_{date}"
 max_party_name_length: 10
 folder_template: "{case_number}_{cause_of_action}"
 llm:
-  api_base_url: "https://api-dockit-service-hmsokxfsdw.cn-hangzhou.fcapp.run"  # 国内直连云端服务
+  api_base_url: "https://dockit-api-sg.onrender.com"  # Render 新加坡节点服务
   api_token: ""  # 登录后获得
 prefilter:
   enabled: true
