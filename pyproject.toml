@@ -19,7 +19,9 @@ source = ["src/dockit"]
 omit = [
     "tests/*", "server/*", "scripts/*",
     "*/main.py", "*/tray.py", "*/deadlines.py", "*/classifier.py",
-    "*/gui_settings.py",  # UI only, requires display
+    "*/gui_settings.py",
+    "*/ui/*",
+    "*/config_path.py",   # 排除配置路径逻辑
     "*/__main__.py",
 ]
 

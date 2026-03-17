@@ -275,6 +275,134 @@ def test_process_pending_user_skips_when_not_confirmed(tmp_path, config):
     mock_move.assert_not_called()
 
 
+def test_process_pending_with_correction(tmp_path, config):
+    """测试修正逻辑"""
+    pdf = tmp_path / "correct.pdf"
+    pdf.write_bytes(b"%PDF-1.4 x")
+    config["archive_dir"] = str(tmp_path / "archive")
+    config["watch_dir"] = str(tmp_path)
+    config["prefilter"] = {"enabled": False}
+
+    def fake_on_classified(doc_info, target, text):
+        # 返回修正：案号变了
+        return True, {"case_number": "修正案号"}
+
+    def fake_on_confirm(doc_info, target):
+        return True
+
+    with patch("dockit.core.watcher.extract_text", return_value=("x" * 100, True)), \
+         patch("dockit.core.watcher.document_exists_by_hash", return_value=False), \
+         patch("dockit.core.watcher.classify") as mock_classify, \
+         patch("dockit.core.watcher.compute_target_path") as mock_compute, \
+         patch("dockit.core.watcher.move_file") as mock_move, \
+         patch("dockit.core.watcher.save_correction"), \
+         patch("dockit.core.watcher.sync_from_archive"), \
+         patch("dockit.ui.tray.notify_main"):
+        from dockit.db.models import DocumentInfo
+        mock_classify.return_value = DocumentInfo(
+            document_type="传票",
+            case_number="原始案号",
+            court_name="",
+            plaintiff="",
+            defendant="",
+            document_date="",
+            cause_of_action="",
+            hearing_time=None,
+            hearing_location=None,
+            evidence_deadline=None,
+            defense_deadline=None,
+            appeal_deadline=None,
+            judge=None,
+            panel_members=None,
+            judgment_result=None,
+            judgment_amount=None,
+            raw_json={},
+        )
+        # 第一次计算返回路径，第二次（修正后）返回新的
+        mock_compute.side_effect = [tmp_path / "archive" / "old.pdf", tmp_path / "archive" / "new.pdf"]
+
+        handler = DockitHandler(config, fake_on_classified, fake_on_confirm)
+        handler._pending[pdf] = time.time() - SETTLE_SECONDS - 1
+        handler._process_pending()
+
+    mock_move.assert_called_once()
+    # 确认最终移动的是修正后的路径
+    args, _ = mock_move.call_args
+    assert "new.pdf" in str(args[1])
+
+
+def test_process_pending_pipeline_exception(tmp_path, config):
+    """测试 pipeline 抛出异常的情况"""
+    pdf = tmp_path / "error.pdf"
+    pdf.write_bytes(b"%PDF-1.4 x")
+    config["archive_dir"] = str(tmp_path / "archive")
+    config["watch_dir"] = str(tmp_path)
+    config["prefilter"] = {"enabled": False}
+
+    with patch("dockit.core.watcher.extract_text", side_effect=RuntimeError("pipeline failed")), \
+         patch("dockit.core.watcher.move_to_unidentified") as mock_move_un:
+        handler = DockitHandler(config, MagicMock(), MagicMock())
+        handler._pending[pdf] = time.time() - SETTLE_SECONDS - 1
+        handler._process_pending()
+
+    mock_move_un.assert_called_once_with(Path(config["archive_dir"]), pdf, "pipeline failed")
+
+
+def test_process_pending_inner_exception_fails(tmp_path, config):
+    """测试移入未识别也失败的情况"""
+    pdf = tmp_path / "error2.pdf"
+    pdf.write_bytes(b"%PDF-1.4 x")
+    config["archive_dir"] = str(tmp_path / "archive")
+    config["watch_dir"] = str(tmp_path)
+    config["prefilter"] = {"enabled": False}
+
+    with patch("dockit.core.watcher.extract_text", side_effect=RuntimeError("first fail")), \
+         patch("dockit.core.watcher.move_to_unidentified", side_effect=RuntimeError("second fail")):
+        handler = DockitHandler(config, MagicMock(), MagicMock())
+        handler._pending[pdf] = time.time() - SETTLE_SECONDS - 1
+        # 应该捕获异常不崩溃
+        handler._process_pending()
+
+
+def test_process_pending_with_hearing_time_notifies(tmp_path, config):
+    """测试包含开庭时间的通知消息内容"""
+    pdf = tmp_path / "hearing.pdf"
+    pdf.write_bytes(b"%PDF-1.4 x")
+    config["archive_dir"] = str(tmp_path / "archive")
+    config["watch_dir"] = str(tmp_path)
+    config["prefilter"] = {"enabled": False}
+
+    with patch("dockit.core.watcher.extract_text", return_value=("x" * 100, True)), \
+         patch("dockit.core.watcher.classify") as mock_classify, \
+         patch("dockit.core.watcher.compute_target_path", return_value=tmp_path / "archive" / "out.pdf"), \
+         patch("dockit.core.watcher.move_file"), \
+         patch("dockit.core.watcher.sync_from_archive"), \
+         patch("dockit.ui.tray.notify_main") as mock_notify:
+        from dockit.db.models import DocumentInfo
+        mock_classify.return_value = DocumentInfo(
+            document_type="传票",
+            case_number="（2024）京0105民初1号",
+            hearing_time="2024-05-01 10:00",
+            court_name="", plaintiff="", defendant="", document_date="", cause_of_action="",
+            hearing_location=None, evidence_deadline=None, defense_deadline=None, appeal_deadline=None,
+            judge=None, panel_members=None, judgment_result=None, judgment_amount=None, raw_json={}
+        )
+        handler = DockitHandler(config, MagicMock(return_value=(True, None)), MagicMock(return_value=True))
+        handler._pending[pdf] = time.time() - SETTLE_SECONDS - 1
+        handler._process_pending()
+
+    mock_notify.assert_called_once()
+    assert "开庭时间: 2024-05-01 10:00" in mock_notify.call_args[0][1]
+
+
+def test_enqueue_unsupported_extension(config, tmp_path):
+    """测试不支持的后缀被忽略"""
+    handler = DockitHandler(config, MagicMock(), MagicMock())
+    p = tmp_path / "test.exe"
+    handler._enqueue(p, "created")
+    assert len(handler._pending) == 0
+
+
 @pytest.mark.slow
 def test_start_watching_observer_alive_so_poll_runs(config, tmp_path):
     """CRITICAL: start_watching 返回时 observer 必须已 start，这样 poll 线程的 observer.is_alive() 为 True"""
