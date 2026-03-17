@@ -28,16 +28,14 @@ jobs:
           uv pip install pyinstaller customtkinter pystray Pillow pyyaml openpyxl pdfplumber python-docx openai watchdog
 
       - name: Run Windows Verification Tests
-        shell: bash
         run: |
-          export PYTHONPATH="$PYTHONPATH:$(pwd)/src"
+          $env:PYTHONPATH = "src"
           uv run pytest tests/ -v -m "not slow"
 
       - name: Build Executable
-        shell: bash
         run: |
-          export PYTHONPATH="$PYTHONPATH:$(pwd)/src"
-          ./scripts/build-client.sh
+          $env:PYTHONPATH = "src"
+          uv run pyinstaller dockit.spec --noconfirm --clean
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
