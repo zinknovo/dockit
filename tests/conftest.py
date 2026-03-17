@@ -10,10 +10,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 @pytest.fixture
-def config():
+def config(tmp_path):
     return {
-        "watch_dir": "/tmp/dockit_watch",
-        "archive_dir": "/tmp/dockit_archive",
+        "watch_dir": str(tmp_path / "dockit_watch"),
+        "archive_dir": str(tmp_path / "dockit_archive"),
         "extensions": [".pdf"],
         "filename_template": "{document_type}_{plaintiff}v{defendant}_{date}",
         "folder_template": "{case_number}_{cause_of_action}",

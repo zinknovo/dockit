@@ -10,7 +10,7 @@ from dockit.core.extractor import extract_text, MIN_TEXT_LENGTH
 
 def test_extract_nonexistent():
     with pytest.raises(FileNotFoundError):
-        extract_text("/nonexistent/path.pdf")
+        extract_text("nonexistent_file_that_does_not_exist.pdf")
 
 
 def test_extract_non_pdf(tmp_path):

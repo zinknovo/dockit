@@ -3,7 +3,7 @@ name: Build Windows Client
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # 支持手动点击触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,29 +13,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
       - name: Install uv
-        run: pip install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
 
       - name: Install dependencies
         run: |
           uv sync --extra build
-          uv pip install pytest pytest-cov reportlab
-          uv pip install pyinstaller customtkinter pystray Pillow pyyaml openpyxl pdfplumber python-docx openai watchdog
+          # 补充打包和测试必需的依赖
+          uv pip install pytest pytest-cov reportlab pypiwin32
 
       - name: Run Windows Verification Tests
-        run: |
-          $env:PYTHONPATH = "src"
-          uv run pytest tests/ -v -m "not slow"
+        run: uv run pytest tests/ -v -m "not slow"
+        env:
+          PYTHONPATH: src
 
       - name: Build Executable
-        run: |
-          $env:PYTHONPATH = "src"
-          uv run pyinstaller dockit.spec --noconfirm --clean
+        run: uv run pyinstaller dockit.spec --noconfirm --clean
+        env:
+          PYTHONPATH: src
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
