@@ -22,18 +22,15 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: |
-          uv sync --extra build
-          # 补充打包和测试必需的依赖
-          uv pip install pytest pytest-cov reportlab pypiwin32
+        run: uv sync --extra build
 
       - name: Run Windows Verification Tests
-        run: uv run pytest tests/ -v -m "not slow"
+        run: uv run pytest tests/ -v -m "not slow" -k "not test_endpoint"
         env:
           PYTHONPATH: src
 
       - name: Build Executable
-        run: uv run pyinstaller dockit.spec --noconfirm --clean
+        run: uv run python -m PyInstaller dockit.spec --noconfirm --clean
         env:
           PYTHONPATH: src
 

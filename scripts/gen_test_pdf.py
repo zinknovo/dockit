@@ -14,11 +14,20 @@ except ImportError:
 
 # 使用系统自带的华文黑体或宋体
 FONT = "Helvetica"  # 英文备用，中文需系统字体
-try:
-    pdfmetrics.registerFont(TTFont("SimHei", "/System/Library/Fonts/PingFang.ttc"))
-    FONT = "SimHei"
-except Exception:
-    pass
+FONT_PATHS = [
+    "/System/Library/Fonts/PingFang.ttc",  # macOS
+    "C:/Windows/Fonts/msyh.ttc",           # Windows (Microsoft YaHei)
+    "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", # Linux (if installed)
+]
+
+for p in FONT_PATHS:
+    if Path(p).exists():
+        try:
+            pdfmetrics.registerFont(TTFont("SimHei", p))
+            FONT = "SimHei"
+            break
+        except Exception:
+            continue
 
 
 def gen_summons_pdf(output_path: Path) -> None:
