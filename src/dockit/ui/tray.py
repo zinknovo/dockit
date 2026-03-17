@@ -8,10 +8,18 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+_current_icon = None
+
+def notify_main(title: str, msg: str) -> None:
+    """供其他模块调用发送系统通知"""
+    if _current_icon:
+        _current_icon.notify(title, msg)
+
 def run_tray(config: dict, watch_callback=None) -> None:
     """
     启动系统托盘。watch_callback() 在后台运行监听（阻塞）。
     """
+    global _current_icon
     try:
         import pystray
         from PIL import Image
@@ -66,6 +74,15 @@ def run_tray(config: dict, watch_callback=None) -> None:
         pystray.MenuItem("退出", on_quit),
     )
     icon = pystray.Icon("dockit", img, "Dockit 运行中", menu)
+    _current_icon = icon
 
     # watch_callback 仅在退出时调用以停止 watcher，勿在启动时调用
+    def auto_check():
+        import time
+        while icon.visible:
+            # 每天 09:00 或归档成功后 1 小时检查一次（简单模拟）
+            on_remind(icon, None)
+            time.sleep(3600 * 4)  # 每 4 小时静默检查一次
+
+    threading.Thread(target=auto_check, daemon=True).start()
     icon.run()

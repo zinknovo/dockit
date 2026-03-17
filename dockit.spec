@@ -9,12 +9,13 @@ block_cipher = None
 
 # CustomTkinter 需要打包 theme/font 等数据文件
 ctk_datas = collect_data_files("customtkinter", include_py_files=False)
+extra_datas = [('USER_GUIDE_WIN.md', '.')]
 
 a = Analysis(
     ["src/run_dockit.py"],
     pathex=["src"],
     binaries=[],
-    datas=ctk_datas,
+    datas=ctk_datas + extra_datas,
     hiddenimports=[
         "dockit.config_path",
         "pystray._win32",

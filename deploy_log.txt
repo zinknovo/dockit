@@ -1,0 +1,522 @@
+Deploy to Aliyun FC	Set up job	﻿2026-03-17T05:50:01.5353105Z Current runner version: '2.332.0'
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5378741Z ##[group]Runner Image Provisioner
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5379794Z Hosted Compute Agent
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5380501Z Version: 20260213.493
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5381212Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5382139Z Build Date: 2026-02-13T00:28:41Z
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5383263Z Worker ID: {e88a9860-826a-4974-868f-15a967483de1}
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5384031Z Azure Region: westus2
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5384663Z ##[endgroup]
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5386200Z ##[group]Operating System
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5386943Z Ubuntu
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5387620Z 24.04.3
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5388216Z LTS
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5388823Z ##[endgroup]
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5389470Z ##[group]Runner Image
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5390095Z Image: ubuntu-24.04
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5390788Z Version: 20260309.50.1
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5391962Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260309.50/images/ubuntu/Ubuntu2404-Readme.md
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5393910Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260309.50
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5395028Z ##[endgroup]
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5396291Z ##[group]GITHUB_TOKEN Permissions
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5398277Z Contents: read
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5398925Z Metadata: read
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5399557Z Packages: read
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5400233Z ##[endgroup]
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5402257Z Secret source: Actions
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5403210Z Prepare workflow directory
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5718266Z Prepare all required actions
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:01.5754999Z Getting action download info
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:02.0381467Z Download action repository 'actions/checkout@v3' (SHA:f43a0e5ff2bd294095638e18286ca9a3d1956744)
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:02.1933721Z Download action repository 'actions/setup-node@v3' (SHA:3235b876344d2a9aa001b8d1453c930bba69e610)
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:02.3232768Z Download action repository 'actions/setup-python@v4' (SHA:7f4fc3e22c37d6ff65e88745f38bd3157c663f7c)
+Deploy to Aliyun FC	Set up job	2026-03-17T05:50:02.5363261Z Complete job name: Deploy to Aliyun FC
+Deploy to Aliyun FC	Run actions/checkout@v3	﻿2026-03-17T05:50:02.6107296Z ##[group]Run actions/checkout@v3
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6108149Z with:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6108569Z   repository: zinknovo/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6109207Z   token: ***
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6109599Z   ssh-strict: true
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6110113Z   persist-credentials: true
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6110656Z   clean: true
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6111079Z   sparse-checkout-cone-mode: true
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6111558Z   fetch-depth: 1
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6111957Z   fetch-tags: false
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6112357Z   lfs: false
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6113005Z   submodules: false
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6113531Z   set-safe-directory: true
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.6114433Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7050522Z Syncing repository: zinknovo/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7053416Z ##[group]Getting Git version info
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7054609Z Working directory is '/home/runner/work/dockit/dockit'
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7056279Z [command]/usr/bin/git version
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7123231Z git version 2.53.0
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7151449Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7167037Z Temporarily overriding HOME='/home/runner/work/_temp/fb011b19-1d20-4f7f-9954-fde930a24000' before making global git config changes
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7169420Z Adding repository directory to the temporary git global config as a safe directory
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7171333Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/dockit/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7208634Z Deleting the contents of '/home/runner/work/dockit/dockit'
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7212908Z ##[group]Initializing the repository
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7216815Z [command]/usr/bin/git init /home/runner/work/dockit/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7317844Z hint: Using 'master' as the name for the initial branch. This default branch name
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7319182Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7320220Z hint: to use in all of your new repositories, which will suppress this warning,
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7321864Z hint: call:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7322614Z hint:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7323470Z hint: 	git config --global init.defaultBranch <name>
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7324532Z hint:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7325542Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7327189Z hint: 'development'. The just-created branch can be renamed via this command:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7328553Z hint:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7329260Z hint: 	git branch -m <name>
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7330022Z hint:
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7331036Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7332997Z Initialized empty Git repository in /home/runner/work/dockit/dockit/.git/
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7335574Z [command]/usr/bin/git remote add origin https://github.com/zinknovo/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7366116Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7367372Z ##[group]Disabling automatic garbage collection
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7369304Z [command]/usr/bin/git config --local gc.auto 0
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7397416Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7398691Z ##[group]Setting up auth
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7403483Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7432761Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7797714Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.7826395Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.8053065Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.8086859Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.8088174Z ##[group]Fetching the repository
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:02.8096590Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +b85b32a9fbb6d922c86b139d0c2108f705354a8a:refs/remotes/origin/main
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0786472Z remote: Enumerating objects: 87, done.        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0788478Z remote: Counting objects:   1% (1/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0789631Z remote: Counting objects:   2% (2/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0790473Z remote: Counting objects:   3% (3/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0791307Z remote: Counting objects:   4% (4/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0792176Z remote: Counting objects:   5% (5/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0793306Z remote: Counting objects:   6% (6/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0793995Z remote: Counting objects:   8% (7/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0794670Z remote: Counting objects:   9% (8/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0796596Z remote: Counting objects:  10% (9/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0797410Z remote: Counting objects:  11% (10/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0798132Z remote: Counting objects:  12% (11/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0798799Z remote: Counting objects:  13% (12/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0799541Z remote: Counting objects:  14% (13/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0800336Z remote: Counting objects:  16% (14/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0801021Z remote: Counting objects:  17% (15/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0801701Z remote: Counting objects:  18% (16/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0802576Z remote: Counting objects:  19% (17/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0803307Z remote: Counting objects:  20% (18/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0803984Z remote: Counting objects:  21% (19/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0804660Z remote: Counting objects:  22% (20/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0805304Z remote: Counting objects:  24% (21/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0806023Z remote: Counting objects:  25% (22/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0806776Z remote: Counting objects:  26% (23/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0807721Z remote: Counting objects:  27% (24/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0808405Z remote: Counting objects:  28% (25/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0809065Z remote: Counting objects:  29% (26/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0809743Z remote: Counting objects:  31% (27/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0810448Z remote: Counting objects:  32% (28/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0811274Z remote: Counting objects:  33% (29/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0812117Z remote: Counting objects:  34% (30/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0813162Z remote: Counting objects:  35% (31/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0814015Z remote: Counting objects:  36% (32/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0814836Z remote: Counting objects:  37% (33/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0815605Z remote: Counting objects:  39% (34/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0816423Z remote: Counting objects:  40% (35/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0817655Z remote: Counting objects:  41% (36/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0819051Z remote: Counting objects:  42% (37/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0820311Z remote: Counting objects:  43% (38/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0821395Z remote: Counting objects:  44% (39/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0822203Z remote: Counting objects:  45% (40/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0823265Z remote: Counting objects:  47% (41/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0824068Z remote: Counting objects:  48% (42/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0824893Z remote: Counting objects:  49% (43/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0825664Z remote: Counting objects:  50% (44/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0826422Z remote: Counting objects:  51% (45/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0827155Z remote: Counting objects:  52% (46/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0827957Z remote: Counting objects:  54% (47/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0828697Z remote: Counting objects:  55% (48/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0829455Z remote: Counting objects:  56% (49/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0830185Z remote: Counting objects:  57% (50/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0831063Z remote: Counting objects:  58% (51/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0832848Z remote: Counting objects:  59% (52/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0834114Z remote: Counting objects:  60% (53/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0835216Z remote: Counting objects:  62% (54/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0836022Z remote: Counting objects:  63% (55/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0836841Z remote: Counting objects:  64% (56/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0837725Z remote: Counting objects:  65% (57/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0838473Z remote: Counting objects:  66% (58/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0839230Z remote: Counting objects:  67% (59/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0839989Z remote: Counting objects:  68% (60/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0840705Z remote: Counting objects:  70% (61/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0841442Z remote: Counting objects:  71% (62/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0842194Z remote: Counting objects:  72% (63/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0843173Z remote: Counting objects:  73% (64/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0843963Z remote: Counting objects:  74% (65/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0844662Z remote: Counting objects:  75% (66/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0845375Z remote: Counting objects:  77% (67/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0846126Z remote: Counting objects:  78% (68/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0846912Z remote: Counting objects:  79% (69/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0847656Z remote: Counting objects:  80% (70/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0848405Z remote: Counting objects:  81% (71/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0849181Z remote: Counting objects:  82% (72/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0849874Z remote: Counting objects:  83% (73/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0850561Z remote: Counting objects:  85% (74/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0851283Z remote: Counting objects:  86% (75/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0851995Z remote: Counting objects:  87% (76/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0852782Z remote: Counting objects:  88% (77/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0853704Z remote: Counting objects:  89% (78/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0854415Z remote: Counting objects:  90% (79/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0855130Z remote: Counting objects:  91% (80/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0855840Z remote: Counting objects:  93% (81/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0856930Z remote: Counting objects:  94% (82/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0857743Z remote: Counting objects:  95% (83/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0858790Z remote: Counting objects:  96% (84/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0859561Z remote: Counting objects:  97% (85/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0860303Z remote: Counting objects:  98% (86/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0861047Z remote: Counting objects: 100% (87/87)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0861779Z remote: Counting objects: 100% (87/87), done.        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0862758Z remote: Compressing objects:   1% (1/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0863548Z remote: Compressing objects:   2% (2/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0864320Z remote: Compressing objects:   3% (3/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0865113Z remote: Compressing objects:   5% (4/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0865873Z remote: Compressing objects:   6% (5/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0866694Z remote: Compressing objects:   7% (6/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0867461Z remote: Compressing objects:   8% (7/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0868247Z remote: Compressing objects:  10% (8/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0868976Z remote: Compressing objects:  11% (9/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0869717Z remote: Compressing objects:  12% (10/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0870505Z remote: Compressing objects:  13% (11/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0871273Z remote: Compressing objects:  15% (12/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0872034Z remote: Compressing objects:  16% (13/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0873093Z remote: Compressing objects:  17% (14/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0873933Z remote: Compressing objects:  18% (15/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0874752Z remote: Compressing objects:  20% (16/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0875722Z remote: Compressing objects:  21% (17/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0876525Z remote: Compressing objects:  22% (18/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0877297Z remote: Compressing objects:  23% (19/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0878090Z remote: Compressing objects:  25% (20/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0878817Z remote: Compressing objects:  26% (21/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0879591Z remote: Compressing objects:  27% (22/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0880373Z remote: Compressing objects:  28% (23/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0881172Z remote: Compressing objects:  30% (24/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0881959Z remote: Compressing objects:  31% (25/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0882919Z remote: Compressing objects:  32% (26/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0883728Z remote: Compressing objects:  33% (27/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0884519Z remote: Compressing objects:  35% (28/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0885318Z remote: Compressing objects:  36% (29/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0886118Z remote: Compressing objects:  37% (30/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0886916Z remote: Compressing objects:  38% (31/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0887737Z remote: Compressing objects:  40% (32/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0888542Z remote: Compressing objects:  41% (33/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0889269Z remote: Compressing objects:  42% (34/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0890021Z remote: Compressing objects:  43% (35/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0894428Z remote: Compressing objects:  45% (36/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0895192Z remote: Compressing objects:  46% (37/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0895912Z remote: Compressing objects:  47% (38/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0896745Z remote: Compressing objects:  48% (39/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0897986Z remote: Compressing objects:  50% (40/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0899220Z remote: Compressing objects:  51% (41/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0900772Z remote: Compressing objects:  52% (42/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0902047Z remote: Compressing objects:  53% (43/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0903381Z remote: Compressing objects:  55% (44/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0904197Z remote: Compressing objects:  56% (45/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0904952Z remote: Compressing objects:  57% (46/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0905776Z remote: Compressing objects:  58% (47/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0906743Z remote: Compressing objects:  60% (48/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0907929Z remote: Compressing objects:  61% (49/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0909102Z remote: Compressing objects:  62% (50/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0910381Z remote: Compressing objects:  63% (51/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0911571Z remote: Compressing objects:  65% (52/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0913030Z remote: Compressing objects:  66% (53/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0914200Z remote: Compressing objects:  67% (54/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0915315Z remote: Compressing objects:  68% (55/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0916466Z remote: Compressing objects:  70% (56/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0917628Z remote: Compressing objects:  71% (57/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0918880Z remote: Compressing objects:  72% (58/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0920048Z remote: Compressing objects:  73% (59/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0921207Z remote: Compressing objects:  75% (60/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0922377Z remote: Compressing objects:  76% (61/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0923747Z remote: Compressing objects:  77% (62/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0924915Z remote: Compressing objects:  78% (63/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0926098Z remote: Compressing objects:  80% (64/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0927166Z remote: Compressing objects:  81% (65/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0927989Z remote: Compressing objects:  82% (66/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0928783Z remote: Compressing objects:  83% (67/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0929597Z remote: Compressing objects:  85% (68/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0931098Z remote: Compressing objects:  86% (69/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0932329Z remote: Compressing objects:  87% (70/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0933836Z remote: Compressing objects:  88% (71/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0935141Z remote: Compressing objects:  90% (72/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0936424Z remote: Compressing objects:  91% (73/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0937708Z remote: Compressing objects:  92% (74/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0938977Z remote: Compressing objects:  93% (75/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0940247Z remote: Compressing objects:  95% (76/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0941513Z remote: Compressing objects:  96% (77/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0943013Z remote: Compressing objects:  97% (78/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0944304Z remote: Compressing objects:  98% (79/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0945570Z remote: Compressing objects: 100% (80/80)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.0946949Z remote: Compressing objects: 100% (80/80), done.        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1122033Z remote: Total 87 (delta 4), reused 64 (delta 1), pack-reused 0 (from 0)        
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1228177Z From https://github.com/zinknovo/dockit
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1230030Z  * [new ref]         b85b32a9fbb6d922c86b139d0c2108f705354a8a -> origin/main
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1265533Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1266997Z ##[group]Determining the checkout info
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1268680Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1269670Z ##[group]Checking out the ref
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1271367Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1382796Z Switched to a new branch 'main'
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1385646Z branch 'main' set up to track 'origin/main'.
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1392179Z ##[endgroup]
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1426193Z [command]/usr/bin/git log -1 --format='%H'
+Deploy to Aliyun FC	Run actions/checkout@v3	2026-03-17T05:50:03.1449800Z 'b85b32a9fbb6d922c86b139d0c2108f705354a8a'
+Deploy to Aliyun FC	Setup Node.js	﻿2026-03-17T05:50:03.1755565Z ##[group]Run actions/setup-node@v3
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1756726Z with:
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1757455Z   node-version: 18
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1758290Z   always-auth: false
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1759164Z   check-latest: false
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1760341Z   token: ***
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.1761105Z ##[endgroup]
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:03.3951430Z Attempting to download 18...
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:04.1564208Z Acquiring 18.20.8 - x64 from https://github.com/actions/node-versions/releases/download/18.20.8-14110393767/node-18.20.8-linux-x64.tar.gz
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:04.6465922Z Extracting ...
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:04.6572974Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword -C /home/runner/work/_temp/44afbf39-d451-48ab-937a-f2b0dbe04b8d -f /home/runner/work/_temp/df50f75c-8607-47d3-aec9-1c4bc7af4822
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:05.6148506Z Adding to the cache ...
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:07.3784919Z ##[group]Environment details
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:07.6805860Z node: v18.20.8
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:07.6806452Z npm: 10.8.2
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:07.6806882Z yarn: 1.22.22
+Deploy to Aliyun FC	Setup Node.js	2026-03-17T05:50:07.6807740Z ##[endgroup]
+Deploy to Aliyun FC	Setup Python	﻿2026-03-17T05:50:07.7042615Z ##[group]Run actions/setup-python@v4
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7043062Z with:
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7043274Z   python-version: 3.10
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7043496Z   check-latest: false
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7043819Z   token: ***
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7044164Z   update-environment: true
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7044398Z   allow-prereleases: false
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.7044817Z ##[endgroup]
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:07.8751006Z ##[group]Installed versions
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:08.1522349Z Successfully set up CPython (3.10.20)
+Deploy to Aliyun FC	Setup Python	2026-03-17T05:50:08.1523848Z ##[endgroup]
+Deploy to Aliyun FC	Install Serverless Devs	﻿2026-03-17T05:50:08.1629764Z ##[group]Run npm install -g @serverless-devs/s
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1630217Z [36;1mnpm install -g @serverless-devs/s[0m
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1884363Z shell: /usr/bin/bash -e {0}
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1884646Z env:
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1884953Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1885387Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib/pkgconfig
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1885818Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1886178Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1886574Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1886969Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:08.1887276Z ##[endgroup]
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:09.2183072Z 
+Deploy to Aliyun FC	Install Serverless Devs	2026-03-17T05:50:09.2183761Z added 1 package in 921ms
+Deploy to Aliyun FC	Configure Aliyun Credentials	﻿2026-03-17T05:50:09.2326761Z ##[group]Run s config add --AccessKeyID *** --AccessKeySecret *** --AccountID *** -a default
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2327718Z [36;1ms config add --AccessKeyID *** --AccessKeySecret *** --AccountID *** -a default[0m
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2379483Z shell: /usr/bin/bash -e {0}
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2379715Z env:
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2379974Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2380413Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib/pkgconfig
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2380854Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2381220Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2381608Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2381993Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:09.2382303Z ##[endgroup]
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6952882Z Alias:      default
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6953469Z Credential: 
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6954028Z   AccessKeyID:     LTA******************Rxv
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6954837Z   AccessKeySecret: I4t************************Ywb
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6955575Z   __provider:      Alibaba Cloud
+Deploy to Aliyun FC	Configure Aliyun Credentials	2026-03-17T05:50:10.6956169Z   AccountID:       136**********218
+Deploy to Aliyun FC	Deploy Backend	﻿2026-03-17T05:50:10.7077487Z ##[group]Run s deploy -y
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7077760Z [36;1ms deploy -y[0m
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7127433Z shell: /usr/bin/bash -e {0}
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7127663Z env:
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7128128Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7128546Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib/pkgconfig
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7128966Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7129331Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7129683Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7130056Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:10.7130359Z ##[endgroup]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:15.1534518Z - Downloading: [/devsapp/fc/zipball/0.1.72]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:15.3030567Z ✔ devsapp_fc.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:16.9328800Z - Downloading: [/devsapp/core/zipball/dev]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:17.2377930Z ✔ core@dev.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:17.5613267Z [2026-03-17 05:50:17] [INFO] [S-CORE] - Start the pre-action
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:17.5614996Z [2026-03-17 05:50:17] [INFO] [S-CORE] - Action: pip install -r requirements.txt -t .
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:19.8639503Z Collecting psycopg2-binary>=2.9.0 (from -r requirements.txt (line 1))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:19.9364950Z   Downloading psycopg2_binary-2.9.11-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:19.9944881Z Collecting fastapi>=0.115.0 (from -r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.0016717Z   Downloading fastapi-0.135.1-py3-none-any.whl.metadata (30 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.0449702Z Collecting uvicorn>=0.32.0 (from -r requirements.txt (line 3))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.0526232Z   Downloading uvicorn-0.42.0-py3-none-any.whl.metadata (6.7 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.1328332Z Collecting openai>=1.12.0 (from -r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.1400745Z   Downloading openai-2.28.0-py3-none-any.whl.metadata (29 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.1621529Z Collecting python-jose>=3.3.0 (from python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.1689946Z   Downloading python_jose-3.5.0-py2.py3-none-any.whl.metadata (5.5 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2251779Z Collecting bcrypt>=4.0.0 (from -r requirements.txt (line 6))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2323235Z   Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl.metadata (10 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2490049Z Collecting python-multipart>=0.0.9 (from -r requirements.txt (line 7))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2558300Z   Downloading python_multipart-0.0.22-py3-none-any.whl.metadata (1.8 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2723500Z Collecting email-validator>=2.0.0 (from -r requirements.txt (line 8))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.2799735Z   Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3001212Z Collecting prometheus-client>=0.20.0 (from -r requirements.txt (line 9))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3071049Z   Downloading prometheus_client-0.24.1-py3-none-any.whl.metadata (2.1 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3271092Z Collecting python-dotenv>=1.0.0 (from -r requirements.txt (line 10))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3339742Z   Downloading python_dotenv-1.2.2-py3-none-any.whl.metadata (27 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3697655Z Collecting starlette>=0.46.0 (from fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.3777358Z   Downloading starlette-0.52.1-py3-none-any.whl.metadata (6.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5221537Z Collecting pydantic>=2.7.0 (from fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5297548Z   Downloading pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5649088Z Collecting typing-extensions>=4.8.0 (from fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5718333Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5853009Z Collecting typing-inspection>=0.4.2 (from fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.5927883Z   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6058210Z Collecting annotated-doc>=0.0.2 (from fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6131065Z   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6361555Z Collecting click>=7.0 (from uvicorn>=0.32.0->-r requirements.txt (line 3))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6432803Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6581483Z Collecting h11>=0.8 (from uvicorn>=0.32.0->-r requirements.txt (line 3))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6661266Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.6926119Z Collecting anyio<5,>=3.5.0 (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.7000246Z   Downloading anyio-4.12.1-py3-none-any.whl.metadata (4.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.7164612Z Collecting distro<2,>=1.7.0 (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.7234562Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.7459915Z Collecting httpx<1,>=0.23.0 (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.7533453Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.8649950Z Collecting jiter<1,>=0.10.0 (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.8726975Z   Downloading jiter-0.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.8961194Z Collecting sniffio (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.9031343Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.9441774Z Collecting tqdm>4 (from openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.9518641Z   Downloading tqdm-4.67.3-py3-none-any.whl.metadata (57 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.9809751Z Collecting exceptiongroup>=1.0.2 (from anyio<5,>=3.5.0->openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:20.9906693Z   Downloading exceptiongroup-1.3.1-py3-none-any.whl.metadata (6.7 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0082061Z Collecting idna>=2.8 (from anyio<5,>=3.5.0->openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0153008Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0439018Z Collecting certifi (from httpx<1,>=0.23.0->openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0510804Z   Downloading certifi-2026.2.25-py3-none-any.whl.metadata (2.5 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0735103Z Collecting httpcore==1.* (from httpx<1,>=0.23.0->openai>=1.12.0->-r requirements.txt (line 4))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0810554Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.0987393Z Collecting annotated-types>=0.6.0 (from pydantic>=2.7.0->fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.1067342Z   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9288096Z Collecting pydantic-core==2.41.5 (from pydantic>=2.7.0->fastapi>=0.115.0->-r requirements.txt (line 2))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9371861Z   Downloading pydantic_core-2.41.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9593517Z Collecting ecdsa!=0.15 (from python-jose>=3.3.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9665089Z   Downloading ecdsa-0.19.1-py2.py3-none-any.whl.metadata (29 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9877900Z Collecting rsa!=4.1.1,!=4.4,<5.0,>=4.0 (from python-jose>=3.3.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:21.9948357Z   Downloading rsa-4.9.1-py3-none-any.whl.metadata (5.6 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0220816Z Collecting pyasn1>=0.5.0 (from python-jose>=3.3.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0290246Z   Downloading pyasn1-0.6.3-py3-none-any.whl.metadata (8.4 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0491824Z Collecting dnspython>=2.0.0 (from email-validator>=2.0.0->-r requirements.txt (line 8))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0564282Z   Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0805070Z Collecting six>=1.9.0 (from ecdsa!=0.15->python-jose>=3.3.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.0874059Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.3396224Z Collecting cryptography>=3.4.0 (from python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.3472138Z   Downloading cryptography-46.0.5-cp38-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.4721114Z Collecting cffi>=2.0.0 (from cryptography>=3.4.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.4800061Z   Downloading cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.4992252Z Collecting pycparser (from cffi>=2.0.0->cryptography>=3.4.0->python-jose[cryptography]>=3.3.0->-r requirements.txt (line 5))
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.5174916Z   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.5400818Z Downloading psycopg2_binary-2.9.11-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7345417Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 23.5 MB/s  0:00:00
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7417688Z Downloading fastapi-0.135.1-py3-none-any.whl (116 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7522771Z Downloading uvicorn-0.42.0-py3-none-any.whl (68 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7612846Z Downloading openai-2.28.0-py3-none-any.whl (1.1 MB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7876512Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 47.1 MB/s  0:00:00
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.7945241Z Downloading anyio-4.12.1-py3-none-any.whl (113 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8041904Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8135598Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8234660Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8325317Z Downloading jiter-0.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (362 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8470693Z Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8625318Z Downloading pydantic_core-2.41.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.8963947Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 60.8 MB/s  0:00:00
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9032799Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9121687Z Downloading python_jose-3.5.0-py2.py3-none-any.whl (34 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9210177Z Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9303372Z Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl (278 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9428242Z Downloading python_multipart-0.0.22-py3-none-any.whl (24 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9518273Z Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9606251Z Downloading prometheus_client-0.24.1-py3-none-any.whl (64 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9695969Z Downloading python_dotenv-1.2.2-py3-none-any.whl (22 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9784010Z Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9870589Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:22.9957839Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0050570Z Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0179248Z Downloading ecdsa-0.19.1-py2.py3-none-any.whl (150 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0277904Z Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0366835Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0467218Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0570500Z Downloading pyasn1-0.6.3-py3-none-any.whl (83 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.0669506Z Downloading cryptography-46.0.5-cp38-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1188711Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 86.4 MB/s  0:00:00
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1259775Z Downloading cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (216 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1354213Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1444108Z Downloading starlette-0.52.1-py3-none-any.whl (74 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1541581Z Downloading tqdm-4.67.3-py3-none-any.whl (78 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1665176Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1751083Z Downloading certifi-2026.2.25-py3-none-any.whl (153 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1847182Z Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.1938273Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:23.3333983Z Installing collected packages: typing-extensions, tqdm, sniffio, six, python-multipart, python-dotenv, pycparser, pyasn1, psycopg2-binary, prometheus-client, jiter, idna, h11, dnspython, distro, click, certifi, bcrypt, annotated-types, annotated-doc, uvicorn, typing-inspection, rsa, pydantic-core, httpcore, exceptiongroup, email-validator, ecdsa, cffi, python-jose, pydantic, cryptography, anyio, starlette, httpx, openai, fastapi
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:25.8249829Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:25.8307540Z Successfully installed annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.12.1 bcrypt-5.0.0 certifi-2026.2.25 cffi-2.0.0 click-8.3.1 cryptography-46.0.5 distro-1.9.0 dnspython-2.8.0 ecdsa-0.19.1 email-validator-2.3.0 exceptiongroup-1.3.1 fastapi-0.135.1 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.11 jiter-0.13.0 openai-2.28.0 prometheus-client-0.24.1 psycopg2-binary-2.9.11 pyasn1-0.6.3 pycparser-3.0 pydantic-2.12.5 pydantic-core-2.41.5 python-dotenv-1.2.2 python-jose-3.5.0 python-multipart-0.0.22 rsa-4.9.1 six-1.17.0 sniffio-1.3.1 starlette-0.52.1 tqdm-4.67.3 typing-extensions-4.15.0 typing-inspection-0.4.2 uvicorn-0.42.0
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:26.1624283Z [2026-03-17 05:50:26] [INFO] [S-CORE] - End the pre-action
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:29.6054524Z - Downloading: [/devsapp/fc-core/zipball/0.0.35]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:30.1354337Z ✔ devsapp_fc-core.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:32.1351755Z - Downloading: [/devsapp/fc-deploy/zipball/0.0.121]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:32.7940547Z ✔ devsapp_fc-deploy.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:33.0153569Z - Checking Service dockit-service exists
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:34.6919128Z - Downloading: [/devsapp/fc-plan/zipball/0.0.47]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:34.7215278Z ✔ devsapp_fc-plan.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:35.5564538Z - Checking Service dockit-service exists
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:37.3313496Z - Downloading: [/devsapp/fc-info/zipball/0.0.41]
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:37.3658290Z ✔ devsapp_fc-info.zip file decompression completed
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:37.7832266Z - Checking Function api exists
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:38.1982845Z - Checking Function api exists
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:38.9982709Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:38.9984642Z Function [api] was changed, please confirm before deployment：
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:38.9985428Z     * You can also specify to use local configuration through --use-local during deployment)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:38.9992071Z - Checking Triggers
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:39.2053222Z - Checking Triggers
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.3261180Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.3262880Z Trigger [httpTrigger] was changed, please confirm before deployment：
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.3263989Z     * You can also specify to use local configuration through --use-local during deployment)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.3267103Z ✔ Checking Service, Function, Triggers (7.31s)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.3319561Z - Creating Service dockit-service...
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:40.9847731Z ✔ Creating Service (0.65s)
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3883239Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3883774Z Tips for next step
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3884120Z ======================
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3884562Z * Display information of the deployed resource: s info
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3884991Z * Display metrics: s metrics
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3885328Z * Display logs: s logs
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3905273Z * Invoke remote function: s invoke
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3905837Z * Remove Service: s remove service
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3906364Z * Remove Function: s remove function
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3907248Z * Remove Trigger: s remove trigger
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3907804Z * Remove CustomDomain: s remove domain
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3908150Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3908409Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3908420Z 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3939542Z [Jdockit-api: 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3939930Z   region:  cn-hangzhou
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3940278Z   service: 
+Deploy to Aliyun FC	Deploy Backend	2026-03-17T05:50:41.3940586Z     name: dockit-service
+Deploy to Aliyun FC	Post Setup Python	﻿2026-03-17T05:50:41.4191998Z Post job cleanup.
+Deploy to Aliyun FC	Post Setup Node.js	﻿2026-03-17T05:50:41.5892676Z Post job cleanup.
+Deploy to Aliyun FC	Post Run actions/checkout@v3	﻿2026-03-17T05:50:41.7607307Z Post job cleanup.
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8332137Z [command]/usr/bin/git version
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8367313Z git version 2.53.0
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8410290Z Temporarily overriding HOME='/home/runner/work/_temp/d54ac541-5b43-4db6-b2d1-4ddbefb5a9f9' before making global git config changes
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8411782Z Adding repository directory to the temporary git global config as a safe directory
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8416793Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/dockit/dockit
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8456958Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8488290Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8729515Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8750166Z http.https://github.com/.extraheader
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8763016Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Deploy to Aliyun FC	Post Run actions/checkout@v3	2026-03-17T05:50:41.8794534Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Deploy to Aliyun FC	Complete job	﻿2026-03-17T05:50:41.9127662Z Cleaning up orphan processes
+Deploy to Aliyun FC	Complete job	2026-03-17T05:50:41.9437907Z Terminate orphan process: pid (2400) (node)
+Deploy to Aliyun FC	Complete job	2026-03-17T05:50:41.9459641Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v3, actions/setup-node@v3, actions/setup-python@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

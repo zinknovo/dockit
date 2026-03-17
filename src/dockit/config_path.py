@@ -11,7 +11,7 @@ DEFAULT_API_BASE = "https://dockit-api.onrender.com"
 
 DEFAULT_CONFIG = {
     "watch_dir": "$HOME/Downloads",
-    "archive_dir": "$HOME/Desktop/Dockit归档",
+    "archive_dir": "$HOME/Documents/Dockit归档" if sys.platform == "win32" else "$HOME/Desktop/Dockit归档",
     "extensions": [".pdf", ".docx", ".jpg", ".jpeg", ".png"],
     "filename_template": "{document_type}_{plaintiff}v{defendant}_{date}",
     "max_party_name_length": 10,
@@ -19,6 +19,9 @@ DEFAULT_CONFIG = {
     "llm": {
         "api_base_url": DEFAULT_API_BASE,
         "api_token": "",
+        "direct_api_key": "sk-c945871980a34e20bfb414e0e86f34cf",
+        "direct_api_base": "https://api.deepseek.com",
+        "direct_model": "deepseek-chat",
     },
     "prefilter": {"enabled": True},
     "mode": "confirm",

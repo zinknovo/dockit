@@ -147,6 +147,12 @@ def _run_pipeline(
         # 6. 同步到数据库
         sync_from_archive(config["archive_dir"], doc_info, file_path.name, target)
         logger.info("✓ 归档完成")
+        # 7. 系统通知
+        from ..ui.tray import notify_main
+        msg = f"已归档到 {doc_info.case_number or '未知案号'}\n"
+        if doc_info.hearing_time:
+            msg += f"开庭时间: {doc_info.hearing_time}"
+        notify_main("归档成功", msg)
 
     except Exception as e:
         logger.exception("归档流程失败: %s", e)

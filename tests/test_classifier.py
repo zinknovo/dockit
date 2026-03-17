@@ -41,5 +41,6 @@ def test_classify_via_backend_api():
 def test_classify_requires_backend_config():
     """未配置 api_base_url / api_token 时抛错"""
     config = {"llm": {}}
-    with pytest.raises(ValueError, match="api_base_url|api_token"):
-        classify(config, "xxx" * 50)
+    with patch("os.environ", {}):
+        with pytest.raises(ValueError, match="api_base_url|api_token"):
+            classify(config, "xxx" * 50)
