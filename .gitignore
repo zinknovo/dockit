@@ -33,3 +33,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environment variables with secrets
+.env
+
+# Temporary complog reference backend (delete after porting)
+_ref/
