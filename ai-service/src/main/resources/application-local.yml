@@ -15,8 +15,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://${MYSQL_LOCAL_HOST:localhost}:${MYSQL_LOCAL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: ${MYSQL_LOCAL_USERNAME:root}
-    password: ${MYSQL_LOCAL_PASSWORD:}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 2
@@ -36,9 +36,9 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_LOCAL_HOST:localhost}
+      host: ${REDIS_HOST:localhost}
       port: 6379
-      password: ${REDIS_LOCAL_PASSWORD:}
+      password: ${REDIS_PASSWORD:}
       database: 1
       timeout: 10000
       lettuce:
@@ -66,7 +66,7 @@ spring:
       base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
 
   rabbitmq:
-    host: ${RABBITMQ_HOST:infra_rabbitmq}
+    host: ${RABBITMQ_HOST:localhost}
     port: 5672
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
