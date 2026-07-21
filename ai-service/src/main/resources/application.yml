@@ -11,7 +11,7 @@ spring:
       - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
   
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:infra_mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -36,7 +36,7 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:infra_redis}
+      host: ${REDIS_HOST:redis}
       port: 6379
       password: ${REDIS_PASSWORD}
       database: 1
@@ -54,7 +54,7 @@ spring:
       chat:
         model: qwen3.6-plus
       embedding:
-        model: text-embedding-v1
+        model: text-embedding-v4
         api-key: ${DASHSCOPE_API_KEY}
       rerank:
         enabled: true
@@ -66,7 +66,7 @@ spring:
       base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
 
   rabbitmq:
-    host: ${RABBITMQ_HOST:infra_rabbitmq}
+    host: ${RABBITMQ_HOST:rabbitmq}
     port: 5672
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
@@ -87,7 +87,7 @@ ai:
     reflection:
       enabled: true
   vector:
-    dimension: 1536
+    dimension: 1024
     hnsw:
       m: 16
       ef-construction: 200
@@ -107,10 +107,19 @@ ai:
       cooldown-ms: 300000
   # 多模型配置
   models:
+    # 默认使用的模型 code，对应 ModelType
+    default: deepseek-v4-pro
     openai:
       qwen3.6-plus:
         api-key: ${OPENAI_API_KEY}
         base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
+        # 当 OPENAI_BASE_URL 指向 DeepSeek 等第三方端点时，把内部模型名映射到厂商实际模型名
+        api-model-name: deepseek-v4-pro
+        enabled: true
+      deepseek-v4-pro:
+        api-key: ${OPENAI_API_KEY}
+        base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+        api-model-name: deepseek-v4-pro
         enabled: true
       glm-5:
         api-key: ${OPENAI_API_KEY}
@@ -127,7 +136,7 @@ ai:
 
 # MinIO配置
 minio:
-  endpoint: ${MINIO_ENDPOINT:http://infra_minio:9000}
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
   access-key: ${MINIO_ACCESS_KEY}
   secret-key: ${MINIO_SECRET_KEY}
   bucket: doc-ai

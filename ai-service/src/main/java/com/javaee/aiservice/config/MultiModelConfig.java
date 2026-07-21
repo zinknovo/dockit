@@ -33,6 +33,12 @@ public class MultiModelConfig {
         private String apiKey;
         private String model;
         private String baseUrl;
+        /**
+         * 实际调用 provider API 时使用的模型名。
+         * 为空时回退到 model（再为空时回退到 ModelType 的 code）。
+         * 用于把内部模型标识映射到不同厂商的实际模型名，例如 qwen3.6-plus -> deepseek-v4-pro。
+         */
+        private String apiModelName;
         private boolean enabled = true;
         
         public String getApiKey() {
@@ -54,11 +60,19 @@ public class MultiModelConfig {
         public String getBaseUrl() {
             return baseUrl;
         }
-        
+
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
         }
-        
+
+        public String getApiModelName() {
+            return apiModelName;
+        }
+
+        public void setApiModelName(String apiModelName) {
+            this.apiModelName = apiModelName;
+        }
+
         public boolean isEnabled() {
             return enabled;
         }

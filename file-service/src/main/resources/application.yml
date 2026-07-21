@@ -3,7 +3,7 @@ spring:
     name: file
   
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:infra_mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -29,7 +29,7 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:infra_redis}
+      host: ${REDIS_HOST:redis}
       port: 6379
       password: ${REDIS_PASSWORD}
       database: 1
@@ -42,7 +42,7 @@ spring:
           min-idle: 0
 
   rabbitmq:
-    host: ${RABBITMQ_HOST:infra_rabbitmq}
+    host: ${RABBITMQ_HOST:rabbitmq}
     port: 5672
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
@@ -75,7 +75,7 @@ server:
     context-path: /
 
 minio:
-  endpoint: ${MINIO_ENDPOINT:http://infra_minio:9000}
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
   access-key: ${MINIO_ACCESS_KEY}
   secret-key: ${MINIO_SECRET_KEY}
   bucket-name: doc-ai

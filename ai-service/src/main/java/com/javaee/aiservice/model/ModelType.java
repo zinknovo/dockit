@@ -2,6 +2,7 @@ package com.javaee.aiservice.model;
 
 public enum ModelType {
     QWEN36_PLUS("qwen3.6-plus", "通义千问3.6 Plus", "openai"),
+    DEEPSEEK_V4_PRO("deepseek-v4-pro", "DeepSeek V4 Pro", "openai"),
     GLM5("glm-5", "智谱GLM-5", "openai"),
     KIMI_K25("kimi-k2.5", "月之暗面K2.5", "openai"),
     MINIMAX_M25("MiniMax-M2.5", "MiniMax M2.5", "openai");

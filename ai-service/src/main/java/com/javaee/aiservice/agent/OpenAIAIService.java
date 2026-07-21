@@ -18,14 +18,20 @@ public class OpenAIAIService implements AIService {
     private final String apiKey;
     private final String baseUrl;
     private final ModelType modelType;
+    private final String apiModelName;
     private final boolean enabled;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     public OpenAIAIService(String apiKey, String baseUrl, ModelType modelType, boolean enabled) {
+        this(apiKey, baseUrl, modelType, null, enabled);
+    }
+
+    public OpenAIAIService(String apiKey, String baseUrl, ModelType modelType, String apiModelName, boolean enabled) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.modelType = modelType;
+        this.apiModelName = apiModelName;
         this.enabled = enabled;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
@@ -51,7 +57,7 @@ public class OpenAIAIService implements AIService {
             message.put("content", prompt);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", modelType.getCode());
+            requestBody.put("model", apiModelName != null && !apiModelName.isEmpty() ? apiModelName : modelType.getCode());
             requestBody.put("messages", new Object[]{message});
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);

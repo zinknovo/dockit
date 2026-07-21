@@ -32,7 +32,10 @@ public class AIServiceFactory {
     
     @Value("${spring.ai.openai.base-url:#{null}}")
     private String defaultOpenAiBaseUrl;
-    
+
+    @Value("${spring.ai.models.default:qwen3.6-plus}")
+    private String defaultModelCode;
+
     private final Map<ModelType, AIService> serviceMap = new ConcurrentHashMap<>();
     
     @PostConstruct
@@ -62,6 +65,7 @@ public class AIServiceFactory {
                 String baseUrl = defaultOpenAiBaseUrl;
                 boolean enabled = true;
                 
+                String apiModelName = null;
                 if (multiModelConfig.getOpenai().containsKey(modelType.getCode())) {
                     MultiModelConfig.ModelConfig config = multiModelConfig.getOpenai().get(modelType.getCode());
                     if (config.getApiKey() != null) {
@@ -70,15 +74,18 @@ public class AIServiceFactory {
                     if (config.getBaseUrl() != null) {
                         baseUrl = config.getBaseUrl();
                     }
+                    if (config.getApiModelName() != null) {
+                        apiModelName = config.getApiModelName();
+                    }
                     enabled = config.isEnabled();
                 }
-                
+
                 if (apiKey == null || baseUrl == null) {
                     log.warn("模型 {} 缺少apiKey或baseUrl配置，跳过注册", modelType.getName());
                     continue;
                 }
-                
-                OpenAIAIService service = new OpenAIAIService(apiKey, baseUrl, modelType, enabled);
+
+                OpenAIAIService service = new OpenAIAIService(apiKey, baseUrl, modelType, apiModelName, enabled);
                 serviceMap.put(modelType, service);
                 log.info("注册OpenAI兼容模型: {} (enabled: {})", modelType.getName(), enabled);
             }
@@ -103,7 +110,7 @@ public class AIServiceFactory {
     }
     
     public AIService getDefaultService() {
-        return getService(ModelType.QWEN36_PLUS);
+        return getService(ModelType.fromCode(defaultModelCode));
     }
     
     public Map<ModelType, AIService> getAllServices() {

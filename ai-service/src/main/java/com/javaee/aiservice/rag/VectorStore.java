@@ -39,7 +39,7 @@ public class VectorStore {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${ai.vector.dimension:1536}")
+    @Value("${ai.vector.dimension:1024}")
     private int defaultDimension;
 
     @Value("${ai.vector.hnsw.m:16}")

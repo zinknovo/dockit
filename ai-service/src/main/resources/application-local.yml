@@ -54,7 +54,7 @@ spring:
       chat:
         model: qwen3.6-plus
       embedding:
-        model: text-embedding-v1
+        model: text-embedding-v4
         api-key: ${DASHSCOPE_API_KEY}
       rerank:
         enabled: true
@@ -87,7 +87,7 @@ ai:
     reflection:
       enabled: true
   vector:
-    dimension: 1536
+    dimension: 1024
     hnsw:
       m: 16
       ef-construction: 200
