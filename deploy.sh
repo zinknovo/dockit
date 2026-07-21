@@ -25,35 +25,35 @@ echo "项目构建成功！"
 echo "\n步骤 2: 构建 Docker 镜像..."
 
 # 构建用户服务镜像
-docker build -t docai/user-service:1.0.0 user-service/
+docker build -t doclog/user-service:1.0.0 user-service/
 if [ $? -ne 0 ]; then
     echo "构建 user-service 镜像失败"
     exit 1
 fi
 
 # 构建文件服务镜像
-docker build -t docai/file-service:1.0.0 file-service/
+docker build -t doclog/file-service:1.0.0 file-service/
 if [ $? -ne 0 ]; then
     echo "构建 file-service 镜像失败"
     exit 1
 fi
 
 # 构建网关服务镜像
-docker build -t docai/gateway-service:1.0.0 gateway-service/
+docker build -t doclog/gateway-service:1.0.0 gateway-service/
 if [ $? -ne 0 ]; then
     echo "构建 gateway-service 镜像失败"
     exit 1
 fi
 
 # 构建 AI 服务镜像
-docker build -t docai/ai-service:1.0.0 ai-service/
+docker build -t doclog/ai-service:1.0.0 ai-service/
 if [ $? -ne 0 ]; then
     echo "构建 ai-service 镜像失败"
     exit 1
 fi
 
 # 构建文档服务镜像
-docker build -t docai/document-service:1.0.0 document-service/
+docker build -t doclog/document-service:1.0.0 document-service/
 if [ $? -ne 0 ]; then
     echo "构建 document-service 镜像失败"
     exit 1

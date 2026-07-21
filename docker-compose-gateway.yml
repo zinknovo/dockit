@@ -1,0 +1,3 @@
+# 此文件已废弃。
+# gateway 服务的部署配置已经合并到 docker-compose-services.yml 里。
+# 保留此文件仅作为历史记录，不要在部署命令里引用它。

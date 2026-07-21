@@ -28,22 +28,21 @@ scrape_configs:
         type: 'A'
         port: 8080
 
-  # 监控微服务
-  - job_name: 'docai-services'
-    dns_sd_configs:
-      - names:
-          - 'tasks.gateway-service'
-          - 'tasks.user-service'
-          - 'tasks.file-service'
-          - 'tasks.ai-service'
-          - 'tasks.document-service'
-        type: 'A'
-        port: 8080
+  # 监控微服务（每个服务端口不同，用 static_configs 按实际端口列出）
+  # gateway=8080 / user=8081 / file=8082 / ai=8083 / document=8084
+  - job_name: 'doclog-services'
+    static_configs:
+      - targets:
+          - 'gateway:8080'
+          - 'user:8081'
+          - 'file:8082'
+          - 'ai:8083'
+          - 'document:8084'
 
   # 监控基础设施服务
-  - job_name: 'docai-infra'
+  - job_name: 'doclog-infra'
     static_configs:
-      - targets: ['mysql:9104']  # 需要在 MySQL 容器中安装 exporters
-      - targets: ['redis:9121']  # 需要在 Redis 容器中安装 exporters
-      - targets: ['rabbitmq:15692']  # RabbitMQ 自带 Prometheus 端点
-      - targets: ['nacos:8848']  # Nacos 自带监控端点
+      - targets: ['mysql:9104']     # 需要启动 mysql exporter 容器
+      - targets: ['redis:9121']     # 需要启动 redis exporter 容器
+      - targets: ['rabbitmq:15692'] # RabbitMQ 自带 Prometheus 端点
+      - targets: ['nacos:8848']     # Nacos 自带监控端点

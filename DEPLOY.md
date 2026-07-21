@@ -196,7 +196,7 @@ docker service scale docai-services_gateway-service=3
 要更新服务的镜像版本，可以使用以下命令：
 
 ```bash
-docker service update --image docai/gateway-service:1.0.1 docai-services_gateway-service
+docker service update --image doclog/gateway-service:1.0.1 docai-services_gateway-service
 ```
 
 ### 3. 监控服务

@@ -6,7 +6,7 @@ services:
     image: mysql:8.0
     deploy:
       placement:
-        constraints: [node.hostname == ${DOC_AI_MANAGER_HOST}]
+        constraints: [node.role == manager]
       replicas: 1
       restart_policy:
         condition: on-failure
@@ -16,20 +16,20 @@ services:
     command: --max-connections=500
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./mysql-schema.sql:/docker-entrypoint-initdb.d/01-nacos-schema.sql:ro
+      - ./mysql-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     networks:
       - docai-network
     ports:
       - "3306:3306"
 
-  # Redis 集群
+  # Redis
   redis:
     image: redis:7.0
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
       placement:
-        max_replicas_per_node: 1
+        constraints: [node.role == manager]
       restart_policy:
         condition: on-failure
     command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
@@ -45,7 +45,7 @@ services:
     image: rabbitmq:3.8-management
     deploy:
       placement:
-        constraints: [node.hostname == ${DOC_AI_NODE1_HOST}]
+        constraints: [node.role == manager]
       replicas: 1
       restart_policy:
         condition: on-failure
@@ -63,7 +63,7 @@ services:
     image: minio/minio
     deploy:
       placement:
-        constraints: [node.hostname == ${DOC_AI_NODE1_HOST}]
+        constraints: [node.role == manager]
       replicas: 1
       restart_policy:
         condition: on-failure
@@ -81,10 +81,10 @@ services:
 
   # Nacos
   nacos:
-    image: nacos/nacos-server:v2.2.0
+    image: nacos/nacos-server:v2.4.3
     deploy:
       placement:
-        constraints: [node.hostname == ${DOC_AI_NODE3_HOST}]
+        constraints: [node.role == manager]
       replicas: 1
       restart_policy:
         condition: on-failure
