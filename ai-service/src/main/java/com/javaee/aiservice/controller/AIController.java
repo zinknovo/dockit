@@ -2,7 +2,6 @@ package com.javaee.aiservice.controller;
 
 import com.javaee.aiservice.dto.*;
 import com.javaee.aiservice.factory.AIServiceFactory;
-import com.javaee.aiservice.model.ModelType;
 import com.javaee.aiservice.security.RequestUserContext;
 import com.javaee.aiservice.service.*;
 import com.javaee.aiservice.vo.*;
