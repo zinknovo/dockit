@@ -27,6 +27,24 @@ public class DocumentVersionVO {
 
     private String changeLog;
 
+    /** git commit hash */
+    private String commitHash;
+
+    /** git 仓库内相对路径 */
+    private String filePath;
+
+    /** 用户备注 */
+    private String note;
+
+    /** 上传人 */
+    private String uploadedBy;
+
+    /** 上传时间 */
+    private LocalDateTime uploadedAt;
+
+    /** MinIO 对象 key */
+    private String fileUrl;
+
     private String createdBy;
 
     private LocalDateTime createTime;

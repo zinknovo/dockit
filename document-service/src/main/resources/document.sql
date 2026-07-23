@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS `document` (
   `user_id` BIGINT COMMENT '创建用户ID',
   `bucket_name` VARCHAR(128) COMMENT '文档内容所在MinIO桶',
   `object_name` VARCHAR(512) COMMENT '文档内容在MinIO中的对象名',
+  `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径',
+  `scope_id` VARCHAR(64) COMMENT 'git 仓库 scope，默认等于文档 id',
   `status` VARCHAR(20) DEFAULT 'active' COMMENT '状态：active-活跃，deleted-已删除',
   `version` INT DEFAULT 1 COMMENT '版本号',
   `category` VARCHAR(50) COMMENT '分类',
@@ -51,10 +53,17 @@ CREATE TABLE IF NOT EXISTS `document_version` (
   `summary` TEXT COMMENT '文档摘要',
   `keywords` TEXT COMMENT '关键词',
   `change_log` VARCHAR(500) COMMENT '变更日志',
+  `commit_hash` VARCHAR(64) COMMENT 'git commit hash',
+  `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径',
+  `note` TEXT COMMENT '用户备注',
+  `uploaded_by` VARCHAR(64) COMMENT '上传人',
+  `uploaded_at` DATETIME COMMENT '上传时间',
+  `file_url` VARCHAR(1024) COMMENT 'MinIO 对象 key，diff 时生成 presigned URL',
   `created_by` VARCHAR(64) COMMENT '创建人',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   INDEX `idx_document_id` (`document_id`),
-  INDEX `idx_version_number` (`version_number`)
+  INDEX `idx_version_number` (`version_number`),
+  INDEX `idx_document_commit` (`document_id`, `commit_hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文档版本表';
 
 -- 创建文档评论表

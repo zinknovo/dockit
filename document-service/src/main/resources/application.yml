@@ -20,7 +20,7 @@ spring:
     nacos:
       discovery:
         enabled: true
-        server-addr: nacos:8848
+        server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
         timeout: 30000
       client:
@@ -88,3 +88,13 @@ document:
   schema:
     auto-migration:
       enabled: true
+
+# 文档版本控制配置（git 仓库）
+doclog:
+  versioning:
+    root: ${DOCLOG_VERSIONING_ROOT:/data/doclog-repos}
+    default-author-name: doclog-system
+    default-author-email: system@doclog.local
+    git-quotepath: false
+    max-file-size: 10485760
+    allowed-extensions: txt,md,docx,doc,pdf

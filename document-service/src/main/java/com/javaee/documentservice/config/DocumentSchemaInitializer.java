@@ -112,6 +112,10 @@ public class DocumentSchemaInitializer implements ApplicationRunner {
                     "ALTER TABLE `document` ADD COLUMN `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'");
             addColumnIfMissing(connection, statement, "document", "update_time",
                     "ALTER TABLE `document` ADD COLUMN `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'");
+            addColumnIfMissing(connection, statement, "document", "file_path",
+                    "ALTER TABLE `document` ADD COLUMN `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径'");
+            addColumnIfMissing(connection, statement, "document", "scope_id",
+                    "ALTER TABLE `document` ADD COLUMN `scope_id` VARCHAR(64) COMMENT 'git 仓库 scope，默认等于文档 id'");
             addIndexIfMissing(connection, statement, "document", "idx_user_id",
                     "ALTER TABLE `document` ADD INDEX `idx_user_id` (`user_id`)");
             addIndexIfMissing(connection, statement, "document", "idx_bucket_name",
@@ -182,10 +186,24 @@ public class DocumentSchemaInitializer implements ApplicationRunner {
                     "ALTER TABLE `document_version` ADD COLUMN `created_by` VARCHAR(64) COMMENT '创建人'");
             addColumnIfMissing(connection, statement, "document_version", "create_time",
                     "ALTER TABLE `document_version` ADD COLUMN `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'");
+            addColumnIfMissing(connection, statement, "document_version", "commit_hash",
+                    "ALTER TABLE `document_version` ADD COLUMN `commit_hash` VARCHAR(64) COMMENT 'git commit hash'");
+            addColumnIfMissing(connection, statement, "document_version", "file_path",
+                    "ALTER TABLE `document_version` ADD COLUMN `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径'");
+            addColumnIfMissing(connection, statement, "document_version", "note",
+                    "ALTER TABLE `document_version` ADD COLUMN `note` TEXT COMMENT '用户备注'");
+            addColumnIfMissing(connection, statement, "document_version", "uploaded_by",
+                    "ALTER TABLE `document_version` ADD COLUMN `uploaded_by` VARCHAR(64) COMMENT '上传人'");
+            addColumnIfMissing(connection, statement, "document_version", "uploaded_at",
+                    "ALTER TABLE `document_version` ADD COLUMN `uploaded_at` DATETIME COMMENT '上传时间'");
+            addColumnIfMissing(connection, statement, "document_version", "file_url",
+                    "ALTER TABLE `document_version` ADD COLUMN `file_url` VARCHAR(1024) COMMENT 'MinIO 对象 key，diff 时生成 presigned URL'");
             addIndexIfMissing(connection, statement, "document_version", "idx_document_id",
                     "ALTER TABLE `document_version` ADD INDEX `idx_document_id` (`document_id`)");
             addIndexIfMissing(connection, statement, "document_version", "idx_version_number",
                     "ALTER TABLE `document_version` ADD INDEX `idx_version_number` (`version_number`)");
+            addIndexIfMissing(connection, statement, "document_version", "idx_document_commit",
+                    "ALTER TABLE `document_version` ADD INDEX `idx_document_commit` (`document_id`, `commit_hash`)");
 
             execute(statement, """
                     CREATE TABLE IF NOT EXISTS `document_comment` (

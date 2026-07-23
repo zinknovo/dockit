@@ -33,6 +33,12 @@ public class Document {
 
     private String objectName;
 
+    /** git 仓库内相对路径 */
+    private String filePath;
+
+    /** git 仓库 scope，默认等于文档 id */
+    private String scopeId;
+
     private String status;
 
     private Integer version;

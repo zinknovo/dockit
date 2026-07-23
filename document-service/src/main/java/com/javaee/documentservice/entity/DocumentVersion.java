@@ -31,6 +31,24 @@ public class DocumentVersion {
 
     private String changeLog;
 
+    /** git commit hash */
+    private String commitHash;
+
+    /** git 仓库内相对路径 */
+    private String filePath;
+
+    /** 用户备注（可修改，与 changeLog 区分） */
+    private String note;
+
+    /** 上传人 */
+    private String uploadedBy;
+
+    /** 上传时间 */
+    private LocalDateTime uploadedAt;
+
+    /** MinIO 对象 key，diff 时生成 presigned URL 供 doc-parser 下载 */
+    private String fileUrl;
+
     private String createdBy;
 
     private LocalDateTime createTime;
