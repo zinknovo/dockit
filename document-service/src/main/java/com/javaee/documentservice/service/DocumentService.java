@@ -5,6 +5,8 @@ import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
 import com.javaee.documentservice.entity.DocumentVersion;
 import com.javaee.documentservice.vo.DocumentVO;
+import com.javaee.documentservice.vo.DocumentVersionVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -84,4 +86,43 @@ public interface DocumentService {
      * @return 恢复后的文档VO
      */
     DocumentVO restoreVersion(String documentId, Integer versionNumber, Long userId);
+
+    /**
+     * 上传文档新版本（基于 git 版本控制 + MinIO 原始文件存储）
+     *
+     * @param documentId 文档ID
+     * @param file       上传的文件
+     * @param note       版本备注
+     * @param userId     操作用户ID
+     * @return 新版本VO
+     */
+    DocumentVersionVO uploadNewVersion(String documentId, MultipartFile file, String note, Long userId);
+
+    /**
+     * 获取文档版本列表（按版本号倒序）
+     *
+     * @param documentId 文档ID
+     * @param userId     操作用户ID
+     * @return 版本VO列表
+     */
+    List<DocumentVersionVO> listVersions(String documentId, Long userId);
+
+    /**
+     * 读取某个版本的文件内容
+     *
+     * @param documentId 文档ID
+     * @param versionId  版本ID
+     * @param userId     操作用户ID
+     * @return 文件内容
+     */
+    String getVersionContent(String documentId, String versionId, Long userId);
+
+    /**
+     * 修改版本备注
+     *
+     * @param versionId 版本ID
+     * @param note      新备注
+     * @param userId    操作用户ID
+     */
+    void updateVersionNote(String versionId, String note, Long userId);
 }

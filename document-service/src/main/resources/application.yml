@@ -98,3 +98,6 @@ doclog:
     git-quotepath: false
     max-file-size: 10485760
     allowed-extensions: txt,md,docx,doc,pdf
+  storage:
+    # presigned 下载链接有效期（秒），供 doc-parser 拉取文件
+    presigned-url-expiry-seconds: 3600

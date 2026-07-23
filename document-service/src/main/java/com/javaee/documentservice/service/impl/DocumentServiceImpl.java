@@ -11,9 +11,14 @@ import com.javaee.documentservice.mapper.DocumentMapper;
 import com.javaee.documentservice.mapper.DocumentVersionMapper;
 import com.javaee.documentservice.service.DocumentAccessService;
 import com.javaee.documentservice.service.DocumentContentService;
+import com.javaee.documentservice.service.DocumentFileStorageService;
 import com.javaee.documentservice.service.DocumentService;
 import com.javaee.documentservice.util.DocumentParserUtil;
+import com.javaee.documentservice.versioning.Author;
+import com.javaee.documentservice.versioning.VersionControlProperties;
+import com.javaee.documentservice.versioning.VersionControlService;
 import com.javaee.documentservice.vo.DocumentVO;
+import com.javaee.documentservice.vo.DocumentVersionVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -22,11 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +64,15 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private VersionControlService versionControlService;
+
+    @Autowired
+    private DocumentFileStorageService documentFileStorageService;
+
+    @Autowired
+    private VersionControlProperties versionControlProperties;
 
     /**
      * 创建文档
@@ -334,6 +351,121 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
+     * 上传文档新版本
+     * 校验文件 -> 初始化 git 仓库（首次）-> 上传 MinIO -> git commit -> 写版本表 -> 更新文档主表
+     */
+    @Override
+    @Transactional
+    public DocumentVersionVO uploadNewVersion(String documentId, MultipartFile file, String note, Long userId) {
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanWrite(document, userId);
+
+        validateUploadFile(file);
+
+        String scopeId = document.getScopeId() != null ? document.getScopeId() : document.getId();
+        if (!versionControlService.repoExists(scopeId)) {
+            versionControlService.initRepo(scopeId);
+        }
+        String fileName = sanitizeFileName(file.getOriginalFilename());
+        String relativePath = document.getFilePath() != null ? document.getFilePath() : scopeId + "/" + fileName;
+
+        int nextVersionNumber = Optional.ofNullable(documentVersionMapper.selectMaxVersionNumber(documentId)).orElse(0) + 1;
+        String objectKey = "document-files/" + documentId + "/v" + nextVersionNumber + "/" + fileName;
+        String bucketName = storageBucketName(document);
+
+        byte[] content;
+        try {
+            content = file.getBytes();
+        } catch (IOException e) {
+            throw new BusinessException("读取上传文件失败: " + e.getMessage());
+        }
+        String fileUrl = documentFileStorageService.saveFile(bucketName, objectKey, content, file.getContentType());
+
+        String commitHash = versionControlService.commitVersion(new VersionControlService.CommitRequest(
+                scopeId, relativePath, content,
+                new Author(versionControlProperties.getDefaultAuthorName(), versionControlProperties.getDefaultAuthorEmail()),
+                note));
+
+        DocumentVersion version = new DocumentVersion();
+        version.setDocumentId(documentId);
+        version.setVersionNumber(nextVersionNumber);
+        version.setTitle(document.getTitle());
+        version.setChangeLog(note);
+        version.setNote(note);
+        version.setCommitHash(commitHash);
+        version.setFilePath(relativePath);
+        version.setFileUrl(fileUrl);
+        version.setUploadedBy(String.valueOf(userId));
+        version.setUploadedAt(LocalDateTime.now());
+        version.setCreatedBy(String.valueOf(userId));
+        version.setCreateTime(LocalDateTime.now());
+        documentVersionMapper.insert(version);
+
+        document.setVersion(nextVersionNumber);
+        document.setFilePath(relativePath);
+        document.setScopeId(scopeId);
+        document.setUpdateTime(LocalDateTime.now());
+        documentMapper.updateById(document);
+
+        return convertVersionToVO(version);
+    }
+
+    /**
+     * 获取文档版本列表（按版本号倒序）
+     */
+    @Override
+    public List<DocumentVersionVO> listVersions(String documentId, Long userId) {
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanRead(document, userId);
+        return documentVersionMapper.selectByDocumentId(documentId).stream()
+                .map(this::convertVersionToVO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 读取某个版本的文件内容（从 git 历史中取）
+     */
+    @Override
+    public String getVersionContent(String documentId, String versionId, Long userId) {
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanRead(document, userId);
+        DocumentVersion version = documentVersionMapper.selectById(versionId);
+        if (version == null || !documentId.equals(version.getDocumentId())) {
+            throw new BusinessException("版本不存在");
+        }
+        String scopeId = document.getScopeId() != null ? document.getScopeId() : document.getId();
+        return versionControlService.readFileAtVersion(scopeId, version.getCommitHash(), version.getFilePath());
+    }
+
+    /**
+     * 修改版本备注
+     */
+    @Override
+    @Transactional
+    public void updateVersionNote(String versionId, String note, Long userId) {
+        DocumentVersion version = documentVersionMapper.selectById(versionId);
+        if (version == null) {
+            throw new BusinessException("版本不存在");
+        }
+        Document document = documentMapper.selectById(version.getDocumentId());
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanWrite(document, userId);
+        version.setNote(note);
+        documentVersionMapper.updateById(version);
+    }
+
+    /**
      * 保存文档版本
      * @param document 当前文档
      * @param changeLog 变更日志
@@ -432,5 +564,72 @@ public class DocumentServiceImpl implements DocumentService {
         } catch (JsonProcessingException e) {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * 校验上传文件：非空、大小、扩展名
+     */
+    private void validateUploadFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("上传文件不能为空");
+        }
+        if (file.getSize() > versionControlProperties.getMaxFileSize()) {
+            throw new BusinessException("文件大小超过限制: " + versionControlProperties.getMaxFileSize() + " 字节");
+        }
+        String extension = extractExtension(file.getOriginalFilename());
+        if (!versionControlProperties.getAllowedExtensions().contains(extension)) {
+            throw new BusinessException("不支持的文件类型: " + extension);
+        }
+    }
+
+    /**
+     * 规范化文件名：去掉目录部分，替换非法字符
+     */
+    private String sanitizeFileName(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return "unnamed";
+        }
+        String name = originalFilename;
+        int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+        if (slash >= 0) {
+            name = name.substring(slash + 1);
+        }
+        name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+        return name.isBlank() ? "unnamed" : name;
+    }
+
+    private String extractExtension(String fileName) {
+        if (fileName == null) {
+            return "";
+        }
+        int dot = fileName.lastIndexOf('.');
+        if (dot < 0 || dot == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(dot + 1).toLowerCase();
+    }
+
+    /**
+     * 将 DocumentVersion 实体转换为 VO
+     */
+    private DocumentVersionVO convertVersionToVO(DocumentVersion version) {
+        DocumentVersionVO vo = new DocumentVersionVO();
+        vo.setId(version.getId());
+        vo.setDocumentId(version.getDocumentId());
+        vo.setVersionNumber(version.getVersionNumber());
+        vo.setTitle(version.getTitle());
+        vo.setContent(version.getContent());
+        vo.setSummary(version.getSummary());
+        vo.setKeywords(convertJsonToList(version.getKeywords()));
+        vo.setChangeLog(version.getChangeLog());
+        vo.setCommitHash(version.getCommitHash());
+        vo.setFilePath(version.getFilePath());
+        vo.setNote(version.getNote());
+        vo.setUploadedBy(version.getUploadedBy());
+        vo.setUploadedAt(version.getUploadedAt());
+        vo.setFileUrl(version.getFileUrl());
+        vo.setCreatedBy(version.getCreatedBy());
+        vo.setCreateTime(version.getCreateTime());
+        return vo;
     }
 }
