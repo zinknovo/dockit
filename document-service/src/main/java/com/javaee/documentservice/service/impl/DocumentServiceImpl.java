@@ -1,7 +1,11 @@
 package com.javaee.documentservice.service.impl;
 
 import com.javaee.common.exception.BusinessException;
+import com.javaee.documentservice.client.DocParserClient;
+import com.javaee.documentservice.client.DocParserException;
 import com.javaee.documentservice.client.FileServiceClient;
+import com.javaee.documentservice.client.dto.ContractCompareResponse;
+import com.javaee.documentservice.client.dto.DocumentLocator;
 import com.javaee.documentservice.dto.DocumentCreateDTO;
 import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
@@ -73,6 +77,9 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Autowired
     private VersionControlProperties versionControlProperties;
+
+    @Autowired
+    private DocParserClient docParserClient;
 
     /**
      * 创建文档
@@ -483,6 +490,44 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
+     * 比对文档两个版本
+     * 为两个版本的 MinIO 原始文件生成 presigned 下载链接，调用 doc-parser 比对
+     */
+    @Override
+    public ContractCompareResponse diffVersions(String documentId, String fromVersionId, String toVersionId, Long userId) {
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanRead(document, userId);
+
+        DocumentVersion fromVersion = documentVersionMapper.selectById(fromVersionId);
+        DocumentVersion toVersion = documentVersionMapper.selectById(toVersionId);
+        if (fromVersion == null || toVersion == null
+                || !documentId.equals(fromVersion.getDocumentId())
+                || !documentId.equals(toVersion.getDocumentId())) {
+            throw new BusinessException("版本不存在");
+        }
+        if (fromVersion.getFileUrl() == null || toVersion.getFileUrl() == null) {
+            throw new BusinessException("该版本未上传文件，无法比对");
+        }
+
+        String bucketName = storageBucketName(document);
+        String fromUrl = documentFileStorageService.getPresignedDownloadUrl(bucketName, fromVersion.getFileUrl());
+        String toUrl = documentFileStorageService.getPresignedDownloadUrl(bucketName, toVersion.getFileUrl());
+        DocumentLocator original = new DocumentLocator(fromUrl, fromVersionId,
+                fileNameOf(fromVersion.getFileUrl()), extractExtension(fromVersion.getFileUrl()));
+        DocumentLocator modified = new DocumentLocator(toUrl, toVersionId,
+                fileNameOf(toVersion.getFileUrl()), extractExtension(toVersion.getFileUrl()));
+
+        try {
+            return docParserClient.compareContracts(original, modified);
+        } catch (DocParserException e) {
+            throw new BusinessException("比对服务暂不可用: " + e.getMessage());
+        }
+    }
+
+    /**
      * 保存文档版本
      * @param document 当前文档
      * @param changeLog 变更日志
@@ -624,6 +669,17 @@ public class DocumentServiceImpl implements DocumentService {
             return "";
         }
         return fileName.substring(dot + 1).toLowerCase();
+    }
+
+    /**
+     * 从路径或对象 key 中取最后一段作为文件名
+     */
+    private String fileNameOf(String pathOrKey) {
+        if (pathOrKey == null) {
+            return null;
+        }
+        int slash = Math.max(pathOrKey.lastIndexOf('/'), pathOrKey.lastIndexOf('\\'));
+        return slash >= 0 ? pathOrKey.substring(slash + 1) : pathOrKey;
     }
 
     /**

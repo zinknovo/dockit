@@ -2,6 +2,10 @@ package com.javaee.documentservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaee.common.exception.BusinessException;
+import com.javaee.documentservice.client.DocParserClient;
+import com.javaee.documentservice.client.DocParserException;
+import com.javaee.documentservice.client.dto.ContractCompareResponse;
+import com.javaee.documentservice.client.dto.DocumentLocator;
 import com.javaee.documentservice.entity.Document;
 import com.javaee.documentservice.entity.DocumentVersion;
 import com.javaee.documentservice.mapper.DocumentMapper;
@@ -17,6 +21,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,7 +34,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * 文档版本控制业务逻辑单元测试
- * mock 掉 VersionControlService / DocumentFileStorageService / mapper，覆盖上传、列版本、取内容、改备注主链路
+ * mock 掉 VersionControlService / DocumentFileStorageService / DocParserClient / mapper，
+ * 覆盖上传、列版本、取内容、改备注、比对主链路
  */
 class DocumentVersioningServiceTest {
 
@@ -39,6 +45,7 @@ class DocumentVersioningServiceTest {
     private DocumentAccessService documentAccessService;
     private VersionControlService versionControlService;
     private DocumentFileStorageService documentFileStorageService;
+    private DocParserClient docParserClient;
     private VersionControlProperties versionControlProperties;
     private DocumentServiceImpl documentService;
 
@@ -50,6 +57,7 @@ class DocumentVersioningServiceTest {
         documentAccessService = org.mockito.Mockito.mock(DocumentAccessService.class);
         versionControlService = org.mockito.Mockito.mock(VersionControlService.class);
         documentFileStorageService = org.mockito.Mockito.mock(DocumentFileStorageService.class);
+        docParserClient = org.mockito.Mockito.mock(DocParserClient.class);
         versionControlProperties = new VersionControlProperties();
 
         documentService = new DocumentServiceImpl();
@@ -59,6 +67,7 @@ class DocumentVersioningServiceTest {
         ReflectionTestUtils.setField(documentService, "documentAccessService", documentAccessService);
         ReflectionTestUtils.setField(documentService, "versionControlService", versionControlService);
         ReflectionTestUtils.setField(documentService, "documentFileStorageService", documentFileStorageService);
+        ReflectionTestUtils.setField(documentService, "docParserClient", docParserClient);
         ReflectionTestUtils.setField(documentService, "versionControlProperties", versionControlProperties);
         ReflectionTestUtils.setField(documentService, "objectMapper", new ObjectMapper());
     }
@@ -171,6 +180,56 @@ class DocumentVersioningServiceTest {
 
         assertThat(version.getNote()).isEqualTo("新备注");
         verify(documentVersionMapper).updateById(version);
+    }
+
+    @Test
+    void diffVersionsPresignsUrlsAndCallsDocParser() {
+        Document document = newDocument("doc-1", 7L);
+        document.setBucketName("user-7");
+        DocumentVersion from = versionRow("v1", "doc-1", 1, "h1");
+        from.setFileUrl("document-files/doc-1/v1/a.md");
+        DocumentVersion to = versionRow("v2", "doc-1", 2, "h2");
+        to.setFileUrl("document-files/doc-1/v2/a.md");
+        when(documentMapper.selectById("doc-1")).thenReturn(document);
+        when(documentVersionMapper.selectById("v1")).thenReturn(from);
+        when(documentVersionMapper.selectById("v2")).thenReturn(to);
+        when(documentFileStorageService.getPresignedDownloadUrl("user-7", "document-files/doc-1/v1/a.md")).thenReturn("http://minio/v1");
+        when(documentFileStorageService.getPresignedDownloadUrl("user-7", "document-files/doc-1/v2/a.md")).thenReturn("http://minio/v2");
+        ContractCompareResponse response = new ContractCompareResponse("差异", List.of(), Map.of());
+        when(docParserClient.compareContracts(any(), any())).thenReturn(response);
+
+        ContractCompareResponse result = documentService.diffVersions("doc-1", "v1", "v2", 7L);
+
+        assertThat(result).isSameAs(response);
+        ArgumentCaptor<DocumentLocator> locatorCaptor = ArgumentCaptor.forClass(DocumentLocator.class);
+        verify(docParserClient).compareContracts(locatorCaptor.capture(), locatorCaptor.capture());
+        DocumentLocator original = locatorCaptor.getAllValues().get(0);
+        DocumentLocator modified = locatorCaptor.getAllValues().get(1);
+        assertThat(original.fileUrl()).isEqualTo("http://minio/v1");
+        assertThat(original.cacheKey()).isEqualTo("v1");
+        assertThat(original.fileName()).isEqualTo("a.md");
+        assertThat(original.fileType()).isEqualTo("md");
+        assertThat(modified.fileUrl()).isEqualTo("http://minio/v2");
+        assertThat(modified.cacheKey()).isEqualTo("v2");
+    }
+
+    @Test
+    void diffVersionsWrapsDocParserFailureAsBusinessException() {
+        Document document = newDocument("doc-1", 7L);
+        document.setBucketName("user-7");
+        DocumentVersion from = versionRow("v1", "doc-1", 1, "h1");
+        from.setFileUrl("document-files/doc-1/v1/a.md");
+        DocumentVersion to = versionRow("v2", "doc-1", 2, "h2");
+        to.setFileUrl("document-files/doc-1/v2/a.md");
+        when(documentMapper.selectById("doc-1")).thenReturn(document);
+        when(documentVersionMapper.selectById("v1")).thenReturn(from);
+        when(documentVersionMapper.selectById("v2")).thenReturn(to);
+        when(documentFileStorageService.getPresignedDownloadUrl(anyString(), anyString())).thenReturn("http://minio/x");
+        when(docParserClient.compareContracts(any(), any())).thenThrow(new DocParserException("连接超时"));
+
+        assertThatThrownBy(() -> documentService.diffVersions("doc-1", "v1", "v2", 7L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("比对服务暂不可用");
     }
 
     private Document newDocument(String id, Long userId) {

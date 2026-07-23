@@ -2,6 +2,8 @@ package com.javaee.documentservice.controller;
 
 import com.javaee.common.constant.ErrorCodeEnum;
 import com.javaee.common.model.Result;
+import com.javaee.documentservice.client.dto.ContractCompareResponse;
+import com.javaee.documentservice.dto.VersionDiffRequest;
 import com.javaee.documentservice.security.RequestUserContext;
 import com.javaee.documentservice.service.DocumentService;
 import com.javaee.documentservice.vo.DocumentVersionVO;
@@ -13,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,6 +95,18 @@ class DocumentVersionControllerTest {
 
         assertThat(result.getCode()).isEqualTo(ErrorCodeEnum.SUCCESS.getCode());
         verify(documentService).updateVersionNote("ver-1", "新备注", 7L);
+    }
+
+    @Test
+    void diffVersionsDelegatesIdsToService() {
+        ContractCompareResponse response = new ContractCompareResponse("差异", List.of(), Map.of());
+        when(documentService.diffVersions("doc-1", "v1", "v2", 7L)).thenReturn(response);
+
+        Result<ContractCompareResponse> result = controller.diffVersions("doc-1", new VersionDiffRequest("v1", "v2"));
+
+        assertThat(result.getCode()).isEqualTo(ErrorCodeEnum.SUCCESS.getCode());
+        assertThat(result.getData()).isSameAs(response);
+        verify(documentService).diffVersions("doc-1", "v1", "v2", 7L);
     }
 
     private DocumentVersionVO versionVo(String id, int versionNumber) {
