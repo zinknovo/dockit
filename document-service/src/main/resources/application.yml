@@ -101,3 +101,7 @@ doclog:
   storage:
     # presigned 下载链接有效期（秒），供 doc-parser 拉取文件
     presigned-url-expiry-seconds: 3600
+  doc-parser:
+    # doc-parser 比对服务地址（本地 IDE 用 localhost，Docker 访问宿主用 host.docker.internal）
+    base-url: ${DOC_PARSER_BASE_URL:http://localhost:8080}
+    timeout: 60s
