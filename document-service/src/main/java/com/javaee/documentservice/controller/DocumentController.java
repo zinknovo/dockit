@@ -4,15 +4,16 @@ import com.javaee.common.model.Result;
 import com.javaee.documentservice.dto.DocumentCreateDTO;
 import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
-import com.javaee.documentservice.entity.DocumentVersion;
 import com.javaee.documentservice.security.RequestUserContext;
 import com.javaee.documentservice.service.DocumentService;
 import com.javaee.documentservice.vo.DocumentVO;
+import com.javaee.documentservice.vo.DocumentVersionVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -155,14 +156,78 @@ public class DocumentController {
     /**
      * 获取文档版本列表
      * @param id 文档ID
-     * @return 文档版本列表
+     * @return 版本VO列表
      */
     @GetMapping("/{id}/versions")
     @Operation(summary = "获取文档版本列表", description = "获取文档的所有历史版本，按版本号降序排列")
-    public Result<List<DocumentVersion>> getVersions(@Parameter(description = "文档ID") @PathVariable String id) {
+    public Result<List<DocumentVersionVO>> getVersions(@Parameter(description = "文档ID") @PathVariable String id) {
         Long userId = requestUserContext.getRequiredUserId();
-        List<DocumentVersion> versions = documentService.getVersions(id, userId);
-        return Result.success(versions);
+        return Result.success(documentService.listVersions(id, userId));
+    }
+
+    /**
+     * 上传文档新版本
+     * @param id 文档ID
+     * @param file 上传的文件
+     * @param note 版本备注
+     * @return 新版本VO
+     */
+    @PostMapping("/{id}/versions")
+    @Operation(summary = "上传文档新版本", description = "上传文件作为文档新版本，写入 git 并存储到 MinIO")
+    public Result<DocumentVersionVO> uploadNewVersion(
+            @Parameter(description = "文档ID") @PathVariable String id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "note", required = false) String note) {
+        Long userId = requestUserContext.getRequiredUserId();
+        return Result.success(documentService.uploadNewVersion(id, file, note, userId));
+    }
+
+    /**
+     * 获取版本详情
+     * @param id 文档ID
+     * @param versionId 版本ID
+     * @return 版本VO
+     */
+    @GetMapping("/{id}/versions/{versionId}")
+    @Operation(summary = "获取版本详情", description = "获取文档某个版本的元数据")
+    public Result<DocumentVersionVO> getVersionDetail(
+            @Parameter(description = "文档ID") @PathVariable String id,
+            @Parameter(description = "版本ID") @PathVariable String versionId) {
+        Long userId = requestUserContext.getRequiredUserId();
+        return Result.success(documentService.getVersionDetail(id, versionId, userId));
+    }
+
+    /**
+     * 获取版本文件内容
+     * @param id 文档ID
+     * @param versionId 版本ID
+     * @return 文件内容
+     */
+    @GetMapping("/{id}/versions/{versionId}/content")
+    @Operation(summary = "获取版本文件内容", description = "读取文档某个版本的文件内容（从 git 历史中取）")
+    public Result<String> getVersionContent(
+            @Parameter(description = "文档ID") @PathVariable String id,
+            @Parameter(description = "版本ID") @PathVariable String versionId) {
+        Long userId = requestUserContext.getRequiredUserId();
+        return Result.success(documentService.getVersionContent(id, versionId, userId));
+    }
+
+    /**
+     * 修改版本备注
+     * @param id 文档ID
+     * @param versionId 版本ID
+     * @param note 新备注
+     * @return 无
+     */
+    @PutMapping("/{id}/versions/{versionId}/note")
+    @Operation(summary = "修改版本备注", description = "更新某个版本的备注")
+    public Result<Void> updateVersionNote(
+            @Parameter(description = "文档ID") @PathVariable String id,
+            @Parameter(description = "版本ID") @PathVariable String versionId,
+            @Parameter(description = "新备注") @RequestParam("note") String note) {
+        Long userId = requestUserContext.getRequiredUserId();
+        documentService.updateVersionNote(versionId, note, userId);
+        return Result.success();
     }
 
     /**

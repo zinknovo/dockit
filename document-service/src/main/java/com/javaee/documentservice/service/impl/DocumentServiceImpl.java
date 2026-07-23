@@ -429,6 +429,23 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
+     * 获取某个版本的详情（元数据，不含文件内容）
+     */
+    @Override
+    public DocumentVersionVO getVersionDetail(String documentId, String versionId, Long userId) {
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("文档不存在");
+        }
+        documentAccessService.assertCanRead(document, userId);
+        DocumentVersion version = documentVersionMapper.selectById(versionId);
+        if (version == null || !documentId.equals(version.getDocumentId())) {
+            throw new BusinessException("版本不存在");
+        }
+        return convertVersionToVO(version);
+    }
+
+    /**
      * 读取某个版本的文件内容（从 git 历史中取）
      */
     @Override

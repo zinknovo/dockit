@@ -108,6 +108,16 @@ public interface DocumentService {
     List<DocumentVersionVO> listVersions(String documentId, Long userId);
 
     /**
+     * 获取某个版本的详情（元数据，不含文件内容）
+     *
+     * @param documentId 文档ID
+     * @param versionId  版本ID
+     * @param userId     操作用户ID
+     * @return 版本VO
+     */
+    DocumentVersionVO getVersionDetail(String documentId, String versionId, Long userId);
+
+    /**
      * 读取某个版本的文件内容
      *
      * @param documentId 文档ID
