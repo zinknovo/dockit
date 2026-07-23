@@ -10,7 +10,11 @@ import java.util.List;
 /**
  * 文本差异对比工具类
  * 基于LCS（最长公共子序列）算法实现
+ *
+ * @deprecated 改用 doc-parser 做合同版本比对（见 {@link com.javaee.documentservice.client.DocParserClient}），
+ * 仅保留向后兼容，新代码勿再调用
  */
+@Deprecated
 public class DiffUtil {
 
     private static final Logger log = LoggerFactory.getLogger(DiffUtil.class);
