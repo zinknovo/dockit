@@ -9,7 +9,7 @@ import java.time.Duration;
  * doc-parser 比对服务配置
  */
 @Configuration
-@ConfigurationProperties(prefix = "doclog.doc-parser")
+@ConfigurationProperties(prefix = "dockit.doc-parser")
 public class DocParserProperties {
 
     /** doc-parser 服务地址，本地 IDE 用 localhost，Docker 访问宿主用 host.docker.internal */

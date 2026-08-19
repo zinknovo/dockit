@@ -266,7 +266,7 @@ public class RagController {
         }
 
         String prompt = String.format("""
-                你是DocAI知识库问答助手。请严格基于【知识库片段】回答用户问题。
+                你是Dockit知识库问答助手。请严格基于【知识库片段】回答用户问题。
                 如果片段中没有相关信息，请回答“知识库中未找到相关信息”，不要编造。
 
                 【检索策略】

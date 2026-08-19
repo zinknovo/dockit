@@ -862,7 +862,7 @@ public class AgentExecutionService {
                                               List<AgentToolResult> previousResults,
                                               int iteration) {
         return """
-                你是DocAI的Agent执行器，正在进行第%s轮补充规划。请只输出JSON数组，不要输出解释、Markdown或代码块。
+                你是Dockit的Agent执行器，正在进行第%s轮补充规划。请只输出JSON数组，不要输出解释、Markdown或代码块。
                 如果任务已经可以回答，请输出空数组 []。
                 如果还需要工具，请输出最多3个后续步骤。
                 %s
@@ -906,7 +906,7 @@ public class AgentExecutionService {
 
         try {
             String prompt = """
-                    你是DocAI Agent的完成度评估器。请只输出JSON对象，不要输出解释。
+                    你是Dockit Agent的完成度评估器。请只输出JSON对象，不要输出解释。
                     格式: {"continue":true/false,"reason":"简短原因"}
 
                     判断规则:
@@ -1061,7 +1061,7 @@ public class AgentExecutionService {
 
     private String buildPlannerPrompt(AgentExecutionRequest request, Map<String, Object> context) {
         return """
-                你是DocAI的任务规划器。请只输出JSON数组，不要输出解释、Markdown或代码块。
+                你是Dockit的任务规划器。请只输出JSON数组，不要输出解释、Markdown或代码块。
                 %s
                 只能从工具列表中选择toolName；如不需要工具，使用direct-answer。
                 多步任务可以输出多个步骤，但不要超过5步；参数必须来自用户任务或上下文，不确定时先用direct-answer询问澄清。
@@ -2188,7 +2188,7 @@ public class AgentExecutionService {
         }
 
         String prompt = """
-                你是DocAI Agent，请根据任务、执行计划、工具结果给用户一个清晰的最终回复。
+                你是Dockit Agent，请根据任务、执行计划、工具结果给用户一个清晰的最终回复。
                 如果需要用户补充文件、确认token或参数，请明确说明下一步。
                 
                 用户任务:

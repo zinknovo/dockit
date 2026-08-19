@@ -33,7 +33,7 @@ public class DocumentFileStorageServiceImpl implements DocumentFileStorageServic
     private BucketPermissionService bucketPermissionService;
 
     /** presigned URL 有效期（秒），默认 1 小时 */
-    @Value("${doclog.storage.presigned-url-expiry-seconds:3600}")
+    @Value("${dockit.storage.presigned-url-expiry-seconds:3600}")
     private long presignedUrlExpirySeconds;
 
     @Override

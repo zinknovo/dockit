@@ -30,7 +30,7 @@ scrape_configs:
 
   # 监控微服务（每个服务端口不同，用 static_configs 按实际端口列出）
   # gateway=8080 / user=8081 / file=8082 / ai=8083 / document=8084
-  - job_name: 'doclog-services'
+  - job_name: 'dockit-services'
     static_configs:
       - targets:
           - 'gateway:8080'
@@ -40,7 +40,7 @@ scrape_configs:
           - 'document:8084'
 
   # 监控基础设施服务
-  - job_name: 'doclog-infra'
+  - job_name: 'dockit-infra'
     static_configs:
       - targets: ['mysql:9104']     # 需要启动 mysql exporter 容器
       - targets: ['redis:9121']     # 需要启动 redis exporter 容器

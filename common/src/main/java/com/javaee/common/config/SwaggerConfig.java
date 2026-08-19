@@ -20,8 +20,8 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("DocAI API")
+                        .title("Dockit API")
                         .version("1.0")
-                        .description("DocAI系统的API文档，用于调试和测试接口"));
+                        .description("Dockit系统的API文档，用于调试和测试接口"));
     }
 }

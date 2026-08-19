@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.javaee</groupId>
-    <artifactId>docAI</artifactId>
+    <artifactId>Dockit</artifactId>
     <version>1.0.0</version>
-    <name>docAI</name>
+    <name>Dockit</name>
     <description>企业级AI文档处理协作平台</description>
     <packaging>pom</packaging>
     <url/>

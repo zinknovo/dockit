@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class JwtUtils {
 
-    private static final String SECRET_KEY = "docAI-secret-key-for-jwt-token-generation-and-validation-2024";
+    private static final String SECRET_KEY = "dockit-secret-key-for-jwt-token-generation-and-validation-2024";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     private static final long TOKEN_EXPIRATION = 30 * 60 * 1000;
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000;

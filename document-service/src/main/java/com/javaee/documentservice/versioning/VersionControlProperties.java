@@ -10,17 +10,17 @@ import java.util.List;
  * 控制 git 仓库根目录、默认提交人、文件校验等行为
  */
 @Configuration
-@ConfigurationProperties(prefix = "doclog.versioning")
+@ConfigurationProperties(prefix = "dockit.versioning")
 public class VersionControlProperties {
 
     /** git 仓库根目录，每个文档一个子目录 */
-    private String root = "/data/doclog-repos";
+    private String root = "/data/dockit-repos";
 
     /** 默认提交人名称 */
-    private String defaultAuthorName = "doclog-system";
+    private String defaultAuthorName = "dockit-system";
 
     /** 默认提交人邮箱 */
-    private String defaultAuthorEmail = "system@doclog.local";
+    private String defaultAuthorEmail = "system@dockit.local";
 
     /** 是否关闭 git core.quotepath（关闭后中文文件名正常显示） */
     private boolean gitQuotepath = false;

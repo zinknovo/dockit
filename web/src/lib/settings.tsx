@@ -30,7 +30,7 @@ const DEFAULT_SETTINGS: SettingsState = {
   radius: 0.5
 }
 
-const STORAGE_KEY = 'complog-settings'
+const STORAGE_KEY = 'dockit-settings'
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 

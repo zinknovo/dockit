@@ -227,7 +227,7 @@ INSERT INTO users (username, password, enabled) VALUES ('nacos', '$2a$10$N1pFS8l
 INSERT INTO roles (username, role) VALUES ('nacos', 'ROLE_ADMIN');
 
 -- Nacos 连接 MySQL 用的独立账号（与 docker-compose-infra.yml 中 MYSQL_SERVICE_USER 对应）
-CREATE USER IF NOT EXISTS 'nacos'@'%' IDENTIFIED BY 'doclog_nacos_123';
+CREATE USER IF NOT EXISTS 'nacos'@'%' IDENTIFIED BY 'dockit_nacos_123';
 GRANT ALL PRIVILEGES ON `nacos_config`.* TO 'nacos'@'%';
 FLUSH PRIVILEGES;
 
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 
 -- 初始化 admin 用户（密码 admin123）
 INSERT INTO `user` (`username`, `password`, `email`, `phone`, `role`, `status`)
-VALUES ('admin', '$2a$10$OkfEYqgkDw6/z.mcSsW9JuQRgQKBZnCAPuHqyhjtFYQOUZ1Nrl13u', 'admin@doclog.local', NULL, 'admin', 1);
+VALUES ('admin', '$2a$10$OkfEYqgkDw6/z.mcSsW9JuQRgQKBZnCAPuHqyhjtFYQOUZ1Nrl13u', 'admin@dockit.local', NULL, 'admin', 1);
 
 -- 文件元数据表（对应 com.javaee.fileservice.entity.FileMetadata）
 CREATE TABLE IF NOT EXISTS `file_metadata` (

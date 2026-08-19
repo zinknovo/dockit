@@ -2,7 +2,7 @@
 
 # 构建和部署脚本
 
-echo "=== DocAI 项目部署脚本 ==="
+echo "=== Dockit 项目部署脚本 ==="
 
 # 设置变量
 MANAGER_IP="${DOC_AI_MANAGER_HOST}"
@@ -25,35 +25,35 @@ echo "项目构建成功！"
 echo "\n步骤 2: 构建 Docker 镜像..."
 
 # 构建用户服务镜像
-docker build -t doclog/user-service:1.0.0 user-service/
+docker build -t dockit/user-service:1.0.0 user-service/
 if [ $? -ne 0 ]; then
     echo "构建 user-service 镜像失败"
     exit 1
 fi
 
 # 构建文件服务镜像
-docker build -t doclog/file-service:1.0.0 file-service/
+docker build -t dockit/file-service:1.0.0 file-service/
 if [ $? -ne 0 ]; then
     echo "构建 file-service 镜像失败"
     exit 1
 fi
 
 # 构建网关服务镜像
-docker build -t doclog/gateway-service:1.0.0 gateway-service/
+docker build -t dockit/gateway-service:1.0.0 gateway-service/
 if [ $? -ne 0 ]; then
     echo "构建 gateway-service 镜像失败"
     exit 1
 fi
 
 # 构建 AI 服务镜像
-docker build -t doclog/ai-service:1.0.0 ai-service/
+docker build -t dockit/ai-service:1.0.0 ai-service/
 if [ $? -ne 0 ]; then
     echo "构建 ai-service 镜像失败"
     exit 1
 fi
 
 # 构建文档服务镜像
-docker build -t doclog/document-service:1.0.0 document-service/
+docker build -t dockit/document-service:1.0.0 document-service/
 if [ $? -ne 0 ]; then
     echo "构建 document-service 镜像失败"
     exit 1
@@ -87,11 +87,11 @@ fi
 echo "\n步骤 4: 创建网络和数据卷..."
 
 # 创建网络
-if [ -z "$(docker network ls | grep docai-network)" ]; then
-    docker network create --driver overlay --attachable docai-network
-    echo "创建网络 docai-network 成功"
+if [ -z "$(docker network ls | grep dockit-network)" ]; then
+    docker network create --driver overlay --attachable dockit-network
+    echo "创建网络 dockit-network 成功"
 else
-    echo "网络 docai-network 已存在，跳过此步骤"
+    echo "网络 dockit-network 已存在，跳过此步骤"
 fi
 
 # 创建数据卷
@@ -106,7 +106,7 @@ done
 
 # 步骤 5: 部署基础设施服务
 echo "\n步骤 5: 部署基础设施服务..."
-docker stack deploy -c docker-compose-infra.yml docai-infra
+docker stack deploy -c docker-compose-infra.yml dockit-infra
 
 if [ $? -ne 0 ]; then
     echo "部署基础设施服务失败"
@@ -121,13 +121,13 @@ sleep 30
 echo "\n步骤 6: 数据库初始化..."
 
 # 检查 MySQL 服务是否运行
-MYSQL_STATUS=$(docker service ps docai-infra_mysql | grep Running | wc -l)
+MYSQL_STATUS=$(docker service ps dockit-infra_mysql | grep Running | wc -l)
 
 if [ $MYSQL_STATUS -eq 1 ]; then
     echo "MySQL 服务运行正常，执行数据库初始化..."
     
     # 执行 SQL 脚本
-    docker exec -i $(docker ps -qf name=docai-infra_mysql) mysql -u"${MYSQL_USERNAME}" -p"${MYSQL_PASSWORD}" << EOF
+    docker exec -i $(docker ps -qf name=dockit-infra_mysql) mysql -u"${MYSQL_USERNAME}" -p"${MYSQL_PASSWORD}" << EOF
 CREATE DATABASE IF NOT EXISTS doc_ai DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE doc_ai;
 
@@ -162,7 +162,7 @@ fi
 
 # 步骤 7: 部署微服务
 echo "\n步骤 7: 部署微服务..."
-docker stack deploy -c docker-compose-services.yml docai-services
+docker stack deploy -c docker-compose-services.yml dockit-services
 
 if [ $? -ne 0 ]; then
     echo "部署微服务失败"
@@ -178,10 +178,10 @@ echo "\n步骤 8: 验证部署..."
 
 # 检查服务状态
 echo "\n检查基础设施服务状态："
-docker service ls | grep docai-infra
+docker service ls | grep dockit-infra
 
 echo "\n检查微服务状态："
-docker service ls | grep docai-services
+docker service ls | grep dockit-services
 
 # 显示访问地址
 echo "\n=== 部署完成 ==="

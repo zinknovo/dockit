@@ -43,7 +43,7 @@ public class PromptEngineeringService {
             """;
 
     private static final String RAG_ANSWER_TEMPLATE = """
-            你是DocAI知识库问答助手。请严格基于【知识库片段】回答问题。
+            你是Dockit知识库问答助手。请严格基于【知识库片段】回答问题。
             如果片段中没有答案，请回答"知识库中未找到相关信息"，不要编造。
 
             【知识库片段】

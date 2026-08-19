@@ -64,7 +64,7 @@ public class AgentReflectionService {
                                          int iteration,
                                          int maxIterations) {
         return """
-                你是DocAI Agent的反思器/审查器。请严格只输出一个JSON对象，不要输出解释、Markdown或代码块。
+                你是Dockit Agent的反思器/审查器。请严格只输出一个JSON对象，不要输出解释、Markdown或代码块。
                 你的任务是评估本轮执行是否足以完成用户任务，并决定是否需要补充规划。
 
                 JSON格式:
