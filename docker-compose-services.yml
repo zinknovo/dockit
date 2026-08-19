@@ -1,15 +1,7 @@
-version: '3.8'
-
 services:
   user:
-    image: doclog/user-service:1.0.0
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
+    image: dockit/user-service:1.0.0
+    restart: unless-stopped
     environment:
       SPRING_APPLICATION_NAME: user
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -18,20 +10,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 1
-    networks:
-      - docai-network
     ports:
       - "8081:8081"
 
   gateway:
-    image: doclog/gateway-service:1.0.0
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
+    image: dockit/gateway-service:1.0.0
+    restart: unless-stopped
     environment:
       SPRING_APPLICATION_NAME: gateway
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -40,21 +24,13 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-    networks:
-      - docai-network
     ports:
       - "8080:8080"
 
   # 文件服务
   file:
-    image: doclog/file-service:1.0.0
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
+    image: dockit/file-service:1.0.0
+    restart: unless-stopped
     environment:
       SPRING_APPLICATION_NAME: file
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -69,21 +45,13 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-    networks:
-      - docai-network
     ports:
       - "8082:8082"
 
   # AI 服务
   ai:
-    image: doclog/ai-service:1.0.0
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
+    image: dockit/ai-service:1.0.0
+    restart: unless-stopped
     environment:
       SPRING_APPLICATION_NAME: ai
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -102,21 +70,13 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-    networks:
-      - docai-network
     ports:
       - "8083:8083"
 
   # 文档服务
   document:
-    image: doclog/document-service:1.0.0
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
+    image: dockit/document-service:1.0.0
+    restart: unless-stopped
     environment:
       SPRING_APPLICATION_NAME: document
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -131,11 +91,11 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-    networks:
-      - docai-network
+      DOCKIT_VERSIONING_ROOT: /data/dockit-repos
     ports:
       - "8084:8084"
+    volumes:
+      - dockit-repos:/data/dockit-repos
 
-networks:
-  docai-network:
-    external: true
+volumes:
+  dockit-repos:

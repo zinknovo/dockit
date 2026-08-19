@@ -27,7 +27,7 @@ spring:
       enabled: false
     nacos:
       discovery:
-        server-addr: nacos:8848
+        server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
         timeout: 30000
       client:
