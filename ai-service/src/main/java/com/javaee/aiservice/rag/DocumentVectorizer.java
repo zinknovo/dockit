@@ -53,9 +53,9 @@ public class DocumentVectorizer {
             TextEmbeddingResult result = textEmbedding.call(param);
 
             // 输出结果
-            System.out.println("========== Embedding响应内容开始 ==========");
-            System.out.println(result);
-            System.out.println("========== Embedding响应内容结束 ==========");
+            log.info("========== Embedding响应内容开始 ==========");
+            log.info("{}", result);
+            log.info("========== Embedding响应内容结束 ==========");
 
             // 解析结果
             if (result != null && result.getOutput() != null 
@@ -68,7 +68,7 @@ public class DocumentVectorizer {
                     embedding[i] = embeddingList.get(i).floatValue();
                 }
                 
-                System.out.println("解析到向量维度: " + embedding.length);
+                log.info("解析到向量维度: " + embedding.length);
                 return embedding;
             }
 

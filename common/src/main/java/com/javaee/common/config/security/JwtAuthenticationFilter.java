@@ -12,6 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
+import org.springframework.lang.NonNull;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -23,7 +25,9 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain chain) 
+    protected void doFilterInternal(@NonNull jakarta.servlet.http.HttpServletRequest request,
+                                     @NonNull jakarta.servlet.http.HttpServletResponse response,
+                                     @NonNull jakarta.servlet.FilterChain chain)
             throws ServletException, IOException {
         try {
             // 从请求头中获取令牌

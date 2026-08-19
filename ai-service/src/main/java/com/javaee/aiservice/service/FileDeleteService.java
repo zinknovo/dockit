@@ -221,7 +221,11 @@ public class FileDeleteService {
     private List<String> scanConfirmKeys() {
         List<String> keys = new ArrayList<>();
         ScanOptions options = ScanOptions.scanOptions().match(DELETE_CONFIRM_PREFIX + "*").count(200).build();
-        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+        var connectionFactory = redisTemplate.getConnectionFactory();
+        if (connectionFactory == null) {
+            return keys;
+        }
+        try (var cursor = connectionFactory.getConnection().scan(options)) {
             while (cursor.hasNext()) {
                 keys.add(new String(cursor.next(), StandardCharsets.UTF_8));
             }

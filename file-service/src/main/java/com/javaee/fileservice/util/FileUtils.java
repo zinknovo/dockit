@@ -1,27 +1,9 @@
 package com.javaee.fileservice.util;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 /**
  * 文件处理工具类
  */
 public class FileUtils {
-
-    /**
-     * 生成唯一文件名
-     */
-    public static String generateUniqueFileName(String originalFileName) {
-        String extension = getFileExtension(originalFileName);
-        String fileName = UUID.randomUUID().toString();
-        if (extension != null) {
-            fileName += "." + extension;
-        }
-        return fileName;
-    }
 
     /**
      * 获取文件扩展名
@@ -31,86 +13,6 @@ public class FileUtils {
             return null;
         }
         return fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-    }
-
-    /**
-     * 获取文件类型
-     */
-    public static String getFileType(String fileName) {
-        String extension = getFileExtension(fileName);
-        if (extension == null) {
-            return "other";
-        }
-
-        // 图片文件
-        String[] imageExtensions = {"jpg", "jpeg", "png", "gif", "bmp", "webp"};
-        for (String ext : imageExtensions) {
-            if (ext.equals(extension)) {
-                return "image";
-            }
-        }
-
-        // 文档文件
-        String[] docExtensions = {"doc", "docx", "pdf", "txt", "xls", "xlsx", "ppt", "pptx"};
-        for (String ext : docExtensions) {
-            if (ext.equals(extension)) {
-                return "document";
-            }
-        }
-
-        // 视频文件
-        String[] videoExtensions = {"mp4", "avi", "mov", "wmv", "flv", "mkv"};
-        for (String ext : videoExtensions) {
-            if (ext.equals(extension)) {
-                return "video";
-            }
-        }
-
-        // 音频文件
-        String[] audioExtensions = {"mp3", "wav", "ogg", "flac", "aac"};
-        for (String ext : audioExtensions) {
-            if (ext.equals(extension)) {
-                return "audio";
-            }
-        }
-
-        // 压缩文件
-        String[] archiveExtensions = {"zip", "rar", "7z", "tar", "gz"};
-        for (String ext : archiveExtensions) {
-            if (ext.equals(extension)) {
-                return "archive";
-            }
-        }
-
-        return "other";
-    }
-
-    /**
-     * 保存上传的文件到本地
-     */
-    public static File saveMultipartFile(MultipartFile file, String filePath) throws IOException {
-        File destFile = new File(filePath);
-        File parentDir = destFile.getParentFile();
-        if (!parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        file.transferTo(destFile);
-        return destFile;
-    }
-
-    /**
-     * 删除文件
-     */
-    public static boolean deleteFile(String filePath) {
-        File file = new File(filePath);
-        return file.exists() && file.delete();
-    }
-
-    /**
-     * 检查文件大小是否超限
-     */
-    public static boolean checkFileSize(MultipartFile file, long maxSize) {
-        return file.getSize() <= maxSize * 1024 * 1024;
     }
 
     /**

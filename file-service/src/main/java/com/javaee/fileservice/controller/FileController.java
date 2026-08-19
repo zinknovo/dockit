@@ -83,16 +83,16 @@ public class FileController {
     @PostMapping(value = "/upload-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "多文件上传", description = "上传多个文件到服务器")
     public Result<Map<String, Object>> uploadMultiple(@RequestParam("files") MultipartFile[] files) {
-        System.out.println("=== 收到多文件上传请求 ===");
-        System.out.println("文件数量: " + files.length);
+        log.info("=== 收到多文件上传请求 ===");
+        log.info("文件数量: " + files.length);
         try {
-            System.out.println("调用fileService.uploadMultiple方法");
+            log.info("调用fileService.uploadMultiple方法");
             String[] fileIds = fileService.uploadMultiple(files);
-            System.out.println("多文件上传成功，文件ID数量: " + fileIds.length);
+            log.info("多文件上传成功，文件ID数量: " + fileIds.length);
             return Result.success(Map.of("fileIds", fileIds, "message", "文件上传成功", "count", fileIds.length));
         } catch (Exception e) {
-            System.out.println("多文件上传失败: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("多文件上传失败: " + e.getMessage());
+            log.warn("异常详情", e);
             return Result.fail("文件上传失败: " + e.getMessage());
         }
     }

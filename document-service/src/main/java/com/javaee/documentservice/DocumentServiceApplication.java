@@ -1,5 +1,7 @@
 package com.javaee.documentservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,12 +19,13 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @MapperScan(basePackages = "com.javaee.documentservice.mapper")
 @EnableAsync
 public class DocumentServiceApplication {
+    private static final Logger log = LoggerFactory.getLogger(DocumentServiceApplication.class);
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(DocumentServiceApplication.class);
         Environment environment = application.run(args).getEnvironment();
-        System.out.println("Application name: " + environment.getProperty("spring.application.name"));
-        System.out.println("Server port: " + environment.getProperty("server.port"));
+        log.info("Application name: " + environment.getProperty("spring.application.name"));
+        log.info("Server port: " + environment.getProperty("server.port"));
     }
 
 }

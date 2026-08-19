@@ -1,5 +1,7 @@
 package com.javaee.fileservice.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.javaee.fileservice.config.FileStorageConfig;
@@ -33,7 +35,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             FileMetadata metadata = fileMetadataMapper.selectByFileId(fileId);
             return isCurrentBucketMetadata(metadata) ? metadata : null;
         } catch (Exception e) {
-            System.out.println("获取元数据失败: " + e.getMessage());
+            log.warn("获取元数据失败: " + e.getMessage());
             return null;
         }
     }
@@ -46,7 +48,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             fileMetadata.setStatus("ACTIVE");
             fileMetadataMapper.insert(fileMetadata);
         } catch (Exception e) {
-            System.out.println("保存元数据失败: " + e.getMessage());
+            log.warn("保存元数据失败: " + e.getMessage());
         }
     }
 
@@ -59,7 +61,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             applyCurrentBucketFilter(wrapper);
             fileMetadataMapper.update(fileMetadata, wrapper);
         } catch (Exception e) {
-            System.out.println("更新元数据失败: " + e.getMessage());
+            log.warn("更新元数据失败: " + e.getMessage());
         }
     }
 
@@ -71,7 +73,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             applyCurrentBucketFilter(wrapper);
             fileMetadataMapper.delete(wrapper);
         } catch (Exception e) {
-            System.out.println("删除元数据失败: " + e.getMessage());
+            log.warn("删除元数据失败: " + e.getMessage());
         }
     }
 
@@ -96,7 +98,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             Page<FileMetadata> result = fileMetadataMapper.selectPage(pageObj, wrapper);
             return result.getRecords();
         } catch (Exception e) {
-            System.out.println("获取文件列表失败: " + e.getMessage());
+            log.warn("获取文件列表失败: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -117,7 +119,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             Page<FileMetadata> result = fileMetadataMapper.selectPage(pageObj, wrapper);
             return result.getRecords();
         } catch (Exception e) {
-            System.out.println("搜索文件失败: " + e.getMessage());
+            log.warn("搜索文件失败: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -166,7 +168,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             
             return structure;
         } catch (Exception e) {
-            System.out.println("获取目录结构失败: " + e.getMessage());
+            log.warn("获取目录结构失败: " + e.getMessage());
             // 返回空的目录结构
             Map<String, Object> structure = new HashMap<>();
             structure.put("directories", new ArrayList<>());

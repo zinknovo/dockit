@@ -144,7 +144,11 @@ public class ConversationManager {
         try {
             List<String> conversationIds = new ArrayList<>();
             ScanOptions options = ScanOptions.scanOptions().match(CONVERSATION_PREFIX + "*").count(200).build();
-            try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+            var connectionFactory = redisTemplate.getConnectionFactory();
+            if (connectionFactory == null) {
+                return conversationIds;
+            }
+            try (var cursor = connectionFactory.getConnection().scan(options)) {
                 while (cursor.hasNext()) {
                     String key = new String(cursor.next(), StandardCharsets.UTF_8);
                     String convUserId = (String) redisTemplate.opsForHash().get(key, "userId");

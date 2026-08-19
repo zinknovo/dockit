@@ -276,7 +276,11 @@ public class RecycleBinService {
     private List<String> scanKeys(String pattern) {
         List<String> keys = new ArrayList<>();
         ScanOptions options = ScanOptions.scanOptions().match(pattern).count(200).build();
-        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+        var connectionFactory = redisTemplate.getConnectionFactory();
+        if (connectionFactory == null) {
+            return keys;
+        }
+        try (var cursor = connectionFactory.getConnection().scan(options)) {
             while (cursor.hasNext()) {
                 keys.add(new String(cursor.next(), StandardCharsets.UTF_8));
             }

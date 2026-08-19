@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import com.javaee.fileservice.service.FileMetadataService;
 import com.javaee.fileservice.entity.FileMetadata;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 文件元数据查询接口控制器

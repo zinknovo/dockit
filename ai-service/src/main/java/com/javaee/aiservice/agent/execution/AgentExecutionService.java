@@ -148,7 +148,7 @@ public class AgentExecutionService {
         request.setUserId(userId);
 
         String continueTraceId = request.getContinueTraceId();
-        Map<String, Object> existingSnapshot = null;
+        Map<String, Object> existingSnapshot;
         String traceId;
         String conversationId;
         Map<String, Object> context;
@@ -607,23 +607,6 @@ public class AgentExecutionService {
             }
         }
         return null;
-    }
-
-    private List<AgentPlanStep> replaceStep(Object planObj, AgentPlanStep replacement) {
-        List<AgentPlanStep> result = new ArrayList<>();
-        if (planObj instanceof List<?> list) {
-            for (Object item : list) {
-                AgentPlanStep step = toPlanStep(item);
-                if (step == null) {
-                    continue;
-                }
-                result.add(replacement.getId().equals(step.getId()) ? replacement : step);
-            }
-        }
-        if (result.isEmpty()) {
-            result.add(replacement);
-        }
-        return result;
     }
 
     private AgentPlanStep toPlanStep(Object item) {
@@ -1915,7 +1898,7 @@ public class AgentExecutionService {
     private AgentToolResult executeDocumentRead(Map<String, Object> params) {
         String documentId = requireParam(params, "documentId");
         Map<String, Object> document = documentServiceClient.getDocument(documentId);
-        String content = firstNonBlank(asString(document.get("content")), "");
+        String content = Objects.requireNonNullElse(firstNonBlank(asString(document.get("content")), ""), "");
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("documentId", firstNonBlank(asString(document.get("id")), documentId));
@@ -2096,25 +2079,11 @@ public class AgentExecutionService {
     }
 
     private String normalizeFrontendWriteMode(String writeMode) {
-        String mode = firstNonBlank(writeMode, "append").toLowerCase(Locale.ROOT);
+        String mode = Objects.requireNonNullElse(firstNonBlank(writeMode, "append"), "append").toLowerCase(Locale.ROOT);
         return switch (mode) {
             case "overwrite", "append", "insert", "replace-selection" -> mode;
             default -> "append";
         };
-    }
-
-    private String appendContent(String existingContent, String appendedContent) {
-        if (isBlank(existingContent)) {
-            return appendedContent;
-        }
-        if (isBlank(appendedContent)) {
-            return existingContent;
-        }
-        return existingContent.endsWith("\n") ? existingContent + appendedContent : existingContent + "\n" + appendedContent;
-    }
-
-    private AgentToolResult enforceDestructiveApproval(AgentPlanStep step, Map<String, Object> context) {
-        return enforceDestructiveApproval(step, context, null);
     }
 
     private AgentToolResult enforceDestructiveApproval(AgentPlanStep step, Map<String, Object> context,

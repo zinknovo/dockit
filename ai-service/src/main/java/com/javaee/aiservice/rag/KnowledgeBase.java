@@ -474,7 +474,11 @@ public class KnowledgeBase {
     private List<String> scanKeys(String pattern, int count) {
         List<String> keys = new ArrayList<>();
         ScanOptions options = ScanOptions.scanOptions().match(pattern).count(count).build();
-        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+        var connectionFactory = redisTemplate.getConnectionFactory();
+        if (connectionFactory == null) {
+            return keys;
+        }
+        try (var cursor = connectionFactory.getConnection().scan(options)) {
             while (cursor.hasNext()) {
                 keys.add(new String(cursor.next(), StandardCharsets.UTF_8));
             }
