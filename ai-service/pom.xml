@@ -113,7 +113,7 @@
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.5.4</version>
+            <version>8.5.17</version>
         </dependency>
 
         <!-- HNSW 近邻索引（取代 Redis 全量扫描） -->

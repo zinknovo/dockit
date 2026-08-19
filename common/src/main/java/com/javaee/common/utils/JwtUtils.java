@@ -73,9 +73,9 @@ public class JwtUtils {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
         return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .claims(claims)
+                .issuedAt(now)
+                .expiration(expiryDate)
                 .signWith(KEY)
                 .compact();
     }
@@ -87,11 +87,11 @@ public class JwtUtils {
      */
     public static Claims parseToken(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(KEY)
+            return Jwts.parser()
+                    .verifyWith(KEY)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (Exception e) {
             throw new TokenException(ErrorCodeEnum.TOKEN_ERROR);
         }
