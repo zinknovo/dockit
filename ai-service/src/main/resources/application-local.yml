@@ -49,6 +49,8 @@ spring:
           min-idle: 0
 
   ai:
+    models:
+      default: deepseek-v4-pro
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}
       chat:

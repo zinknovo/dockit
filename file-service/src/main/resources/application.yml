@@ -22,10 +22,8 @@ spring:
         enabled: true
         server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
-        timeout: 30000
       client:
         namespace: public
-        timeout: 30000
 
   data:
     redis:

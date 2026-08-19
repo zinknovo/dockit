@@ -24,10 +24,8 @@ spring:
       discovery:
         server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
-        timeout: 30000
       client:
         namespace: public
-        timeout: 30000
 
   # Redis配置
   data:

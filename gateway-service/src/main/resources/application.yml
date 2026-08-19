@@ -9,8 +9,6 @@ spring:
     compatibility-verifier:
       enabled: false
     gateway:
-      health:
-        enabled: true
       httpclient:
         connect-timeout: 10000
         response-timeout: 60000
@@ -19,13 +17,8 @@ spring:
       discovery:
         server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
-        timeout: 30000
       client:
         namespace: public
-        timeout: 30000
-    
-    sentinel:
-      enabled: false
 
   data:
     redis:

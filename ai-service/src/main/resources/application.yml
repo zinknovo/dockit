@@ -29,10 +29,8 @@ spring:
       discovery:
         server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
         namespace: public
-        timeout: 30000
       client:
         namespace: public
-        timeout: 30000
 
   data:
     redis:
@@ -49,6 +47,8 @@ spring:
           min-idle: 0
 
   ai:
+    models:
+      default: deepseek-v4-pro
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}
       chat:
@@ -107,8 +107,6 @@ ai:
       cooldown-ms: 300000
   # 多模型配置
   models:
-    # 默认使用的模型 code，对应 ModelType
-    default: deepseek-v4-pro
     openai:
       qwen3.6-plus:
         api-key: ${OPENAI_API_KEY}
