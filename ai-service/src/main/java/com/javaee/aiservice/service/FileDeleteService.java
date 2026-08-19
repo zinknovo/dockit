@@ -50,6 +50,7 @@ public class FileDeleteService {
     private int confirmationTimeout;
 
     public static class DeleteRequest implements Serializable {
+        @java.io.Serial
         private static final long serialVersionUID = 1L;
         String documentId;
         String bucketName;

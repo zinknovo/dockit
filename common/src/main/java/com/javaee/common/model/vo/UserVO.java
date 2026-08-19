@@ -1,5 +1,6 @@
 package com.javaee.common.model.vo;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * @description: 用户VO（展示）
  */
 public class UserVO implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 用户ID

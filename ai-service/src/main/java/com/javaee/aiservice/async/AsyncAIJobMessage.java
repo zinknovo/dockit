@@ -2,6 +2,7 @@ package com.javaee.aiservice.async;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 @Data
 public class AsyncAIJobMessage implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private String jobId;

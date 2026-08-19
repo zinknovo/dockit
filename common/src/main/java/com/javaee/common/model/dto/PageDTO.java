@@ -2,6 +2,7 @@ package com.javaee.common.model.dto;
 
 import com.javaee.common.constant.CommonConstant;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -9,6 +10,7 @@ import java.io.Serializable;
  * @description: 分页请求DTO（统一）
  */
 public class PageDTO implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 页码

@@ -1,5 +1,6 @@
 package com.javaee.common.model.dto;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * @description: 用户DTO（数据传输对象）
  */
 public class UserDTO implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 用户ID

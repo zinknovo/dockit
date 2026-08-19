@@ -2,6 +2,7 @@ package com.javaee.common.model;
 
 import com.javaee.common.constant.ErrorCodeEnum;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -9,6 +10,7 @@ import java.io.Serializable;
  * @description: 全局统一返回结果（核心）
  */
 public class Result<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 状态码

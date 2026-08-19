@@ -281,6 +281,7 @@ public class VectorStore {
 
     /** HNSW 索引项实现。 */
     private static final class FloatArrayItem implements Item<String, float[]>, Serializable {
+        @java.io.Serial
         private static final long serialVersionUID = 1L;
         private final String id;
         private final float[] vector;

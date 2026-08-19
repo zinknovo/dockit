@@ -1,5 +1,6 @@
 package com.javaee.common.model.vo;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import java.util.List;
  * @description: 分页响应VO（统一）
  */
 public class PageVO<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 数据列表
