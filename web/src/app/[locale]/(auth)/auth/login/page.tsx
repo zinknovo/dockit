@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ userName: form.userName, password: form.password })
-      router.replace('/dashboard')
+      router.replace('/agent')
     } catch (err) {
       const message = err instanceof Error ? err.message : t('loginFailed')
       setError(message)
@@ -37,12 +37,12 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block text-sm text-g-700">
-          {t('phone')}
+          {t('username')}
           <input
             className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             value={form.userName}
             onChange={(event) => setForm((prev) => ({ ...prev, userName: event.target.value }))}
-            placeholder={t('phonePlaceholder')}
+            placeholder={t('usernamePlaceholder')}
             required
           />
         </label>

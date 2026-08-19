@@ -22,10 +22,10 @@ export default function ForgetPasswordPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block text-sm text-g-700">
-          {t('phone')}
+          {t('username')}
           <input
             className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
-            placeholder={t('phonePlaceholder')}
+            placeholder={t('usernamePlaceholder')}
             required
           />
         </label>

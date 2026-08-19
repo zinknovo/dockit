@@ -8,7 +8,6 @@ export interface AuthUser {
   name: string
   phone: string
   email?: string
-  deptId: number
   role?: string
   status: number
 }
@@ -22,8 +21,8 @@ interface AuthContextValue {
   setUser: (user: AuthUser | null) => void
 }
 
-const TOKEN_KEY = 'complog-token'
-const USER_KEY = 'complog-user'
+const TOKEN_KEY = 'dockit-token'
+const USER_KEY = 'dockit-user'
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 

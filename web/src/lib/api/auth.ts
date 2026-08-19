@@ -1,30 +1,47 @@
 import { http } from '../http'
 
 export async function fetchLogin(params: Api.Auth.LoginParams) {
-  const backendParams = {
-    phone: params.userName,
-    password: params.password
-  }
-
   const data = await http.post<{
-    token: string
+    accessToken: string
+    refreshToken: string
     user: {
       id: number
-      name: string
+      username: string
+      email: string
       phone: string
-      email?: string
-      deptId: number
-      role?: string
+      role: string
       status: number
     }
   }>({
-    url: '/api/auth/login',
-    params: backendParams
+    url: '/api/users/login',
+    data: {
+      username: params.userName,
+      password: params.password
+    }
   })
 
   return {
-    token: data.token,
-    refreshToken: data.token,
-    user: data.user
+    token: data.accessToken,
+    refreshToken: data.refreshToken,
+    user: {
+      id: data.user.id,
+      name: data.user.username,
+      phone: data.user.phone || '',
+      email: data.user.email || '',
+      role: data.user.role || 'user',
+      status: data.user.status
+    }
   }
+}
+
+export async function fetchRegister(params: {
+  username: string
+  password: string
+  email: string
+  phone: string
+}) {
+  return http.post<any>({
+    url: '/api/users/register',
+    data: params
+  })
 }

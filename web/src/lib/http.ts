@@ -34,13 +34,13 @@ const axiosInstance = axios.create({
 
 function getAccessToken() {
   if (typeof window === 'undefined') return null
-  return window.localStorage.getItem('complog-token')
+  return window.localStorage.getItem('dockit-token')
 }
 
 axiosInstance.interceptors.request.use(
   (request: InternalAxiosRequestConfig) => {
     const token = getAccessToken()
-    if (token) request.headers.set('Authorization', token)
+    if (token) request.headers.set('Authorization', `Bearer ${token}`)
 
     if (request.data && !(request.data instanceof FormData) && !request.headers['Content-Type']) {
       request.headers.set('Content-Type', 'application/json')
