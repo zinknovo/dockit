@@ -1,10 +1,13 @@
 #!/bin/bash
+# 构建全部服务镜像
 
-# 进入项目目录
-cd /mnt/d/code/work_project/Dockit/user-service
+set -euo pipefail
 
-# 构建Docker镜像
-docker build -t user-service:1.0.0 .
+cd "$(dirname "$0")"
 
-# 查看构建结果
-docker images | grep user-service
+for service in user file ai document gateway; do
+  echo ">>> 构建 dockit/${service}-service:1.0.0"
+  docker build -t "dockit/${service}-service:1.0.0" "${service}-service/"
+done
+
+echo "全部镜像构建完成"
