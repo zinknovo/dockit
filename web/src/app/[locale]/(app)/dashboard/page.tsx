@@ -102,20 +102,20 @@ export default function ToolkitPage() {
     finally { setLoading(false) }
   }, [docSearch])
 
-  useEffect(() => { if (tab === 'docs') loadDocs() }, [loadDocs, tab])
+  useEffect(() => { if (tab === 'docs') void loadDocs() }, [loadDocs, tab])
 
   const docCreate = async () => {
     if (!form.title.trim()) return
     setMsg('')
     try {
       await http.post({ url: '/api/documents', data: { ...form, tags: form.tags ? form.tags.split(',').map(t => t.trim()) : [] } })
-      setShowCreate(false); setForm({ title: '', fileId: '', category: '', tags: '' }); setMsg('创建成功'); loadDocs()
+      setShowCreate(false); setForm({ title: '', fileId: '', category: '', tags: '' }); setMsg('创建成功'); await loadDocs()
     } catch (err: any) { setMsg(err.message) }
   }
 
   const docDelete = async (id: string) => {
     if (!confirm('确认删除？')) return
-    try { await http.del({ url: `/api/documents/${id}` }); loadDocs() }
+    try { await http.del({ url: `/api/documents/${id}` }); await loadDocs() }
     catch (err: any) { setMsg(err.message) }
   }
 

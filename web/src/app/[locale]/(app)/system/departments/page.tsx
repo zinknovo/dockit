@@ -33,7 +33,7 @@ export default function DepartmentsPage() {
   }
 
   useEffect(() => {
-    loadDepts(1)
+    void loadDepts(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -46,7 +46,7 @@ export default function DepartmentsPage() {
         parentId: form.parentId ? Number(form.parentId) : undefined
       })
       setForm({ name: '', parentId: '' })
-      loadDepts(1)
+      await loadDepts(1)
     } catch (err) {
       const message = err instanceof Error ? err.message : tCommon('addFailed')
       setError(message)

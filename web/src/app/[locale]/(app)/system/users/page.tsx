@@ -46,8 +46,8 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    loadUsers(1)
-    loadDepartments()
+    void loadUsers(1)
+    void loadDepartments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -62,7 +62,7 @@ export default function UsersPage() {
         deptId: Number(form.deptId)
       })
       setForm({ name: '', phone: '', email: '', deptId: '' })
-      loadUsers(1)
+      await loadUsers(1)
     } catch (err) {
       const message = err instanceof Error ? err.message : tCommon('addFailed')
       setError(message)

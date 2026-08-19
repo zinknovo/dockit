@@ -89,15 +89,3 @@ export function fetchAddDept(data: Api.SystemManage.DeptAddParams) {
   })
 }
 
-export function fetchGetRoleList(params: Api.SystemManage.RoleSearchParams) {
-  return http.get<Api.SystemManage.RoleList>({
-    url: '/api/role/list',
-    params
-  })
-}
-
-export function fetchGetMenuList() {
-  return http.get<any>({
-    url: '/api/v3/system/menus'
-  })
-}

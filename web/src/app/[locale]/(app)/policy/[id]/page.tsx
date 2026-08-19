@@ -40,7 +40,7 @@ export default function PolicyDetailPage() {
         if (mounted) setLoading(false)
       }
     }
-    load()
+    void load()
     return () => {
       mounted = false
     }

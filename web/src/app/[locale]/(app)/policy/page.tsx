@@ -40,7 +40,7 @@ export default function PolicyListPage() {
   }
 
   useEffect(() => {
-    loadData(1)
+    void loadData(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -74,7 +74,7 @@ export default function PolicyListPage() {
         </div>
         <div className="mt-4 flex gap-3">
           <button
-            onClick={() => loadData(1)}
+            onClick={() => void loadData(1)}
             className="rounded-lg bg-theme px-4 py-2 text-sm font-medium text-white"
           >
             {tCommon('query')}
@@ -82,7 +82,7 @@ export default function PolicyListPage() {
           <button
             onClick={() => {
               setFilters({ name: '', type: '', status: '' })
-              loadData(1)
+              void loadData(1)
             }}
             className="rounded-lg border border-[var(--default-border)] px-4 py-2 text-sm"
           >

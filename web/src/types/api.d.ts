@@ -23,8 +23,6 @@ declare namespace Api {
       total: number
     }
 
-    /** 启用状态 */
-    type EnableStatus = '1' | '2'
   }
 
   /** 认证类型 */
@@ -34,34 +32,10 @@ declare namespace Api {
       password: string
     }
 
-    interface LoginResponse {
-      token: string
-      refreshToken: string
-      user?: {
-        id: number
-        name: string
-        phone: string
-        email?: string
-        deptId: number
-        role?: string
-        status: number
-      }
-    }
-
-    interface UserInfo {
-      buttons: string[]
-      roles: string[]
-      userId: number
-      userName: string
-      email: string
-      avatar?: string
-    }
   }
 
   /** 系统管理类型 */
   namespace SystemManage {
-    type UserList = Api.Common.PaginatedResponse<UserListItem>
-
     interface UserListItem {
       id: number
       avatar: string
@@ -83,8 +57,6 @@ declare namespace Api {
         Api.Common.CommonSearchParams
     >
 
-    type RoleList = Api.Common.PaginatedResponse<RoleListItem>
-
     interface RoleListItem {
       roleId: number
       roleName: string
@@ -93,13 +65,6 @@ declare namespace Api {
       enabled: boolean
       createTime: string
     }
-
-    type RoleSearchParams = Partial<
-      Pick<RoleListItem, 'roleId' | 'roleName' | 'roleCode' | 'description' | 'enabled'> &
-        Api.Common.CommonSearchParams
-    >
-
-    type DeptList = Api.Common.PaginatedResponse<DeptListItem>
 
     interface DeptListItem {
       id: number
@@ -124,8 +89,6 @@ declare namespace Api {
 
   /** 制度管理类型 */
   namespace Policy {
-    type PolicyList = Api.Common.PaginatedResponse<PolicyListItem>
-
     interface PolicyListItem {
       id: number
       name: string
@@ -147,31 +110,6 @@ declare namespace Api {
     interface PolicySearchParams extends Api.Common.CommonSearchParams {
       name?: string
       type?: number
-      status?: number
-    }
-
-    interface PolicyAddParams {
-      name: string
-      code: string
-      type: number
-      contentSummary?: string
-      contentFilePath?: string
-      effectiveDate?: string
-      expiryDate?: string
-      ownerDeptId?: number
-      status?: number
-    }
-
-    interface PolicyEditParams {
-      id?: number
-      name?: string
-      code?: string
-      type?: number
-      contentSummary?: string
-      contentFilePath?: string
-      effectiveDate?: string
-      expiryDate?: string
-      ownerDeptId?: number
       status?: number
     }
 

@@ -34,26 +34,6 @@ export function fetchGetPolicyDetail(id: number) {
   })
 }
 
-export function fetchAddPolicy(data: Api.Policy.PolicyAddParams) {
-  return http.post<boolean>({
-    url: '/policies',
-    params: data
-  })
-}
-
-export function fetchEditPolicy(id: number, data: Api.Policy.PolicyEditParams) {
-  return http.put<boolean>({
-    url: `/policies/${id}`,
-    params: data
-  })
-}
-
-export function fetchDeletePolicy(id: number) {
-  return http.del<boolean>({
-    url: `/policies/${id}`
-  })
-}
-
 export function fetchGetPolicyVersions(policyId: number) {
   return http.get<Api.Policy.PolicyVersionHistory[]>({
     url: `/policies/${policyId}/versions`
