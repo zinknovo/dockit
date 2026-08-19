@@ -60,7 +60,7 @@ class DocumentVersioningServiceTest {
         docParserClient = org.mockito.Mockito.mock(DocParserClient.class);
         versionControlProperties = new VersionControlProperties();
 
-        documentService = new DocumentServiceImpl();
+        documentService = new DocumentServiceImpl(null, null, null, null, null, null, null, null, null, null);
         ReflectionTestUtils.setField(documentService, "documentMapper", documentMapper);
         ReflectionTestUtils.setField(documentService, "documentVersionMapper", documentVersionMapper);
         ReflectionTestUtils.setField(documentService, "documentContentService", documentContentService);

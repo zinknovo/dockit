@@ -27,11 +27,15 @@ public class AIService {
 
     private static final Logger log = LoggerFactory.getLogger(AIService.class);
 
-    @Autowired
-    private ChatService chatService;
+    private final ChatService chatService;
+
+    private final PromptEngineeringService promptEngineeringService;
 
     @Autowired
-    private PromptEngineeringService promptEngineeringService;
+    public AIService(ChatService chatService, PromptEngineeringService promptEngineeringService) {
+        this.chatService = chatService;
+        this.promptEngineeringService = promptEngineeringService;
+    }
 
     /**
      * 文档摘要（使用默认模型）

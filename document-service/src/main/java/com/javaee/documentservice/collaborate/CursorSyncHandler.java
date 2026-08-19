@@ -19,8 +19,12 @@ public class CursorSyncHandler {
     private static final String REDIS_CURSOR_PREFIX = "collaborate:cursor:";
     private static final long CURSOR_EXPIRE_MINUTES = 5;
 
+    private final RedisUtils redisUtils;
+
     @Autowired
-    private RedisUtils redisUtils;
+    public CursorSyncHandler(RedisUtils redisUtils) {
+        this.redisUtils = redisUtils;
+    }
 
     public void updateCursor(CursorPosition cursor) {
         String cursorKey = REDIS_CURSOR_PREFIX + cursor.getDocumentId();

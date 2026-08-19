@@ -17,8 +17,12 @@ public class AlertService {
 
     private static final Logger log = LoggerFactory.getLogger(AlertService.class);
 
+    private final InternalService internalService;
+
     @Autowired
-    private InternalService internalService;
+    public AlertService(InternalService internalService) {
+        this.internalService = internalService;
+    }
 
     @Value("${ai.aiops.alert.cooldown-ms:300000}")
     private long cooldownMs;

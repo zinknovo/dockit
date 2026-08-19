@@ -17,8 +17,12 @@ import java.util.List;
 @Tag(name = "文档评论", description = "文档评论管理接口")
 public class CommentController {
 
+    private final CommentService commentService;
+
     @Autowired
-    private CommentService commentService;
+    public CommentController(CommentService commentService) {
+        this.commentService = commentService;
+    }
 
     @PostMapping
     @Operation(summary = "添加评论", description = "为文档添加评论")

@@ -28,11 +28,15 @@ public class AgentReflectionService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private ChatService chatService;
+    private final ChatService chatService;
+
+    private final AgentToolRegistry toolRegistry;
 
     @Autowired
-    private AgentToolRegistry toolRegistry;
+    public AgentReflectionService(ChatService chatService, AgentToolRegistry toolRegistry) {
+        this.chatService = chatService;
+        this.toolRegistry = toolRegistry;
+    }
 
     public AgentReflection reflect(AgentExecutionRequest request,
                                    List<AgentPlanStep> plan,

@@ -14,14 +14,13 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doAnswer;
 
 class AsyncAIJobListenerTest {
 
     @Test
     void handleModelJobExecutesAgentRequestAndStoresResult() {
-        AsyncAIJobListener listener = new AsyncAIJobListener();
+        AsyncAIJobListener listener = new AsyncAIJobListener(null, null, null, null);
         AsyncAIJobService asyncAIJobService = mock(AsyncAIJobService.class);
         AIService aiService = mock(AIService.class);
         ChatService chatService = mock(ChatService.class);

@@ -37,7 +37,7 @@ class AgentControllerTest {
 
     @BeforeEach
     void setUp() {
-        AgentController controller = new AgentController();
+        AgentController controller = new AgentController(null, null, null, null, null, null);
         taskRegistry = mock(AgentTaskRegistry.class);
         knowledgeIndexAgent = mock(KnowledgeIndexAgent.class);
         agentExecutionService = mock(AgentExecutionService.class);

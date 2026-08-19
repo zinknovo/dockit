@@ -20,20 +20,24 @@ public class KnowledgeBase {
     private static final String SEGMENT_PREFIX = "segment:";
     private static final String DOC_SEGMENTS_PREFIX = "doc_segments:";
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final DocumentVectorizer vectorizer;
+
+    private final VectorStore vectorStore;
+
+    private final Reranker reranker;
+
+    private final DocumentSegmenter documentSegmenter;
 
     @Autowired
-    private DocumentVectorizer vectorizer;
-
-    @Autowired
-    private VectorStore vectorStore;
-
-    @Autowired
-    private Reranker reranker;
-
-    @Autowired
-    private DocumentSegmenter documentSegmenter;
+    public KnowledgeBase(RedisTemplate<String, Object> redisTemplate, DocumentVectorizer vectorizer, VectorStore vectorStore, Reranker reranker, DocumentSegmenter documentSegmenter) {
+        this.redisTemplate = redisTemplate;
+        this.vectorizer = vectorizer;
+        this.vectorStore = vectorStore;
+        this.reranker = reranker;
+        this.documentSegmenter = documentSegmenter;
+    }
 
     public void addDocument(String documentId, String content, Map<String, Object> metadata) {
         addDocumentWithSegment(documentId, content, metadata, DocumentSegmenter.StrategyType.AUTO);

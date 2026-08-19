@@ -19,14 +19,18 @@ public class DocumentSnapshotService {
 
     private static final int SNAPSHOT_INTERVAL_OPS = 50;
 
-    @Autowired
-    private DocumentContentService documentContentService;
+    private final DocumentContentService documentContentService;
+
+    private final DocumentMapper documentMapper;
+
+    private final EditOperationHandler editOperationHandler;
 
     @Autowired
-    private DocumentMapper documentMapper;
-
-    @Autowired
-    private EditOperationHandler editOperationHandler;
+    public DocumentSnapshotService(DocumentContentService documentContentService, DocumentMapper documentMapper, EditOperationHandler editOperationHandler) {
+        this.documentContentService = documentContentService;
+        this.documentMapper = documentMapper;
+        this.editOperationHandler = editOperationHandler;
+    }
 
     @Async
     public void tryCreateSnapshot(String documentId, String currentContent) {

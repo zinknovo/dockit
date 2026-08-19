@@ -11,7 +11,7 @@ class DocumentSegmenterTest {
 
     @Test
     void hybridStrategySegmentsSemanticallyWithinEachChapter() {
-        DocumentSegmenter segmenter = new DocumentSegmenter();
+        DocumentSegmenter segmenter = new DocumentSegmenter(null, null, null);
         ReflectionTestUtils.setField(segmenter, "chapterStrategy",
                 new StubChapterSegmentStrategy(List.of(
                         segment("doc-1", "chapter one content", 0, "第一章"),
@@ -35,7 +35,7 @@ class DocumentSegmenterTest {
 
     @Test
     void autoStrategyUsesAutomaticSelection() {
-        DocumentSegmenter segmenter = new DocumentSegmenter();
+        DocumentSegmenter segmenter = new DocumentSegmenter(null, null, null);
         ReflectionTestUtils.setField(segmenter, "fixedLengthStrategy",
                 new StubFixedLengthSegmentStrategy(List.of(segment("doc-1", "fixed content", 0))));
 

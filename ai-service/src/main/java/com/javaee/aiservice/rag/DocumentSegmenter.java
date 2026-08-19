@@ -35,14 +35,18 @@ public class DocumentSegmenter {
         }
     }
 
-    @Autowired
-    private FixedLengthSegmentStrategy fixedLengthStrategy;
+    private final FixedLengthSegmentStrategy fixedLengthStrategy;
+
+    private final ChapterSegmentStrategy chapterStrategy;
+
+    private final SemanticSegmentStrategy semanticStrategy;
 
     @Autowired
-    private ChapterSegmentStrategy chapterStrategy;
-
-    @Autowired
-    private SemanticSegmentStrategy semanticStrategy;
+    public DocumentSegmenter(FixedLengthSegmentStrategy fixedLengthStrategy, ChapterSegmentStrategy chapterStrategy, SemanticSegmentStrategy semanticStrategy) {
+        this.fixedLengthStrategy = fixedLengthStrategy;
+        this.chapterStrategy = chapterStrategy;
+        this.semanticStrategy = semanticStrategy;
+    }
 
     private StrategyType defaultStrategy = StrategyType.CHAPTER;
 

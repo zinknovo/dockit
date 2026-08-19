@@ -28,8 +28,12 @@ import java.util.Map;
 @Component
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
+    private final RabbitMQUtil rabbitMQUtil;
+
     @Autowired
-    private RabbitMQUtil rabbitMQUtil;
+    public AuthGlobalFilter(RabbitMQUtil rabbitMQUtil) {
+        this.rabbitMQUtil = rabbitMQUtil;
+    }
 
     // 不需要鉴权的路径
     private static final List<String> WHITE_LIST = List.of(

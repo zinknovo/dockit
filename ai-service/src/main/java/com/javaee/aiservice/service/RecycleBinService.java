@@ -29,14 +29,18 @@ public class RecycleBinService {
     private static final String RECYCLE_PREFIX = "recycle:file:";
     private static final String RECYCLE_OBJECT_PREFIX = ".recycle/";
 
-    @Autowired
-    private MinIOService minIOService;
+    private final MinIOService minIOService;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final BucketPermissionService bucketPermissionService;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
+    public RecycleBinService(MinIOService minIOService, RedisTemplate<String, Object> redisTemplate, BucketPermissionService bucketPermissionService) {
+        this.minIOService = minIOService;
+        this.redisTemplate = redisTemplate;
+        this.bucketPermissionService = bucketPermissionService;
+    }
 
     @Value("${minio.recycle.expiry-days:7}")
     private int recycleExpiryDays;

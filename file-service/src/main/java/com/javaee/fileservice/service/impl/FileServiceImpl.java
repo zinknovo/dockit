@@ -36,18 +36,23 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Service
 public class FileServiceImpl implements FileService {
+    private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
+
+    private final FileStorageConfig fileStorageConfig;
+
+    private final FileMetadataService fileMetadataService;
+
+    private final MinioClient minioClient;
+
+    private final BucketPermissionService bucketPermissionService;
 
     @Autowired
-    private FileStorageConfig fileStorageConfig;
-
-    @Autowired
-    private FileMetadataService fileMetadataService;
-
-    @Autowired
-    private MinioClient minioClient;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
+    public FileServiceImpl(FileStorageConfig fileStorageConfig, FileMetadataService fileMetadataService, MinioClient minioClient, BucketPermissionService bucketPermissionService) {
+        this.fileStorageConfig = fileStorageConfig;
+        this.fileMetadataService = fileMetadataService;
+        this.minioClient = minioClient;
+        this.bucketPermissionService = bucketPermissionService;
+    }
 
     // 用于存储分片上传的临时文件
     private final ConcurrentMap<String, ConcurrentMap<Integer, File>> chunkMap = new ConcurrentHashMap<>();

@@ -19,8 +19,12 @@ import java.util.List;
 @Tag(name = "文件元数据", description = "文件元数据查询接口")
 public class FileMetadataController {
 
+    private final FileMetadataService fileMetadataService;
+
     @Autowired
-    private FileMetadataService fileMetadataService;
+    public FileMetadataController(FileMetadataService fileMetadataService) {
+        this.fileMetadataService = fileMetadataService;
+    }
 
     /**
      * 获取文件元数据

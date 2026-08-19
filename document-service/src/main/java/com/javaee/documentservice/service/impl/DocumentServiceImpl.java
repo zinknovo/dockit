@@ -51,35 +51,39 @@ public class DocumentServiceImpl implements DocumentService {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
-    @Autowired
-    private DocumentMapper documentMapper;
+    private final DocumentMapper documentMapper;
+
+    private final DocumentVersionMapper documentVersionMapper;
+
+    private final DocumentContentService documentContentService;
+
+    private final DocumentAccessService documentAccessService;
+
+    private final FileServiceClient fileServiceClient;
+
+    private final ObjectMapper objectMapper;
+
+    private final VersionControlService versionControlService;
+
+    private final DocumentFileStorageService documentFileStorageService;
+
+    private final VersionControlProperties versionControlProperties;
+
+    private final DocParserClient docParserClient;
 
     @Autowired
-    private DocumentVersionMapper documentVersionMapper;
-
-    @Autowired
-    private DocumentContentService documentContentService;
-
-    @Autowired
-    private DocumentAccessService documentAccessService;
-
-    @Autowired
-    private FileServiceClient fileServiceClient;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private VersionControlService versionControlService;
-
-    @Autowired
-    private DocumentFileStorageService documentFileStorageService;
-
-    @Autowired
-    private VersionControlProperties versionControlProperties;
-
-    @Autowired
-    private DocParserClient docParserClient;
+    public DocumentServiceImpl(DocumentMapper documentMapper, DocumentVersionMapper documentVersionMapper, DocumentContentService documentContentService, DocumentAccessService documentAccessService, FileServiceClient fileServiceClient, ObjectMapper objectMapper, VersionControlService versionControlService, DocumentFileStorageService documentFileStorageService, VersionControlProperties versionControlProperties, DocParserClient docParserClient) {
+        this.documentMapper = documentMapper;
+        this.documentVersionMapper = documentVersionMapper;
+        this.documentContentService = documentContentService;
+        this.documentAccessService = documentAccessService;
+        this.fileServiceClient = fileServiceClient;
+        this.objectMapper = objectMapper;
+        this.versionControlService = versionControlService;
+        this.documentFileStorageService = documentFileStorageService;
+        this.versionControlProperties = versionControlProperties;
+        this.docParserClient = docParserClient;
+    }
 
     /**
      * 创建文档
@@ -112,7 +116,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         // 通过fileId从file-service获取文件内容并解析
         String content = "";
-        String fileName = "";
+        String fileName;
         if (dto.getFileId() != null && !dto.getFileId().isEmpty()) {
             try {
                 // 获取文件名

@@ -23,11 +23,15 @@ public class AsyncAIJobService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    public AsyncAIJobService(RedisTemplate<String, Object> redisTemplate, RabbitTemplate rabbitTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     @Value("${ai.async.job-expiry-hours:24}")
     private long jobExpiryHours;

@@ -25,8 +25,12 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理", description = "用户登录、注册、信息管理等接口")
 public class UserController {
 
+    private final UserService userService;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     /**
      * 用户登录

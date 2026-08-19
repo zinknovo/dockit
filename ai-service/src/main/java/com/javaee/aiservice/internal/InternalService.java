@@ -20,8 +20,12 @@ public class InternalService {
 
     private static final Logger log = LoggerFactory.getLogger(InternalService.class);
 
+    private final RequestUserContext requestUserContext;
+
     @Autowired
-    private RequestUserContext requestUserContext;
+    public InternalService(RequestUserContext requestUserContext) {
+        this.requestUserContext = requestUserContext;
+    }
 
     private static final Set<String> DESTRUCTIVE_SKILLS = Set.of("file-restore", "file-version-switch");
 

@@ -20,8 +20,12 @@ public class AgentApprovalService {
 
     private static final String PREFIX = "agent:approval:";
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public AgentApprovalService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Value("${ai.agent.approval-expiry-seconds:300}")
     private long approvalExpirySeconds;

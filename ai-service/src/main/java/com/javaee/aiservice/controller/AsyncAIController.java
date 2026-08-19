@@ -31,11 +31,15 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "异步AI处理", description = "通过RabbitMQ异步执行AI模型请求")
 public class AsyncAIController {
 
-    @Autowired
-    private AsyncAIJobService asyncAIJobService;
+    private final AsyncAIJobService asyncAIJobService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private RequestUserContext requestUserContext;
+    public AsyncAIController(AsyncAIJobService asyncAIJobService, RequestUserContext requestUserContext) {
+        this.asyncAIJobService = asyncAIJobService;
+        this.requestUserContext = requestUserContext;
+    }
 
     @PostMapping("/summarize")
     @Operation(summary = "异步文档摘要", description = "提交摘要任务到RabbitMQ，立即返回jobId")

@@ -28,23 +28,27 @@ import java.util.Map;
 @Tag(name = "AI Agent", description = "AI Agent相关接口")
 public class AgentController {
 
-    @Autowired
-    private KnowledgeIndexAgent knowledgeIndexAgent;
+    private final KnowledgeIndexAgent knowledgeIndexAgent;
+
+    private final AgentExecutionService agentExecutionService;
+
+    private final AgentTaskRegistry agentTaskRegistry;
+
+    private final ConversationManager conversationManager;
+
+    private final RequestUserContext requestUserContext;
+
+    private final KnowledgeBase knowledgeBase;
 
     @Autowired
-    private AgentExecutionService agentExecutionService;
-
-    @Autowired
-    private AgentTaskRegistry agentTaskRegistry;
-
-    @Autowired
-    private ConversationManager conversationManager;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
-
-    @Autowired
-    private KnowledgeBase knowledgeBase;
+    public AgentController(KnowledgeIndexAgent knowledgeIndexAgent, AgentExecutionService agentExecutionService, AgentTaskRegistry agentTaskRegistry, ConversationManager conversationManager, RequestUserContext requestUserContext, KnowledgeBase knowledgeBase) {
+        this.knowledgeIndexAgent = knowledgeIndexAgent;
+        this.agentExecutionService = agentExecutionService;
+        this.agentTaskRegistry = agentTaskRegistry;
+        this.conversationManager = conversationManager;
+        this.requestUserContext = requestUserContext;
+        this.knowledgeBase = knowledgeBase;
+    }
 
     /**
      * 统一Agent链路 - 自动规划、工具执行、RAG、最终回答

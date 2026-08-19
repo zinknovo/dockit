@@ -22,12 +22,17 @@ import java.util.Map;
  */
 @Service
 public class FileMetadataServiceImpl implements FileMetadataService {
+    private static final Logger log = LoggerFactory.getLogger(FileMetadataServiceImpl.class);
+
+    private final FileMetadataMapper fileMetadataMapper;
+
+    private final FileStorageConfig fileStorageConfig;
 
     @Autowired
-    private FileMetadataMapper fileMetadataMapper;
-
-    @Autowired
-    private FileStorageConfig fileStorageConfig;
+    public FileMetadataServiceImpl(FileMetadataMapper fileMetadataMapper, FileStorageConfig fileStorageConfig) {
+        this.fileMetadataMapper = fileMetadataMapper;
+        this.fileStorageConfig = fileStorageConfig;
+    }
 
     @Override
     public FileMetadata getMetadata(String fileId) {

@@ -23,7 +23,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void runPipelineMarksJobIndexedAndAttachesQuality() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         DocumentVectorizer vectorizer = mock(DocumentVectorizer.class);
         KnowledgeBase knowledgeBase = mock(KnowledgeBase.class);
         VectorStore vectorStore = mock(VectorStore.class);
@@ -44,7 +44,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void runPipelineMarksFailedWhenContentEmpty() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         ReflectionTestUtils.setField(agent, "knowledgeBase", mock(KnowledgeBase.class));
         ReflectionTestUtils.setField(agent, "vectorStore", mock(VectorStore.class));
         ReflectionTestUtils.setField(agent, "documentVectorizer", mock(DocumentVectorizer.class));
@@ -58,7 +58,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void searchKnowledgeFiltersByOwnerAndKnowledgeBase() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         DocumentVectorizer vectorizer = mock(DocumentVectorizer.class);
         VectorStore vectorStore = mock(VectorStore.class);
         ReflectionTestUtils.setField(agent, "documentVectorizer", vectorizer);
@@ -81,7 +81,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void retryJobRescheduleFailedJob() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         KnowledgeBase knowledgeBase = mock(KnowledgeBase.class);
         ReflectionTestUtils.setField(agent, "knowledgeBase", knowledgeBase);
         ReflectionTestUtils.setField(agent, "vectorStore", mock(VectorStore.class));
@@ -103,7 +103,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void runPipelineReusesIndexWhenContentHashUnchanged() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         KnowledgeBase knowledgeBase = mock(KnowledgeBase.class);
         ReflectionTestUtils.setField(agent, "knowledgeBase", knowledgeBase);
         ReflectionTestUtils.setField(agent, "vectorStore", mock(VectorStore.class));
@@ -126,7 +126,7 @@ class KnowledgeIndexAgentTest {
 
     @Test
     void runPipelineRebuildsIndexWhenHashChanged() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         KnowledgeBase knowledgeBase = mock(KnowledgeBase.class);
         ReflectionTestUtils.setField(agent, "knowledgeBase", knowledgeBase);
         ReflectionTestUtils.setField(agent, "vectorStore", mock(VectorStore.class));
@@ -148,7 +148,7 @@ class KnowledgeIndexAgentTest {
     @Test
     @SuppressWarnings("unchecked")
     void listJobsFiltersByOwnerAndDeleteRemovesEntry() {
-        KnowledgeIndexAgent agent = new KnowledgeIndexAgent();
+        KnowledgeIndexAgent agent = new KnowledgeIndexAgent(null, null, null, null);
         ReflectionTestUtils.setField(agent, "knowledgeBase", mock(KnowledgeBase.class));
         ReflectionTestUtils.setField(agent, "vectorStore", mock(VectorStore.class));
         ReflectionTestUtils.setField(agent, "documentVectorizer", mock(DocumentVectorizer.class));

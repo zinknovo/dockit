@@ -28,23 +28,27 @@ public class FileDeleteService {
     private static final Logger log = LoggerFactory.getLogger(FileDeleteService.class);
     private static final String DELETE_CONFIRM_PREFIX = "file:delete:confirm:";
 
-    @Autowired
-    private RecycleBinService recycleBinService;
+    private final RecycleBinService recycleBinService;
+
+    private final MinIOService minIOService;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final RequestUserContext requestUserContext;
+
+    private final BucketPermissionService bucketPermissionService;
+
+    private final DocumentServiceClient documentServiceClient;
 
     @Autowired
-    private MinIOService minIOService;
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
-
-    @Autowired
-    private DocumentServiceClient documentServiceClient;
+    public FileDeleteService(RecycleBinService recycleBinService, MinIOService minIOService, RedisTemplate<String, Object> redisTemplate, RequestUserContext requestUserContext, BucketPermissionService bucketPermissionService, DocumentServiceClient documentServiceClient) {
+        this.recycleBinService = recycleBinService;
+        this.minIOService = minIOService;
+        this.redisTemplate = redisTemplate;
+        this.requestUserContext = requestUserContext;
+        this.bucketPermissionService = bucketPermissionService;
+        this.documentServiceClient = documentServiceClient;
+    }
 
     @org.springframework.beans.factory.annotation.Value("${minio.delete.confirmation-timeout:300}")
     private int confirmationTimeout;

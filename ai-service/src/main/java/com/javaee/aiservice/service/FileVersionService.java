@@ -29,17 +29,21 @@ public class FileVersionService {
     private static final String VERSION_PREFIX = "file:versions:";
     private static final String VERSION_OBJECT_PREFIX = ".versions/";
 
-    @Autowired
-    private MinIOService minIOService;
+    private final MinIOService minIOService;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final BucketPermissionService bucketPermissionService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
+    public FileVersionService(MinIOService minIOService, RedisTemplate<String, Object> redisTemplate, BucketPermissionService bucketPermissionService, RequestUserContext requestUserContext) {
+        this.minIOService = minIOService;
+        this.redisTemplate = redisTemplate;
+        this.bucketPermissionService = bucketPermissionService;
+        this.requestUserContext = requestUserContext;
+    }
 
     /**
      * 创建新的文件版本

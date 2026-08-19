@@ -23,8 +23,12 @@ public class ConversationManager {
     private static final String CONVERSATION_PREFIX = "conv:";
     private static final String USER_PREFIX = "user:";
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public ConversationManager(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Value("${ai.conversation.max-messages:100}")
     private int maxMessages;

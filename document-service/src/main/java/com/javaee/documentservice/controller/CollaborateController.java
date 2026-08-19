@@ -1,13 +1,11 @@
 package com.javaee.documentservice.controller;
 
-import com.javaee.common.utils.JwtUtils;
 import com.javaee.documentservice.collaborate.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -20,20 +18,24 @@ public class CollaborateController {
 
     private static final Logger log = LoggerFactory.getLogger(CollaborateController.class);
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    private final CollaborateSessionManager sessionManager;
+
+    private final EditOperationHandler editOperationHandler;
+
+    private final CursorSyncHandler cursorSyncHandler;
+
+    private final DocumentSnapshotService snapshotService;
 
     @Autowired
-    private CollaborateSessionManager sessionManager;
-
-    @Autowired
-    private EditOperationHandler editOperationHandler;
-
-    @Autowired
-    private CursorSyncHandler cursorSyncHandler;
-
-    @Autowired
-    private DocumentSnapshotService snapshotService;
+    public CollaborateController(SimpMessagingTemplate messagingTemplate, CollaborateSessionManager sessionManager, EditOperationHandler editOperationHandler, CursorSyncHandler cursorSyncHandler, DocumentSnapshotService snapshotService) {
+        this.messagingTemplate = messagingTemplate;
+        this.sessionManager = sessionManager;
+        this.editOperationHandler = editOperationHandler;
+        this.cursorSyncHandler = cursorSyncHandler;
+        this.snapshotService = snapshotService;
+    }
 
     @MessageMapping("/collaborate/join")
     public void joinDocument(@Payload DocumentJoinMessage joinMessage, Principal principal) {

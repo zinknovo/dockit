@@ -24,14 +24,18 @@ public class SkillExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(SkillExecutor.class);
 
-    @Autowired
-    private InternalService internalService;
+    private final InternalService internalService;
+
+    private final FileDeleteService fileDeleteService;
+
+    private final FileDownloadService fileDownloadService;
 
     @Autowired
-    private FileDeleteService fileDeleteService;
-
-    @Autowired
-    private FileDownloadService fileDownloadService;
+    public SkillExecutor(InternalService internalService, FileDeleteService fileDeleteService, FileDownloadService fileDownloadService) {
+        this.internalService = internalService;
+        this.fileDeleteService = fileDeleteService;
+        this.fileDownloadService = fileDownloadService;
+    }
 
     /**
      * 执行技能

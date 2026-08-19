@@ -45,20 +45,28 @@ public class KnowledgeIndexAgent {
     private static final String JOB_ALL_ZSET = "agent:knowledge:jobs:all";
     private static final String JOB_USER_ZSET_PREFIX = "agent:knowledge:jobs:user:";
 
-    @Autowired
-    private DocumentVectorizer documentVectorizer;
+    private final DocumentVectorizer documentVectorizer;
 
-    @Autowired
-    private KnowledgeBase knowledgeBase;
+    private final KnowledgeBase knowledgeBase;
 
-    @Autowired
-    private VectorStore vectorStore;
+    private final VectorStore vectorStore;
 
-    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired(required = false)
+    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    private final AgentProgressBroadcaster progressBroadcaster;
+
     @Autowired
-    private AgentProgressBroadcaster progressBroadcaster;
+    public KnowledgeIndexAgent(DocumentVectorizer documentVectorizer, KnowledgeBase knowledgeBase, VectorStore vectorStore, AgentProgressBroadcaster progressBroadcaster) {
+        this.documentVectorizer = documentVectorizer;
+        this.knowledgeBase = knowledgeBase;
+        this.vectorStore = vectorStore;
+        this.progressBroadcaster = progressBroadcaster;
+    }
 
     private final Map<String, KnowledgeIndexJob> jobs = new ConcurrentHashMap<>();
     private final ExecutorService indexExecutor = Executors.newFixedThreadPool(

@@ -26,23 +26,27 @@ import java.util.Map;
 @Tag(name = "RAG知识库", description = "知识库索引、搜索、问答接口")
 public class RagController {
 
-    @Autowired
-    private KnowledgeBase knowledgeBase;
+    private final KnowledgeBase knowledgeBase;
+
+    private final VectorStore vectorStore;
+
+    private final Reranker reranker;
+
+    private final DocumentSegmenter documentSegmenter;
+
+    private final ChatService chatService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private VectorStore vectorStore;
-
-    @Autowired
-    private Reranker reranker;
-
-    @Autowired
-    private DocumentSegmenter documentSegmenter;
-
-    @Autowired
-    private ChatService chatService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
+    public RagController(KnowledgeBase knowledgeBase, VectorStore vectorStore, Reranker reranker, DocumentSegmenter documentSegmenter, ChatService chatService, RequestUserContext requestUserContext) {
+        this.knowledgeBase = knowledgeBase;
+        this.vectorStore = vectorStore;
+        this.reranker = reranker;
+        this.documentSegmenter = documentSegmenter;
+        this.chatService = chatService;
+        this.requestUserContext = requestUserContext;
+    }
 
     /**
      * 文档索引

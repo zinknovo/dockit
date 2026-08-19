@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +19,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import com.javaee.aiservice.service.MinIOService;
 
 @RestController
 @RequestMapping("/api/skills")
 @Tag(name = "技能管理", description = "AI技能执行接口")
 public class SkillController {
+    private static final Logger log = LoggerFactory.getLogger(SkillController.class);
 
     private final SkillExecutorService skillExecutorService;
-    private final MinIOService minIOService;
 
     @Autowired
-    public SkillController(SkillExecutorService skillExecutorService, MinIOService minIOService) {
+    public SkillController(SkillExecutorService skillExecutorService) {
         this.skillExecutorService = skillExecutorService;
-        this.minIOService = minIOService;
     }
 
     /**

@@ -17,8 +17,12 @@ import java.util.List;
 @Tag(name = "文档批注", description = "文档批注管理接口")
 public class AnnotationController {
 
+    private final AnnotationService annotationService;
+
     @Autowired
-    private AnnotationService annotationService;
+    public AnnotationController(AnnotationService annotationService) {
+        this.annotationService = annotationService;
+    }
 
     @PostMapping
     @Operation(summary = "添加批注", description = "为文档添加批注")

@@ -22,14 +22,18 @@ public class FileDownloadService {
 
     private static final Logger log = LoggerFactory.getLogger(FileDownloadService.class);
 
-    @Autowired
-    private MinIOService minIOService;
+    private final MinIOService minIOService;
+
+    private final BucketPermissionService bucketPermissionService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private BucketPermissionService bucketPermissionService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
+    public FileDownloadService(MinIOService minIOService, BucketPermissionService bucketPermissionService, RequestUserContext requestUserContext) {
+        this.minIOService = minIOService;
+        this.bucketPermissionService = bucketPermissionService;
+        this.requestUserContext = requestUserContext;
+    }
 
     @Value("${minio.url.expiry:3600}")
     private int defaultExpiry;

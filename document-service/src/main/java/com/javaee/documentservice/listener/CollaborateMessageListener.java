@@ -16,11 +16,15 @@ public class CollaborateMessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(CollaborateMessageListener.class);
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    public CollaborateMessageListener(SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+        this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     @RabbitListener(queues = RabbitMQConfig.COLLABORATE_EDIT_QUEUE)
     public void handleCollaborateEdit(byte[] message) {

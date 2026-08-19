@@ -37,7 +37,7 @@ class DocumentVersionControllerTest {
     void setUp() {
         documentService = Mockito.mock(DocumentService.class);
         requestUserContext = Mockito.mock(RequestUserContext.class);
-        controller = new DocumentController();
+        controller = new DocumentController(null, null);
         ReflectionTestUtils.setField(controller, "documentService", documentService);
         ReflectionTestUtils.setField(controller, "requestUserContext", requestUserContext);
         when(requestUserContext.getRequiredUserId()).thenReturn(7L);

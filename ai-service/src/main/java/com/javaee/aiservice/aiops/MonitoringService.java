@@ -29,8 +29,12 @@ public class MonitoringService {
     private static final Logger log = LoggerFactory.getLogger(MonitoringService.class);
     private static final String METRIC_PREFIX = "metric:";
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public MonitoringService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Value("${ai.aiops.metrics.retention-ms:900000}")
     private long retentionMs;

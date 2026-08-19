@@ -23,8 +23,12 @@ public class CollaborateSessionManager {
     private final Map<String, Set<String>> localDocumentUsers = new ConcurrentHashMap<>();
     private final Map<String, String> localUserDocuments = new ConcurrentHashMap<>();
 
+    private final RedisUtils redisUtils;
+
     @Autowired
-    private RedisUtils redisUtils;
+    public CollaborateSessionManager(RedisUtils redisUtils) {
+        this.redisUtils = redisUtils;
+    }
 
     public void userJoinDocument(String documentId, String userId, String userName) {
         localDocumentUsers.computeIfAbsent(documentId, k -> ConcurrentHashMap.newKeySet()).add(userId);

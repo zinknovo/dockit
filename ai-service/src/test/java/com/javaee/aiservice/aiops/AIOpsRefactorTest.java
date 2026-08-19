@@ -20,7 +20,7 @@ class AIOpsRefactorTest {
 
     @Test
     void monitoringServiceReportsWindowStats() {
-        MonitoringService monitoringService = new MonitoringService();
+        MonitoringService monitoringService = new MonitoringService(null);
         ReflectionTestUtils.setField(monitoringService, "retentionMs", 900_000L);
 
         monitoringService.incrementCounter("ai.requests", 3);
@@ -43,15 +43,15 @@ class AIOpsRefactorTest {
 
     @Test
     void faultDetectorAggregatesFaultsAndRespectsAlertCooldown() {
-        MonitoringService monitoringService = new MonitoringService();
+        MonitoringService monitoringService = new MonitoringService(null);
         ReflectionTestUtils.setField(monitoringService, "retentionMs", 900_000L);
 
-        AlertService alertService = new AlertService();
+        AlertService alertService = new AlertService(null);
         InternalService internalService = mock(InternalService.class);
         ReflectionTestUtils.setField(alertService, "internalService", internalService);
         ReflectionTestUtils.setField(alertService, "cooldownMs", 300_000L);
 
-        FaultDetector detector = new FaultDetector();
+        FaultDetector detector = new FaultDetector(null, null);
         ReflectionTestUtils.setField(detector, "monitoringService", monitoringService);
         ReflectionTestUtils.setField(detector, "alertService", alertService);
         ReflectionTestUtils.setField(detector, "detectionWindowMs", 300_000L);

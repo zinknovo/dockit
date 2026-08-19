@@ -28,11 +28,15 @@ import java.util.List;
 @Tag(name = "文档管理", description = "文档创建、更新、删除、查询、版本控制等接口")
 public class DocumentController {
 
-    @Autowired
-    private DocumentService documentService;
+    private final DocumentService documentService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private RequestUserContext requestUserContext;
+    public DocumentController(DocumentService documentService, RequestUserContext requestUserContext) {
+        this.documentService = documentService;
+        this.requestUserContext = requestUserContext;
+    }
 
     /**
      * 创建文档

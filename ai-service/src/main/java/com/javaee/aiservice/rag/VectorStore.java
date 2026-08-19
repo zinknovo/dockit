@@ -36,8 +36,12 @@ public class VectorStore {
     private static final String VECTOR_PREFIX = "vector:";
     private static final String METADATA_PREFIX = "metadata:";
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public VectorStore(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Value("${ai.vector.dimension:1024}")
     private int defaultDimension;

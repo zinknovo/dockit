@@ -26,11 +26,15 @@ public class DocumentFileStorageServiceImpl implements DocumentFileStorageServic
 
     private static final Logger log = LoggerFactory.getLogger(DocumentFileStorageServiceImpl.class);
 
-    @Autowired
-    private MinioClient minioClient;
+    private final MinioClient minioClient;
+
+    private final BucketPermissionService bucketPermissionService;
 
     @Autowired
-    private BucketPermissionService bucketPermissionService;
+    public DocumentFileStorageServiceImpl(MinioClient minioClient, BucketPermissionService bucketPermissionService) {
+        this.minioClient = minioClient;
+        this.bucketPermissionService = bucketPermissionService;
+    }
 
     /** presigned URL 有效期（秒），默认 1 小时 */
     @Value("${dockit.storage.presigned-url-expiry-seconds:3600}")

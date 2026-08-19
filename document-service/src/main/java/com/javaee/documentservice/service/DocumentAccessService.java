@@ -21,8 +21,12 @@ public class DocumentAccessService {
     private static final Set<String> READ_ROLES = Set.of("owner", "editor", "viewer");
     private static final Set<String> WRITE_ROLES = Set.of("owner", "editor");
 
+    private final DocumentAccessMapper documentAccessMapper;
+
     @Autowired
-    private DocumentAccessMapper documentAccessMapper;
+    public DocumentAccessService(DocumentAccessMapper documentAccessMapper) {
+        this.documentAccessMapper = documentAccessMapper;
+    }
 
     public void grantOwnerAccess(String documentId, String bucketName, Long userId) {
         grantAccess(documentId, bucketName, userId, "owner");

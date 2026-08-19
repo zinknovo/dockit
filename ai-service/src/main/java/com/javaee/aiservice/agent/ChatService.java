@@ -16,8 +16,12 @@ public class ChatService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatService.class);
 
+    private final AIServiceFactory aiServiceFactory;
+
     @Autowired
-    private AIServiceFactory aiServiceFactory;
+    public ChatService(AIServiceFactory aiServiceFactory) {
+        this.aiServiceFactory = aiServiceFactory;
+    }
 
     /**
      * 调用默认模型（qwen-plus）

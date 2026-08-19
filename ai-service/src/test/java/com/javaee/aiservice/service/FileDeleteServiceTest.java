@@ -32,7 +32,7 @@ class FileDeleteServiceTest {
         bucketPermissionService = mock(BucketPermissionService.class);
         requestUserContext = mock(RequestUserContext.class);
         documentServiceClient = mock(DocumentServiceClient.class);
-        fileDeleteService = new FileDeleteService();
+        fileDeleteService = new FileDeleteService(null, null, null, null, null, null);
         ReflectionTestUtils.setField(fileDeleteService, "recycleBinService", recycleBinService);
         ReflectionTestUtils.setField(fileDeleteService, "minIOService", minIOService);
         ReflectionTestUtils.setField(fileDeleteService, "bucketPermissionService", bucketPermissionService);

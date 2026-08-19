@@ -23,11 +23,15 @@ public class AnnotationServiceImpl implements AnnotationService {
 
     private static final Logger log = LoggerFactory.getLogger(AnnotationServiceImpl.class);
 
-    @Autowired
-    private DocumentAnnotationMapper annotationMapper;
+    private final DocumentAnnotationMapper annotationMapper;
+
+    private final DocumentMapper documentMapper;
 
     @Autowired
-    private DocumentMapper documentMapper;
+    public AnnotationServiceImpl(DocumentAnnotationMapper annotationMapper, DocumentMapper documentMapper) {
+        this.annotationMapper = annotationMapper;
+        this.documentMapper = documentMapper;
+    }
 
     @Override
     @Transactional

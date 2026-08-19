@@ -32,17 +32,21 @@ public class AsyncAIJobListener {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private AsyncAIJobService asyncAIJobService;
+    private final AsyncAIJobService asyncAIJobService;
+
+    private final AIService aiService;
+
+    private final ChatService chatService;
+
+    private final AgentExecutionService agentExecutionService;
 
     @Autowired
-    private AIService aiService;
-
-    @Autowired
-    private ChatService chatService;
-
-    @Autowired
-    private AgentExecutionService agentExecutionService;
+    public AsyncAIJobListener(AsyncAIJobService asyncAIJobService, AIService aiService, ChatService chatService, AgentExecutionService agentExecutionService) {
+        this.asyncAIJobService = asyncAIJobService;
+        this.aiService = aiService;
+        this.chatService = chatService;
+        this.agentExecutionService = agentExecutionService;
+    }
 
     @RabbitListener(queues = AiRabbitMQConfig.AI_MODEL_REQUEST_QUEUE)
     public void handleModelJob(AsyncAIJobMessage message) {

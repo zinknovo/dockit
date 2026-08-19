@@ -24,11 +24,15 @@ public class CommentServiceImpl implements CommentService {
 
     private static final Logger log = LoggerFactory.getLogger(CommentServiceImpl.class);
 
-    @Autowired
-    private DocumentCommentMapper commentMapper;
+    private final DocumentCommentMapper commentMapper;
+
+    private final DocumentMapper documentMapper;
 
     @Autowired
-    private DocumentMapper documentMapper;
+    public CommentServiceImpl(DocumentCommentMapper commentMapper, DocumentMapper documentMapper) {
+        this.commentMapper = commentMapper;
+        this.documentMapper = documentMapper;
+    }
 
     @Override
     @Transactional

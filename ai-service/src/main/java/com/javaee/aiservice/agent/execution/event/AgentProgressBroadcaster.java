@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AgentProgressBroadcaster {
 
+    private final SimpMessagingTemplate messagingTemplate;
+
     @Autowired(required = false)
-    private SimpMessagingTemplate messagingTemplate;
+    public AgentProgressBroadcaster(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
 
     public void publish(AgentProgressEvent event) {
         if (messagingTemplate == null || event == null) {

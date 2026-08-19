@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class RabbitMQUtil {
 
+    private final RabbitTemplate rabbitTemplate;
+
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    public RabbitMQUtil(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     /**
      * 发送消息

@@ -29,7 +29,7 @@ class AIOpsControllerTest {
 
     @BeforeEach
     void setUp() {
-        AIOpsController controller = new AIOpsController();
+        AIOpsController controller = new AIOpsController(null, null, null);
         monitoringService = mock(MonitoringService.class);
         faultDetector = mock(FaultDetector.class);
         requestUserContext = mock(RequestUserContext.class);

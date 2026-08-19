@@ -24,17 +24,21 @@ public class FileUploadService {
 
     private static final Logger log = LoggerFactory.getLogger(FileUploadService.class);
 
-    @Autowired
-    private MinIOService minIOService;
+    private final MinIOService minIOService;
+
+    private final FileVersionService fileVersionService;
+
+    private final RequestUserContext requestUserContext;
+
+    private final BucketPermissionService bucketPermissionService;
 
     @Autowired
-    private FileVersionService fileVersionService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
+    public FileUploadService(MinIOService minIOService, FileVersionService fileVersionService, RequestUserContext requestUserContext, BucketPermissionService bucketPermissionService) {
+        this.minIOService = minIOService;
+        this.fileVersionService = fileVersionService;
+        this.requestUserContext = requestUserContext;
+        this.bucketPermissionService = bucketPermissionService;
+    }
 
     /**
      * 文件上传功能

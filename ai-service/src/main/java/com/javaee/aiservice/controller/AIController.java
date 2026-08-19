@@ -34,29 +34,33 @@ import java.util.stream.Collectors;
 @Tag(name = "AI处理", description = "文档摘要、关键词提取、文档分析等AI处理接口")
 public class AIController {
 
-    @Autowired
-    private AIService aiService;
+    private final AIService aiService;
+
+    private final AIServiceFactory aiServiceFactory;
+
+    private final FileUploadService fileUploadService;
+
+    private final FileDownloadService fileDownloadService;
+
+    private final FileDeleteService fileDeleteService;
+
+    private final FileVersionService fileVersionService;
+
+    private final RecycleBinService recycleBinService;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private AIServiceFactory aiServiceFactory;
-
-    @Autowired
-    private FileUploadService fileUploadService;
-
-    @Autowired
-    private FileDownloadService fileDownloadService;
-
-    @Autowired
-    private FileDeleteService fileDeleteService;
-
-    @Autowired
-    private FileVersionService fileVersionService;
-
-    @Autowired
-    private RecycleBinService recycleBinService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
+    public AIController(AIService aiService, AIServiceFactory aiServiceFactory, FileUploadService fileUploadService, FileDownloadService fileDownloadService, FileDeleteService fileDeleteService, FileVersionService fileVersionService, RecycleBinService recycleBinService, RequestUserContext requestUserContext) {
+        this.aiService = aiService;
+        this.aiServiceFactory = aiServiceFactory;
+        this.fileUploadService = fileUploadService;
+        this.fileDownloadService = fileDownloadService;
+        this.fileDeleteService = fileDeleteService;
+        this.fileVersionService = fileVersionService;
+        this.recycleBinService = recycleBinService;
+        this.requestUserContext = requestUserContext;
+    }
 
     /**
      * 获取可用模型列表

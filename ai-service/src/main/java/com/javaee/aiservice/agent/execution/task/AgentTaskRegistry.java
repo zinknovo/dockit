@@ -31,8 +31,12 @@ public class AgentTaskRegistry {
     private final ConcurrentMap<String, Map<String, Object>> tasks = new ConcurrentHashMap<>();
     private final java.util.Deque<String> evictionOrder = new java.util.concurrent.ConcurrentLinkedDeque<>();
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired(required = false)
-    private RedisTemplate<String, Object> redisTemplate;
+    public AgentTaskRegistry(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public void save(String traceId, Map<String, Object> snapshot) {
         if (traceId == null || snapshot == null) {

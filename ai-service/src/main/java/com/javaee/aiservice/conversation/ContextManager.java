@@ -20,8 +20,12 @@ public class ContextManager {
     private static final Logger log = LoggerFactory.getLogger(ContextManager.class);
     private static final String CONTEXT_PREFIX = "ctx:";
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public ContextManager(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 获取对话上下文

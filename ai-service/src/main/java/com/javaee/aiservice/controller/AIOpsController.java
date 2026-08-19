@@ -22,14 +22,18 @@ import java.util.Map;
 @Tag(name = "AIOps", description = "系统监控、故障检测、故障处理接口")
 public class AIOpsController {
 
-    @Autowired
-    private MonitoringService monitoringService;
+    private final MonitoringService monitoringService;
+
+    private final FaultDetector faultDetector;
+
+    private final RequestUserContext requestUserContext;
 
     @Autowired
-    private FaultDetector faultDetector;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
+    public AIOpsController(MonitoringService monitoringService, FaultDetector faultDetector, RequestUserContext requestUserContext) {
+        this.monitoringService = monitoringService;
+        this.faultDetector = faultDetector;
+        this.requestUserContext = requestUserContext;
+    }
 
     /**
      * 系统监控 - 获取指标

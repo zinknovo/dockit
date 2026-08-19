@@ -23,11 +23,15 @@ public class DocumentContentServiceImpl implements DocumentContentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentContentServiceImpl.class);
 
-    @Autowired
-    private MinioClient minioClient;
+    private final MinioClient minioClient;
+
+    private final BucketPermissionService bucketPermissionService;
 
     @Autowired
-    private BucketPermissionService bucketPermissionService;
+    public DocumentContentServiceImpl(MinioClient minioClient, BucketPermissionService bucketPermissionService) {
+        this.minioClient = minioClient;
+        this.bucketPermissionService = bucketPermissionService;
+    }
 
     /**
      * 获取文档内容在MinIO中的存储键

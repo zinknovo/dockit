@@ -71,75 +71,80 @@ public class AgentExecutionService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private ChatService chatService;
+    private final ChatService chatService;
+
+    private final PromptEngineeringService promptEngineeringService;
+
+    private final AIService aiService;
+
+    private final KnowledgeBase knowledgeBase;
+
+    private final KnowledgeIndexAgent knowledgeIndexAgent;
+
+    private final ConversationManager conversationManager;
+
+    private final ContextManager contextManager;
+
+    private final InternalService internalService;
+
+    private final FileDownloadService fileDownloadService;
+
+    private final FileDeleteService fileDeleteService;
+
+    private final FileVersionService fileVersionService;
+
+    private final RecycleBinService recycleBinService;
+
+    private final MinIOService minIOService;
+
+    private final BucketPermissionService bucketPermissionService;
+
+    private final DocumentServiceClient documentServiceClient;
+
+    private final SkillExecutorService skillExecutorService;
+
+    private final AgentToolRegistry toolRegistry;
+
+    private final AgentApprovalService agentApprovalService;
+
+    private final RequestUserContext requestUserContext;
+
+    private final AgentTaskRegistry taskRegistry;
+
+    private final AgentProgressBroadcaster progressBroadcaster;
+
+    private final AgentReflectionService reflectionService;
 
     @Autowired
-    private PromptEngineeringService promptEngineeringService;
-
-    @Autowired
-    private AIService aiService;
-
-    @Autowired
-    private KnowledgeBase knowledgeBase;
-
-    @Autowired
-    private KnowledgeIndexAgent knowledgeIndexAgent;
-
-    @Autowired
-    private ConversationManager conversationManager;
-
-    @Autowired
-    private ContextManager contextManager;
-
-    @Autowired
-    private InternalService internalService;
-
-    @Autowired
-    private FileDownloadService fileDownloadService;
-
-    @Autowired
-    private FileDeleteService fileDeleteService;
-
-    @Autowired
-    private FileVersionService fileVersionService;
-
-    @Autowired
-    private RecycleBinService recycleBinService;
-
-    @Autowired
-    private MinIOService minIOService;
-
-    @Autowired
-    private BucketPermissionService bucketPermissionService;
-
-    @Autowired
-    private DocumentServiceClient documentServiceClient;
-
-    @Autowired
-    private SkillExecutorService skillExecutorService;
-
-    @Autowired
-    private AgentToolRegistry toolRegistry;
-
-    @Autowired
-    private AgentApprovalService agentApprovalService;
-
-    @Autowired
-    private RequestUserContext requestUserContext;
-
-    @Autowired
-    private AgentTaskRegistry taskRegistry;
-
-    @Autowired
-    private AgentProgressBroadcaster progressBroadcaster;
-
-    @Autowired
-    private AgentReflectionService reflectionService;
+    public AgentExecutionService(ChatService chatService, PromptEngineeringService promptEngineeringService, AIService aiService, KnowledgeBase knowledgeBase, KnowledgeIndexAgent knowledgeIndexAgent, ConversationManager conversationManager, ContextManager contextManager, InternalService internalService, FileDownloadService fileDownloadService, FileDeleteService fileDeleteService, FileVersionService fileVersionService, RecycleBinService recycleBinService, MinIOService minIOService, BucketPermissionService bucketPermissionService, DocumentServiceClient documentServiceClient, SkillExecutorService skillExecutorService, AgentToolRegistry toolRegistry, AgentApprovalService agentApprovalService, RequestUserContext requestUserContext, AgentTaskRegistry taskRegistry, AgentProgressBroadcaster progressBroadcaster, AgentReflectionService reflectionService) {
+        this.chatService = chatService;
+        this.promptEngineeringService = promptEngineeringService;
+        this.aiService = aiService;
+        this.knowledgeBase = knowledgeBase;
+        this.knowledgeIndexAgent = knowledgeIndexAgent;
+        this.conversationManager = conversationManager;
+        this.contextManager = contextManager;
+        this.internalService = internalService;
+        this.fileDownloadService = fileDownloadService;
+        this.fileDeleteService = fileDeleteService;
+        this.fileVersionService = fileVersionService;
+        this.recycleBinService = recycleBinService;
+        this.minIOService = minIOService;
+        this.bucketPermissionService = bucketPermissionService;
+        this.documentServiceClient = documentServiceClient;
+        this.skillExecutorService = skillExecutorService;
+        this.toolRegistry = toolRegistry;
+        this.agentApprovalService = agentApprovalService;
+        this.requestUserContext = requestUserContext;
+        this.taskRegistry = taskRegistry;
+        this.progressBroadcaster = progressBroadcaster;
+        this.reflectionService = reflectionService;
+    }
 
     @Value("${ai.agent.reflection.enabled:true}")
     private boolean defaultReflectionEnabled;
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> execute(AgentExecutionRequest request) {
         validateRequest(request);
 

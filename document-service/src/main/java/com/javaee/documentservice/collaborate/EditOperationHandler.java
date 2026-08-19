@@ -23,14 +23,18 @@ public class EditOperationHandler {
     private static final int MAX_CACHED_OPS = 500;
     private static final long OPS_EXPIRE_HOURS = 24;
 
-    @Autowired
-    private RedisUtils redisUtils;
+    private final RedisUtils redisUtils;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    public EditOperationHandler(RedisUtils redisUtils, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+        this.redisUtils = redisUtils;
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     public EditOperation transformAndApply(EditOperation remoteOp, String localUserId) {
         List<EditOperation> recentOps = getRecentOperations(remoteOp.getDocumentId());

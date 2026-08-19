@@ -27,11 +27,15 @@ public class FaultDetector {
 
     private static final Logger log = LoggerFactory.getLogger(FaultDetector.class);
 
-    @Autowired
-    private MonitoringService monitoringService;
+    private final MonitoringService monitoringService;
+
+    private final AlertService alertService;
 
     @Autowired
-    private AlertService alertService;
+    public FaultDetector(MonitoringService monitoringService, AlertService alertService) {
+        this.monitoringService = monitoringService;
+        this.alertService = alertService;
+    }
 
     @Value("${ai.aiops.detection.window-ms:300000}")
     private long detectionWindowMs;

@@ -21,8 +21,12 @@ public class AIServiceFactory {
     
     private static final Logger log = LoggerFactory.getLogger(AIServiceFactory.class);
     
+    private final MultiModelConfig multiModelConfig;
+
     @Autowired
-    private MultiModelConfig multiModelConfig;
+    public AIServiceFactory(MultiModelConfig multiModelConfig) {
+        this.multiModelConfig = multiModelConfig;
+    }
     
     @Value("${spring.ai.dashscope.api-key}")
     private String defaultApiKey;

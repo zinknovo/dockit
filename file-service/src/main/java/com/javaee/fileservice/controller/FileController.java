@@ -32,14 +32,18 @@ import java.util.Optional;
 @Tag(name = "文件管理", description = "文件上传、下载、删除、分片等核心接口")
 public class FileController {
 
-    @Autowired
-    private FileService fileService;
+    private final FileService fileService;
+
+    private final FileMetadataService fileMetadataService;
+
+    private final RabbitMQUtil rabbitMQUtil;
 
     @Autowired
-    private FileMetadataService fileMetadataService;
-
-    @Autowired
-    private RabbitMQUtil rabbitMQUtil;
+    public FileController(FileService fileService, FileMetadataService fileMetadataService, RabbitMQUtil rabbitMQUtil) {
+        this.fileService = fileService;
+        this.fileMetadataService = fileMetadataService;
+        this.rabbitMQUtil = rabbitMQUtil;
+    }
 
     /**
      * 单文件上传
