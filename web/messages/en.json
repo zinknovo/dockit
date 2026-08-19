@@ -17,13 +17,11 @@
     "redirecting": "Redirecting..."
   },
   "nav": {
+    "agent": "AI Agent",
     "dashboard": "Dashboard",
-    "policy": "Policies",
-    "users": "Users",
-    "departments": "Departments",
     "userCenter": "Profile",
     "settings": "Settings",
-    "console": "Admin Console",
+    "console": "Console",
     "settingsButton": "Settings",
     "currentUser": "Current user",
     "logout": "Log out"

@@ -17,13 +17,11 @@
     "redirecting": "正在跳转..."
   },
   "nav": {
-    "dashboard": "仪表盘",
-    "policy": "制度管理",
-    "users": "用户管理",
-    "departments": "部门管理",
+    "agent": "AI Agent",
+    "dashboard": "工作台",
     "userCenter": "个人中心",
     "settings": "页面设置",
-    "console": "管理控制台",
+    "console": "控制台",
     "settingsButton": "页面设置",
     "currentUser": "当前用户",
     "logout": "退出登录"

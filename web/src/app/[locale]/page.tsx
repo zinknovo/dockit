@@ -12,7 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!ready) return
-    router.replace(token ? '/dashboard' : '/auth/login')
+    router.replace(token ? '/agent' : '/auth/login')
   }, [ready, token, router])
 
   return (
