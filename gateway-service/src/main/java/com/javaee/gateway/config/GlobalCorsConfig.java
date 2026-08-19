@@ -25,6 +25,7 @@ public class GlobalCorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         // 允许的源
+        corsConfig.addAllowedOrigin("http://localhost:3000");
         corsConfig.addAllowedOrigin("http://localhost:5173");
         // 允许的请求头
         corsConfig.addAllowedHeader("*");
