@@ -3,12 +3,27 @@
 import { useState, useRef, useEffect } from 'react'
 import { http } from '@/lib/http'
 
+interface PlanStep {
+  toolName?: string
+  status?: string
+  description?: string
+  observation?: string
+}
+
+interface AgentExecuteResponse {
+  conversationId?: string
+  answer?: string
+  traceId?: string
+  plan?: PlanStep[]
+  toolResults?: Array<Record<string, unknown>>
+}
+
 interface Message {
   role: 'user' | 'agent'
   content: string
   traceId?: string
-  plan?: any[]
-  toolResults?: any[]
+  plan?: PlanStep[]
+  toolResults?: Array<Record<string, unknown>>
 }
 
 export default function AgentPage() {
@@ -30,7 +45,7 @@ export default function AgentPage() {
     setMessages(prev => [...prev, { role: 'user', content: task }])
 
     try {
-      const data = await http.post<any>({
+      const data = await http.post<AgentExecuteResponse>({
         url: '/api/ai/agent/execute',
         data: {
           task,
@@ -52,10 +67,10 @@ export default function AgentPage() {
         plan: data.plan,
         toolResults: data.toolResults
       }])
-    } catch (err: any) {
+    } catch (err) {
       setMessages(prev => [...prev, {
         role: 'agent',
-        content: '请求失败: ' + (err.message || '未知错误')
+        content: '请求失败: ' + (err instanceof Error ? err.message : '未知错误')
       }])
     } finally {
       setLoading(false)
@@ -104,7 +119,7 @@ export default function AgentPage() {
               {expanded[i] && msg.plan && (
                 <div className="mt-2 space-y-2 border-t border-g-100 pt-2">
                   <p className="text-xs font-medium text-g-500">执行计划</p>
-                  {msg.plan.map((step: any, si: number) => (
+                  {msg.plan.map((step: PlanStep, si: number) => (
                     <div key={si} className="text-xs bg-g-50 rounded-lg p-2">
                       <span className="font-medium">{step.toolName}</span>
                       <span className={`ml-2 px-1 rounded text-white text-[10px] ${

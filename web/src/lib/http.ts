@@ -52,7 +52,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-async function request<T = any>(config: AxiosRequestConfig): Promise<T> {
+async function request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
   if (
     ['POST', 'PUT'].includes(config.method?.toUpperCase() || '') &&
     config.params &&
@@ -65,7 +65,7 @@ async function request<T = any>(config: AxiosRequestConfig): Promise<T> {
   const res = await axiosInstance.request<
     BaseResponse<T> | { code: number; msg?: string; message?: string; data?: T }
   >(config)
-  const responseData = res.data as any
+  const responseData = res.data
 
   if (responseData && typeof responseData.code === 'number') {
     if (responseData.code !== 200) {

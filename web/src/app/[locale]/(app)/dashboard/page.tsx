@@ -5,10 +5,41 @@ import { http } from '@/lib/http'
 
 type Tab = 'ai' | 'files' | 'docs' | 'knowledge'
 
+interface ToolResult {
+  error?: string
+  info?: string
+  result?: string
+  keywords?: string[]
+  [key: string]: unknown
+}
+
+interface UploadResult {
+  error?: string
+  originalFilename?: string
+  fileSize?: number
+  objectName?: string
+}
+
+interface DocItem {
+  id: string
+  title?: string
+  category?: string
+  version?: number
+  status?: string
+  summary?: string
+}
+
+interface DocVersion {
+  version?: number | string
+  versionNumber?: number | string
+  createTime?: string
+  createdAt?: string
+}
+
 export default function ToolkitPage() {
   const [tab, setTab] = useState<Tab>('ai')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<ToolResult | null>(null)
   const [msg, setMsg] = useState('')
 
   // AI 处理
@@ -23,16 +54,16 @@ export default function ToolkitPage() {
 
   // 文件
   const [fileMsg, setFileMsg] = useState('')
-  const [uploadResult, setUploadResult] = useState<any>(null)
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
   const [downloadId, setDownloadId] = useState('')
 
   // 文档
-  const [docs, setDocs] = useState<any[]>([])
+  const [docs, setDocs] = useState<DocItem[]>([])
   const [docSearch, setDocSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ title: '', fileId: '', category: '', tags: '' })
-  const [detail, setDetail] = useState<any>(null)
-  const [versions, setVersions] = useState<any[]>([])
+  const [detail, setDetail] = useState<DocItem | null>(null)
+  const [versions, setVersions] = useState<DocVersion[]>([])
 
   // 知识库
   const [kgMode, setKgMode] = useState<'qa' | 'search' | 'index'>('qa')
@@ -51,10 +82,10 @@ export default function ToolkitPage() {
     setLoading(true)
     try {
       const fd = new FormData(); fd.append('file', file)
-      const res = await http.post<any>({ url: '/api/ai/upload', data: fd, headers: { 'Content-Type': 'multipart/form-data' } })
-      setAiInput(`[已上传: ${res.originalFilename}, ${(res.fileSize/1024).toFixed(1)}KB]`)
+      const res = await http.post<UploadResult>({ url: '/api/ai/upload', data: fd, headers: { 'Content-Type': 'multipart/form-data' } })
+      setAiInput(`[已上传: ${res.originalFilename ?? '-'}, ${((res.fileSize ?? 0)/1024).toFixed(1)}KB]`)
       setResult({ info: '文件上传成功，粘贴文本内容后点分析' })
-    } catch (err: any) { setResult({ error: err.message }) }
+    } catch (err) { setResult({ error: err instanceof Error ? err.message : '请求失败' }) }
     finally { setLoading(false) }
   }, [])
 
@@ -63,9 +94,9 @@ export default function ToolkitPage() {
     setLoading(true); setResult(null)
     try {
       const eps: Record<string, string> = { summarize: '/api/ai/summarize', keywords: '/api/ai/keywords', analyze: '/api/ai/analyze' }
-      const data = await http.post<any>({ url: eps[aiMode], data: { content: aiInput, maxLength: aiMode === 'summarize' ? 300 : undefined } })
+      const data = await http.post<ToolResult>({ url: eps[aiMode], data: { content: aiInput, maxLength: aiMode === 'summarize' ? 300 : undefined } })
       setResult(data)
-    } catch (err: any) { setResult({ error: err.message }) }
+    } catch (err) { setResult({ error: err instanceof Error ? err.message : '请求失败' }) }
     finally { setLoading(false) }
   }
 
@@ -74,30 +105,30 @@ export default function ToolkitPage() {
     setFileMsg(''); setUploadResult(null); setLoading(true)
     try {
       const fd = new FormData(); fd.append('file', file)
-      const data = await http.post<any>({ url: '/api/ai/upload', data: fd, headers: { 'Content-Type': 'multipart/form-data' } })
+      const data = await http.post<UploadResult>({ url: '/api/ai/upload', data: fd, headers: { 'Content-Type': 'multipart/form-data' } })
       setUploadResult(data)
       if (data.objectName) setDownloadId(data.objectName)
-    } catch (err: any) { setUploadResult({ error: err.message }) }
+    } catch (err) { setUploadResult({ error: err instanceof Error ? err.message : '上传失败' }) }
     finally { setLoading(false) }
   }
 
   const fileDownload = async () => {
     if (!downloadId.trim()) return
     try {
-      const data = await http.get<any>({ url: `/api/ai/download/url?objectName=${encodeURIComponent(downloadId)}` })
+      const data = await http.get<{ fileUrl?: string }>({ url: `/api/ai/download/url?objectName=${encodeURIComponent(downloadId)}` })
       if (data.fileUrl) window.open(data.fileUrl, '_blank')
       else setFileMsg('未获取到下载地址')
-    } catch (err: any) { setFileMsg('下载失败: ' + err.message) }
+    } catch (err) { setFileMsg('下载失败: ' + (err instanceof Error ? err.message : '未知错误')) }
   }
 
   // ====== 文档 ======
   const loadDocs = useCallback(async () => {
     setLoading(true)
     try {
-      const params: any = { pageNum: 1, pageSize: 20 }
+      const params: { pageNum: number; pageSize: number; keyword?: string } = { pageNum: 1, pageSize: 20 }
       if (docSearch.trim()) params.keyword = docSearch.trim()
-      const data = await http.get<any>({ url: '/api/documents/search', params })
-      setDocs(data.records || data.lists || data || [])
+      const data = await http.get<{ records?: DocItem[]; lists?: DocItem[] } | DocItem[]>({ url: '/api/documents/search', params })
+      setDocs(Array.isArray(data) ? data : data.records || data.lists || [])
     } catch { setDocs([]) }
     finally { setLoading(false) }
   }, [docSearch])
@@ -110,39 +141,43 @@ export default function ToolkitPage() {
     try {
       await http.post({ url: '/api/documents', data: { ...form, tags: form.tags ? form.tags.split(',').map(t => t.trim()) : [] } })
       setShowCreate(false); setForm({ title: '', fileId: '', category: '', tags: '' }); setMsg('创建成功'); await loadDocs()
-    } catch (err: any) { setMsg(err.message) }
+    } catch (err) { setMsg(err instanceof Error ? err.message : '操作失败') }
   }
 
   const docDelete = async (id: string) => {
     if (!confirm('确认删除？')) return
     try { await http.del({ url: `/api/documents/${id}` }); await loadDocs() }
-    catch (err: any) { setMsg(err.message) }
+    catch (err) { setMsg(err instanceof Error ? err.message : '操作失败') }
   }
 
   const docDetail = async (id: string) => {
-    try { const d = await http.get<any>({ url: `/api/documents/${id}` }); setDetail(d); setVersions([]) }
-    catch (err: any) { setMsg(err.message) }
+    try { const d = await http.get<DocItem>({ url: `/api/documents/${id}` }); setDetail(d); setVersions([]) }
+    catch (err) { setMsg(err instanceof Error ? err.message : '操作失败') }
   }
 
   const docVersions = async (id: string) => {
-    try { const d = await http.get<any>({ url: `/api/documents/${id}/versions` }); setVersions(d.versions || d || []); setDetail(null) }
-    catch (err: any) { setMsg(err.message) }
+    try {
+      const d = await http.get<{ versions?: DocVersion[] } | DocVersion[]>({ url: `/api/documents/${id}/versions` })
+      setVersions(Array.isArray(d) ? d : d.versions || [])
+      setDetail(null)
+    }
+    catch (err) { setMsg(err instanceof Error ? err.message : '操作失败') }
   }
 
   // ====== 知识库 ======
   const kgQA = async () => {
     if (!kgQuestion.trim()) return
     setLoading(true); setResult(null)
-    try { setResult(await http.post<any>({ url: '/api/rag/query', data: kgQuestion })) }
-    catch (err: any) { setResult({ error: err.message }) }
+    try { setResult(await http.post<ToolResult>({ url: '/api/rag/query', data: kgQuestion })) }
+    catch (err) { setResult({ error: err instanceof Error ? err.message : '请求失败' }) }
     finally { setLoading(false) }
   }
 
   const kgSearch = async () => {
     if (!kgQuery.trim()) return
     setLoading(true); setResult(null)
-    try { setResult(await http.get<any>({ url: '/api/rag/search', params: { query: kgQuery, topK: 5 } })) }
-    catch (err: any) { setResult({ error: err.message }) }
+    try { setResult(await http.get<ToolResult>({ url: '/api/rag/search', params: { query: kgQuery, topK: 5 } })) }
+    catch (err) { setResult({ error: err instanceof Error ? err.message : '请求失败' }) }
     finally { setLoading(false) }
   }
 
@@ -150,7 +185,7 @@ export default function ToolkitPage() {
     if (!kgDocId.trim() || !kgContent.trim()) return
     setLoading(true); setMsg('')
     try { await http.post({ url: `/api/rag/index?documentId=${kgDocId}`, data: kgContent }); setMsg('索引成功') }
-    catch (err: any) { setMsg('索引失败: ' + err.message) }
+    catch (err) { setMsg('索引失败: ' + (err instanceof Error ? err.message : '未知错误')) }
     finally { setLoading(false) }
   }
 
@@ -240,9 +275,9 @@ export default function ToolkitPage() {
               <p className="text-xs font-medium text-g-900 mb-2">{uploadResult.error ? '上传失败' : '上传成功'}</p>
               {uploadResult.error ? <p className="text-sm text-red-500">{uploadResult.error}</p> : (
                 <div className="grid grid-cols-2 gap-2 text-sm text-g-700">
-                  <div><span className="text-g-500">文件名：</span>{uploadResult.originalFilename}</div>
-                  <div><span className="text-g-500">大小：</span>{(uploadResult.fileSize/1024).toFixed(1)} KB</div>
-                  <div className="col-span-2 text-xs"><span className="text-g-500">对象名：</span><code>{uploadResult.objectName}</code></div>
+                  <div><span className="text-g-500">文件名：</span>{uploadResult.originalFilename ?? '-'}</div>
+                  <div><span className="text-g-500">大小：</span>{((uploadResult.fileSize ?? 0) / 1024).toFixed(1)} KB</div>
+                  <div className="col-span-2 text-xs"><span className="text-g-500">对象名：</span><code>{uploadResult.objectName ?? '-'}</code></div>
                 </div>
               )}
             </div>
@@ -288,13 +323,13 @@ export default function ToolkitPage() {
           {versions.length > 0 && (
             <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 space-y-1">
               <div className="flex justify-between"><p className="text-sm font-medium">版本历史</p><button onClick={() => setVersions([])} className="text-xs text-g-500">关闭</button></div>
-              {versions.map((v:any,i:number) => <div key={i} className="text-xs text-g-600 flex justify-between"><span>v{v.version||v.versionNumber||i+1}</span><span>{v.createTime||v.createdAt||'-'}</span></div>)}
+              {versions.map((v: DocVersion, i: number) => <div key={i} className="text-xs text-g-600 flex justify-between"><span>v{v.version||v.versionNumber||i+1}</span><span>{v.createTime||v.createdAt||'-'}</span></div>)}
             </div>
           )}
 
           <div className="space-y-2">
             {docs.length === 0 ? <p className="text-sm text-g-500">暂无文档</p> :
-              docs.map((d:any) => (
+              docs.map((d: DocItem) => (
                 <div key={d.id} className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-3 flex items-center justify-between">
                   <div><p className="text-sm font-medium">{d.title||'无标题'}</p><p className="text-xs text-g-500">{d.category} · v{d.version||1}</p></div>
                   <div className="flex gap-2 text-xs">

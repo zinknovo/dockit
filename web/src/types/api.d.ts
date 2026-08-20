@@ -16,7 +16,7 @@ declare namespace Api {
     type CommonSearchParams = Pick<PaginationParams, 'current' | 'size'>
 
     /** 分页响应基础结构 */
-    interface PaginatedResponse<T = any> {
+    interface PaginatedResponse<T = unknown> {
       records: T[]
       current: number
       size: number

@@ -2,7 +2,7 @@ import { http } from '../http'
 import { adaptPageResult, adaptUserItem, adaptDeptItem } from '../api-adapter'
 
 export async function fetchGetUserList(params: Api.SystemManage.UserSearchParams) {
-  const backendParams: any = {
+  const backendParams: { pageNum: number; pageSize: number; name?: string; deptId?: number } = {
     pageNum: params.current || 1,
     pageSize: params.size || 20
   }
@@ -37,7 +37,7 @@ export async function fetchGetUserList(params: Api.SystemManage.UserSearchParams
 }
 
 export async function fetchGetDeptList(params?: { current?: number; size?: number; name?: string }) {
-  const backendParams: any = {
+  const backendParams: { pageNum: number; pageSize: number; name?: string } = {
     pageNum: params?.current || 1,
     pageSize: params?.size || 20
   }

@@ -2,7 +2,7 @@ import { http } from '../http'
 import { adaptPageResult } from '../api-adapter'
 
 export async function fetchGetPolicyList(params: Api.Policy.PolicySearchParams) {
-  const backendParams: any = {
+  const backendParams: { pageNum: number; pageSize: number; name?: string; type?: number; status?: number } = {
     pageNum: params.current || 1,
     pageSize: params.size || 20
   }

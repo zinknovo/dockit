@@ -40,7 +40,7 @@ export async function fetchRegister(params: {
   email: string
   phone: string
 }) {
-  return http.post<any>({
+  return http.post<unknown>({
     url: '/api/users/register',
     data: params
   })
