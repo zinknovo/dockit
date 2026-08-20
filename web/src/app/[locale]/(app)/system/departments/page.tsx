@@ -60,18 +60,18 @@ export default function DepartmentsPage() {
         <p className="mt-1 text-sm text-g-600">{t('subtitle')}</p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+      <div className="rounded-2xl border border-border bg-box p-5">
         <h3 className="text-sm font-semibold text-g-800">{t('addDept')}</h3>
         <form onSubmit={handleAddDept} className="mt-4 grid gap-3 md:grid-cols-3">
           <input
-            className="rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm"
             placeholder={t('deptNamePlaceholder')}
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
             required
           />
           <input
-            className="rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm"
             placeholder={t('parentIdPlaceholder')}
             value={form.parentId}
             onChange={(event) => setForm((prev) => ({ ...prev, parentId: event.target.value }))}
@@ -86,7 +86,7 @@ export default function DepartmentsPage() {
         {error ? <p className="mt-3 text-sm text-red-500">{error}</p> : null}
       </div>
 
-      <div className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+      <div className="rounded-2xl border border-border bg-box p-5">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-g-600">
@@ -110,7 +110,7 @@ export default function DepartmentsPage() {
                 </tr>
               ) : (
                 records.map((item) => (
-                  <tr key={item.id} className="border-t border-[var(--default-border)]">
+                  <tr key={item.id} className="border-t border-border">
                     <td className="py-3 font-medium">{item.name}</td>
                     <td className="py-3 text-g-600">{item.parentId ?? '-'}</td>
                   </tr>
@@ -126,14 +126,14 @@ export default function DepartmentsPage() {
             <button
               onClick={() => loadDepts(page - 1)}
               disabled={page <= 1}
-              className="rounded-lg border border-[var(--default-border)] px-3 py-1 disabled:opacity-50"
+              className="rounded-lg border border-border px-3 py-1 disabled:opacity-50"
             >
               {tCommon('prevPage')}
             </button>
             <button
               onClick={() => loadDepts(page + 1)}
               disabled={page * pageSize >= total}
-              className="rounded-lg border border-[var(--default-border)] px-3 py-1 disabled:opacity-50"
+              className="rounded-lg border border-border px-3 py-1 disabled:opacity-50"
             >
               {tCommon('nextPage')}
             </button>

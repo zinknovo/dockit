@@ -14,7 +14,7 @@ export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () =>
         onClick={onClose}
       />
       <aside
-        className={`fixed right-0 top-0 z-50 h-full w-full max-w-sm transform border-l border-[var(--default-border)] bg-[var(--default-box-color)] p-6 shadow-xl transition ${
+        className={`fixed right-0 top-0 z-50 h-full w-full max-w-sm transform border-l border-border bg-box p-6 shadow-xl transition ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -22,7 +22,7 @@ export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () =>
           <h2 className="text-lg font-semibold text-g-900">{t('panelTitle')}</h2>
           <button
             onClick={onClose}
-            className="rounded-full border border-[var(--default-border)] px-2 py-1 text-xs text-g-600"
+            className="rounded-full border border-border px-2 py-1 text-xs text-g-600"
           >
             {tCommon('close')}
           </button>

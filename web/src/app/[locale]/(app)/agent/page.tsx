@@ -103,9 +103,9 @@ export default function AgentPage() {
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
               msg.role === 'user'
                 ? 'bg-theme text-white'
-                : 'bg-[var(--default-box-color)] border border-[var(--default-border)] text-g-800'
+                : 'bg-box border border-border text-g-800'
             }`}>
-              <pre className="whitespace-pre-wrap break-words font-sans">{msg.content}</pre>
+              <pre className="whitespace-pre-wrap wrap-break-word font-sans">{msg.content}</pre>
 
               {msg.plan && msg.plan.length > 0 && (
                 <button
@@ -142,7 +142,7 @@ export default function AgentPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[var(--default-box-color)] border border-[var(--default-border)] rounded-2xl px-4 py-3">
+            <div className="bg-box border border-border rounded-2xl px-4 py-3">
               <p className="text-sm text-g-500 animate-pulse">Agent 思考中...</p>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function AgentPage() {
       {/* 输入框 */}
       <div className="mt-4 flex gap-2">
         <input
-          className="flex-1 rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] px-4 py-3 text-sm focus:border-theme focus:outline-none"
+          className="flex-1 rounded-xl border border-border bg-box px-4 py-3 text-sm focus:border-theme focus:outline-none"
           placeholder="输入任务描述..."
           value={input}
           onChange={e => setInput(e.target.value)}

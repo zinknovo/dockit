@@ -24,7 +24,7 @@ export default function ForgetPasswordPage() {
         <label className="block text-sm text-g-700">
           {t('username')}
           <input
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('usernamePlaceholder')}
             required
           />
@@ -33,7 +33,7 @@ export default function ForgetPasswordPage() {
         <label className="block text-sm text-g-700">
           {t('verifyCode')}
           <input
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('verifyCodePlaceholder')}
             required
           />

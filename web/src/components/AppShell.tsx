@@ -55,8 +55,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--default-bg-color)]">
-      <aside className="hidden w-56 flex-col border-r border-[var(--default-border)] bg-[var(--default-box-color)] p-6 md:flex">
+    <div className="flex min-h-screen bg-page">
+      <aside className="hidden w-56 flex-col border-r border-border bg-box p-6 md:flex">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-g-500">Dockit</p>
           <h1 className="mt-2 text-lg font-semibold text-g-900">{t('console')}</h1>
@@ -69,7 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={`rounded-lg px-3 py-2 text-sm transition ${
                 activeHref === item.href
                   ? 'bg-theme/10 text-theme font-medium'
-                  : 'text-g-700 hover:bg-[var(--art-hover-color)]'
+                  : 'text-g-700 hover:bg-hover-color'
               }`}
             >
               {item.label}
@@ -79,12 +79,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-[var(--default-border)] bg-[var(--default-box-color)] px-6">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-box px-6">
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <button
               onClick={() => setSettingsOpen(true)}
-              className="rounded-lg border border-[var(--default-border)] px-3 py-1 text-xs text-g-700 hover:bg-[var(--art-hover-color)]"
+              className="rounded-lg border border-border px-3 py-1 text-xs text-g-700 hover:bg-hover-color"
             >
               {t('settingsButton')}
             </button>
@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span>{user?.name || user?.phone || t('currentUser')}</span>
             <button
               onClick={() => { logout(); router.replace('/auth/login') }}
-              className="rounded-lg border border-[var(--default-border)] px-3 py-1 text-xs hover:bg-[var(--art-hover-color)]"
+              className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-hover-color"
             >
               {t('logout')}
             </button>

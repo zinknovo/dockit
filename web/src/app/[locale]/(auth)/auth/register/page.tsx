@@ -40,7 +40,7 @@ export default function RegisterPage() {
         <label className="block text-sm text-g-700">
           {t('username')}
           <input
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('usernamePlaceholder')}
             value={form.username}
             onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
@@ -52,7 +52,7 @@ export default function RegisterPage() {
           {t('password')}
           <input
             type="password"
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('passwordPlaceholder')}
             value={form.password}
             onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
@@ -64,7 +64,7 @@ export default function RegisterPage() {
           {t('email')}
           <input
             type="email"
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('emailPlaceholder')}
             value={form.email}
             onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
@@ -74,7 +74,7 @@ export default function RegisterPage() {
         <label className="block text-sm text-g-700">
           {t('phone')}
           <input
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             placeholder={t('phonePlaceholder')}
             value={form.phone}
             onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}

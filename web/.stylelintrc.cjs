@@ -56,7 +56,16 @@ module.exports = {
           'else',
           'for',
           'while',
-          'reference'
+          'reference',
+          'theme',
+          'utility',
+          'custom-variant',
+          'source',
+          'plugin',
+          'variant',
+          'layer',
+          'config',
+          'tailwind'
         ]
       }
     ],
@@ -74,7 +83,16 @@ module.exports = {
           'else',
           'for',
           'while',
-          'reference'
+          'reference',
+          'theme',
+          'utility',
+          'custom-variant',
+          'source',
+          'plugin',
+          'variant',
+          'layer',
+          'config',
+          'tailwind'
         ]
       }
     ]

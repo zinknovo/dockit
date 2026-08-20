@@ -92,7 +92,7 @@ export default function PolicyDetailPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+        <div className="rounded-2xl border border-border bg-box p-5">
           <h3 className="text-sm font-semibold text-g-800">{t('basicInfo')}</h3>
           <dl className="mt-4 space-y-2 text-sm text-g-700">
             <div className="flex justify-between">
@@ -113,7 +113,7 @@ export default function PolicyDetailPage() {
             </div>
           </dl>
         </div>
-        <div className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+        <div className="rounded-2xl border border-border bg-box p-5">
           <h3 className="text-sm font-semibold text-g-800">{t('timeInfo')}</h3>
           <dl className="mt-4 space-y-2 text-sm text-g-700">
             <div className="flex justify-between">
@@ -136,7 +136,7 @@ export default function PolicyDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+      <div className="rounded-2xl border border-border bg-box p-5">
         <h3 className="text-sm font-semibold text-g-800">{t('versionHistory')}</h3>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
@@ -157,7 +157,7 @@ export default function PolicyDetailPage() {
                 </tr>
               ) : (
                 versions.map((item) => (
-                  <tr key={item.id} className="border-t border-[var(--default-border)]">
+                  <tr key={item.id} className="border-t border-border">
                     <td className="py-3">{item.version}</td>
                     <td className="py-3">{item.statusText || item.status}</td>
                     <td className="py-3">{item.creator}</td>

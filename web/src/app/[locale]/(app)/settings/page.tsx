@@ -11,7 +11,7 @@ export default async function SettingsPage() {
         <p className="mt-1 text-sm text-g-600">{t('subtitle')}</p>
       </div>
 
-      <div className="max-w-2xl rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-6">
+      <div className="max-w-2xl rounded-2xl border border-border bg-box p-6">
         <SettingsForm />
       </div>
     </div>

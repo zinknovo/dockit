@@ -36,7 +36,7 @@ export function SettingsForm() {
               className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                 settings.themeMode === mode
                   ? 'border-theme bg-theme/10 text-theme'
-                  : 'border-[var(--default-border)] text-g-700'
+                  : 'border-border text-g-700'
               }`}
             >
               {mode === 'light' ? t('light') : mode === 'dark' ? t('dark') : t('system')}
@@ -52,7 +52,7 @@ export function SettingsForm() {
             type="color"
             value={settings.primaryColor}
             onChange={(event) => setPrimaryColor(event.target.value)}
-            className="h-8 w-12 cursor-pointer rounded border border-[var(--default-border)] bg-transparent"
+            className="h-8 w-12 cursor-pointer rounded border border-border bg-transparent"
           />
           <span className="text-xs text-g-600">{settings.primaryColor}</span>
         </div>
@@ -67,7 +67,7 @@ export function SettingsForm() {
               className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
                 settings.fontFamily === option.value
                   ? 'border-theme bg-theme/10 text-theme'
-                  : 'border-[var(--default-border)] text-g-700'
+                  : 'border-border text-g-700'
               }`}
               style={{ fontFamily: option.value }}
             >
@@ -119,7 +119,7 @@ export function SettingsForm() {
       <button
         type="button"
         onClick={reset}
-        className="w-full rounded-lg border border-[var(--default-border)] px-4 py-2 text-sm font-medium text-g-700 hover:bg-[var(--art-hover-color)]"
+        className="w-full rounded-lg border border-border px-4 py-2 text-sm font-medium text-g-700 hover:bg-hover-color"
       >
         {t('reset')}
       </button>

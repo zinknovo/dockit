@@ -22,7 +22,7 @@ export function LanguageSwitcher() {
     <button
       type="button"
       onClick={handleSwitch}
-      className="rounded-lg border border-[var(--default-border)] px-3 py-1 text-xs text-g-700 hover:bg-[var(--art-hover-color)]"
+      className="rounded-lg border border-border px-3 py-1 text-xs text-g-700 hover:bg-hover-color"
     >
       {targetLocale === 'zh' ? t('zh') : t('en')}
     </button>

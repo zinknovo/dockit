@@ -40,13 +40,13 @@ export default function UserCenterPage() {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+        <section className="rounded-2xl border border-border bg-box p-5">
           <h3 className="text-sm font-semibold text-g-800">{t('basicSettings')}</h3>
           <form onSubmit={handleBasicSave} className="mt-4 space-y-4">
             <label className="block text-sm text-g-700">
               {tUsers('name')}
               <input
-                className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2"
+                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
                 value={basicForm.name}
                 onChange={(event) =>
                   setBasicForm((prev) => ({ ...prev, name: event.target.value }))
@@ -57,7 +57,7 @@ export default function UserCenterPage() {
               {tUsers('email')}
               <input
                 type="email"
-                className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2"
+                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
                 value={basicForm.email}
                 onChange={(event) =>
                   setBasicForm((prev) => ({ ...prev, email: event.target.value }))
@@ -73,14 +73,14 @@ export default function UserCenterPage() {
           </form>
         </section>
 
-        <section className="rounded-2xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-5">
+        <section className="rounded-2xl border border-border bg-box p-5">
           <h3 className="text-sm font-semibold text-g-800">{t('changePassword')}</h3>
           <form onSubmit={handlePasswordChange} className="mt-4 space-y-4">
             <label className="block text-sm text-g-700">
               {t('currentPassword')}
               <input
                 type="password"
-                className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2"
+                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
                 placeholder={t('currentPasswordPlaceholder')}
               />
             </label>
@@ -88,13 +88,13 @@ export default function UserCenterPage() {
               {t('newPassword')}
               <input
                 type="password"
-                className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2"
+                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
                 placeholder={t('newPasswordPlaceholder')}
               />
             </label>
             <button
               type="submit"
-              className="rounded-lg border border-[var(--default-border)] px-4 py-2 text-sm"
+              className="rounded-lg border border-border px-4 py-2 text-sm"
             >
               {t('submitChange')}
             </button>

@@ -39,7 +39,7 @@ export default function LoginPage() {
         <label className="block text-sm text-g-700">
           {t('username')}
           <input
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             value={form.userName}
             onChange={(event) => setForm((prev) => ({ ...prev, userName: event.target.value }))}
             placeholder={t('usernamePlaceholder')}
@@ -51,7 +51,7 @@ export default function LoginPage() {
           {t('password')}
           <input
             type="password"
-            className="mt-2 w-full rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
             value={form.password}
             onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
             placeholder={t('passwordPlaceholder')}

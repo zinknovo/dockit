@@ -198,7 +198,7 @@ export default function ToolkitPage() {
         onDragLeave={() => setOver(false)}
         onDrop={e => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files[0]; if (f) onFile(f) }}
         onClick={() => document.getElementById('drop-input')?.click()}
-        className={`rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition ${over ? 'border-theme bg-theme/5' : 'border-[var(--default-border)] hover:border-g-400'}`}
+        className={`rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition ${over ? 'border-theme bg-theme/5' : 'border-border hover:border-g-400'}`}
       >
         <input id="drop-input" type="file" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }} />
         <p className="text-sm text-g-600">{label}</p>
@@ -209,11 +209,11 @@ export default function ToolkitPage() {
   const ResultBox = () => {
     if (!result) return null
     return (
-      <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 mt-4">
+      <div className="rounded-xl border border-border bg-box p-4 mt-4">
         <p className="text-xs font-medium text-g-900 mb-1">结果</p>
         {result.error
           ? <p className="text-sm text-red-500">{result.error}</p>
-          : <pre className="text-sm text-g-700 whitespace-pre-wrap break-words">{result.result || result.keywords?.join('、') || JSON.stringify(result, null, 2)}</pre>}
+          : <pre className="text-sm text-g-700 whitespace-pre-wrap wrap-break-word">{result.result || result.keywords?.join('、') || JSON.stringify(result, null, 2)}</pre>}
       </div>
     )
   }
@@ -233,10 +233,10 @@ export default function ToolkitPage() {
       </div>
 
       {/* 标签栏 */}
-      <div className="flex gap-1 border-b border-[var(--default-border)]">
+      <div className="flex gap-1 border-b border-border">
         {tabs.map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); setResult(null); setMsg(''); setDetail(null); setVersions([]) }}
-            className={`px-4 py-2 text-sm border-b-2 -mb-[1px] transition ${tab === t.key ? 'border-theme text-theme' : 'border-transparent text-g-600 hover:text-g-900'}`}>
+            className={`px-4 py-2 text-sm border-b-2 -mb-px transition ${tab === t.key ? 'border-theme text-theme' : 'border-transparent text-g-600 hover:text-g-900'}`}>
             {t.label}
           </button>
         ))}
@@ -250,7 +250,7 @@ export default function ToolkitPage() {
           <div className="flex gap-2">
             {aiModes.map(m => (
               <button key={m.key} onClick={() => { setAiMode(m.key); setResult(null) }}
-                className={`px-3 py-1.5 rounded-lg text-xs border transition ${aiMode === m.key ? 'border-theme bg-theme/10 text-theme' : 'border-[var(--default-border)] text-g-600'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs border transition ${aiMode === m.key ? 'border-theme bg-theme/10 text-theme' : 'border-border text-g-600'}`}>
                 {m.label}
               </button>
             ))}
@@ -258,7 +258,7 @@ export default function ToolkitPage() {
           <p className="text-xs text-g-500 -mt-2">{aiModes.find(m => m.key === aiMode)?.hint}</p>
 
           <DragZone onFile={handleFile} label={fileName ? `已选择: ${fileName}` : '拖拽文件到此处，或点击选择'} />
-          <textarea className="w-full h-32 rounded-lg border border-[var(--default-border)] bg-[var(--default-box-color)] p-3 text-sm resize-y" placeholder="或直接粘贴文本..." value={aiInput} onChange={e => setAiInput(e.target.value)} />
+          <textarea className="w-full h-32 rounded-lg border border-border bg-box p-3 text-sm resize-y" placeholder="或直接粘贴文本..." value={aiInput} onChange={e => setAiInput(e.target.value)} />
           <button onClick={aiSubmit} disabled={loading || !aiInput.trim()} className="rounded-lg bg-theme px-5 py-2 text-sm text-white disabled:opacity-50">{loading ? '处理中...' : '提交分析'}</button>
           <ResultBox />
         </div>
@@ -271,7 +271,7 @@ export default function ToolkitPage() {
             <DragZone onFile={fileUpload} label={loading ? '上传中...' : fileName ? `已选择: ${fileName}` : '拖拽文件上传至 MinIO'} />
           </div>
           {uploadResult && (
-            <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4">
+            <div className="rounded-xl border border-border bg-box p-4">
               <p className="text-xs font-medium text-g-900 mb-2">{uploadResult.error ? '上传失败' : '上传成功'}</p>
               {uploadResult.error ? <p className="text-sm text-red-500">{uploadResult.error}</p> : (
                 <div className="grid grid-cols-2 gap-2 text-sm text-g-700">
@@ -282,10 +282,10 @@ export default function ToolkitPage() {
               )}
             </div>
           )}
-          <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 space-y-3">
+          <div className="rounded-xl border border-border bg-box p-4 space-y-3">
             <p className="text-xs font-medium text-g-900">文件下载</p>
             <div className="flex gap-2">
-              <input className="flex-1 rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-1.5 text-sm" placeholder="输入 objectName" value={downloadId} onChange={e => setDownloadId(e.target.value)} />
+              <input className="flex-1 rounded-lg border border-border bg-transparent px-3 py-1.5 text-sm" placeholder="输入 objectName" value={downloadId} onChange={e => setDownloadId(e.target.value)} />
               <button onClick={fileDownload} disabled={!downloadId.trim()} className="rounded-lg bg-theme px-4 py-1.5 text-sm text-white disabled:opacity-50">下载</button>
             </div>
             {fileMsg && <p className="text-sm text-g-600">{fileMsg}</p>}
@@ -297,13 +297,13 @@ export default function ToolkitPage() {
       {tab === 'docs' && (
         <div className="space-y-4">
           <div className="flex gap-2">
-            <input className="flex-1 rounded-lg border border-[var(--default-border)] bg-transparent px-3 py-2 text-sm" placeholder="搜索文档..." value={docSearch} onChange={e => setDocSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && loadDocs()} />
+            <input className="flex-1 rounded-lg border border-border bg-transparent px-3 py-2 text-sm" placeholder="搜索文档..." value={docSearch} onChange={e => setDocSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && loadDocs()} />
             <button onClick={loadDocs} className="rounded-lg border px-4 py-2 text-sm">搜索</button>
             <button onClick={() => setShowCreate(!showCreate)} className="rounded-lg bg-theme px-4 py-2 text-sm text-white">{showCreate ? '收起' : '新建'}</button>
           </div>
 
           {showCreate && (
-            <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 space-y-2">
+            <div className="rounded-xl border border-border bg-box p-4 space-y-2">
               <input className="w-full rounded-lg border px-3 py-1.5 text-sm" placeholder="标题 *" value={form.title} onChange={e => setForm(p => ({...p, title: e.target.value}))} />
               <input className="w-full rounded-lg border px-3 py-1.5 text-sm" placeholder="文件ID（可选）" value={form.fileId} onChange={e => setForm(p => ({...p, fileId: e.target.value}))} />
               <input className="w-full rounded-lg border px-3 py-1.5 text-sm" placeholder="分类" value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} />
@@ -313,7 +313,7 @@ export default function ToolkitPage() {
           )}
 
           {detail && (
-            <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 space-y-2">
+            <div className="rounded-xl border border-border bg-box p-4 space-y-2">
               <div className="flex justify-between"><p className="text-sm font-medium">详情</p><button onClick={() => setDetail(null)} className="text-xs text-g-500">关闭</button></div>
               <div className="grid grid-cols-2 gap-1 text-sm"><span className="text-g-500">标题：</span>{detail.title}<span className="text-g-500">版本：</span>v{detail.version||1}<span className="text-g-500">分类：</span>{detail.category||'-'}<span className="text-g-500">状态：</span>{detail.status||'-'}</div>
               {detail.summary && <p className="text-sm text-g-700">{detail.summary}</p>}
@@ -321,7 +321,7 @@ export default function ToolkitPage() {
           )}
 
           {versions.length > 0 && (
-            <div className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-4 space-y-1">
+            <div className="rounded-xl border border-border bg-box p-4 space-y-1">
               <div className="flex justify-between"><p className="text-sm font-medium">版本历史</p><button onClick={() => setVersions([])} className="text-xs text-g-500">关闭</button></div>
               {versions.map((v: DocVersion, i: number) => <div key={i} className="text-xs text-g-600 flex justify-between"><span>v{v.version||v.versionNumber||i+1}</span><span>{v.createTime||v.createdAt||'-'}</span></div>)}
             </div>
@@ -330,7 +330,7 @@ export default function ToolkitPage() {
           <div className="space-y-2">
             {docs.length === 0 ? <p className="text-sm text-g-500">暂无文档</p> :
               docs.map((d: DocItem) => (
-                <div key={d.id} className="rounded-xl border border-[var(--default-border)] bg-[var(--default-box-color)] p-3 flex items-center justify-between">
+                <div key={d.id} className="rounded-xl border border-border bg-box p-3 flex items-center justify-between">
                   <div><p className="text-sm font-medium">{d.title||'无标题'}</p><p className="text-xs text-g-500">{d.category} · v{d.version||1}</p></div>
                   <div className="flex gap-2 text-xs">
                     <button onClick={() => docDetail(d.id)} className="text-theme">详情</button>
@@ -349,14 +349,14 @@ export default function ToolkitPage() {
           <div className="flex gap-2">
             {(['qa','search','index'] as const).map(m => (
               <button key={m} onClick={() => { setKgMode(m); setResult(null); setMsg('') }}
-                className={`px-3 py-1.5 rounded-lg text-xs border transition ${kgMode === m ? 'border-theme bg-theme/10 text-theme' : 'border-[var(--default-border)] text-g-600'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs border transition ${kgMode === m ? 'border-theme bg-theme/10 text-theme' : 'border-border text-g-600'}`}>
                 {{qa:'问答',search:'检索',index:'索引'}[m]}
               </button>
             ))}
           </div>
 
           {kgMode === 'qa' && <>
-            <textarea className="w-full h-24 rounded-lg border border-[var(--default-border)] bg-[var(--default-box-color)] p-3 text-sm" placeholder="输入问题..." value={kgQuestion} onChange={e => setKgQuestion(e.target.value)} />
+            <textarea className="w-full h-24 rounded-lg border border-border bg-box p-3 text-sm" placeholder="输入问题..." value={kgQuestion} onChange={e => setKgQuestion(e.target.value)} />
             <button onClick={kgQA} disabled={loading||!kgQuestion.trim()} className="rounded-lg bg-theme px-5 py-2 text-sm text-white disabled:opacity-50">提问</button>
           </>}
 
@@ -369,7 +369,7 @@ export default function ToolkitPage() {
 
           {kgMode === 'index' && <>
             <input className="w-full rounded-lg border px-3 py-1.5 text-sm" placeholder="文档 ID" value={kgDocId} onChange={e => setKgDocId(e.target.value)} />
-            <textarea className="w-full h-24 rounded-lg border bg-[var(--default-box-color)] p-3 text-sm" placeholder="文档内容" value={kgContent} onChange={e => setKgContent(e.target.value)} />
+            <textarea className="w-full h-24 rounded-lg border bg-box p-3 text-sm" placeholder="文档内容" value={kgContent} onChange={e => setKgContent(e.target.value)} />
             <button onClick={kgIndex} disabled={loading||!kgDocId.trim()||!kgContent.trim()} className="rounded-lg bg-theme px-4 py-1.5 text-sm text-white">索引</button>
           </>}
           <ResultBox />
