@@ -11,6 +11,11 @@
           "_ref/**"
         ]
       }
+    },
+    "vtsls": {
+      "settings": {
+        "suggestionActions.enabled": false
+      }
     }
   }
 }
