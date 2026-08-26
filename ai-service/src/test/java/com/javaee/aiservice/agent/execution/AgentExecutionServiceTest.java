@@ -1,6 +1,7 @@
 package com.javaee.aiservice.agent.execution;
 
 import com.javaee.aiservice.agent.ChatService;
+import com.javaee.aiservice.agent.PromptEngineeringService;
 import com.javaee.aiservice.agent.execution.approval.AgentApprovalService;
 import com.javaee.aiservice.agent.execution.model.AgentExecutionRequest;
 import com.javaee.aiservice.agent.execution.model.AgentPlanStep;
@@ -12,14 +13,22 @@ import com.javaee.aiservice.agent.execution.task.AgentTaskRegistry;
 import com.javaee.aiservice.agent.execution.tool.AgentToolDefinition;
 import com.javaee.aiservice.agent.execution.tool.AgentToolParameterDefinition;
 import com.javaee.aiservice.agent.execution.tool.AgentToolRegistry;
+import com.javaee.aiservice.agent.execution.tool.DocumentWriteTool;
+import com.javaee.aiservice.client.DocumentServiceClient;
 import com.javaee.aiservice.conversation.ContextManager;
 import com.javaee.aiservice.conversation.ConversationManager;
 import com.javaee.aiservice.dto.FileDeleteDTO;
 import com.javaee.aiservice.internal.InternalService;
 import com.javaee.aiservice.rag.KnowledgeBase;
+import com.javaee.aiservice.rag.KnowledgeQueryService;
 import com.javaee.aiservice.rag.Reranker;
 import com.javaee.aiservice.security.RequestUserContext;
+import com.javaee.aiservice.service.AIService;
 import com.javaee.aiservice.service.FileDeleteService;
+import com.javaee.aiservice.service.FileDownloadService;
+import com.javaee.aiservice.service.FileVersionService;
+import com.javaee.aiservice.service.RecycleBinService;
+import com.javaee.aiservice.skills.SkillExecutorService;
 import com.javaee.aiservice.vo.FileDeleteVO;
 import com.javaee.aiservice.vo.FileRestoreVO;
 import org.junit.jupiter.api.Test;
@@ -41,12 +50,28 @@ import static org.mockito.Mockito.when;
 
 class AgentExecutionServiceTest {
 
+    private static AgentToolRegistry plainRegistry() {
+        return new AgentToolRegistry(
+                mock(ChatService.class), mock(AIService.class), mock(KnowledgeQueryService.class),
+                mock(FileDownloadService.class), mock(FileDeleteService.class),
+                mock(FileVersionService.class), mock(RecycleBinService.class),
+                mock(DocumentServiceClient.class), mock(SkillExecutorService.class));
+    }
+
+    private static AgentToolRegistry registryWith(FileDeleteService fileDeleteService) {
+        return new AgentToolRegistry(
+                mock(ChatService.class), mock(AIService.class), mock(KnowledgeQueryService.class),
+                mock(FileDownloadService.class), fileDeleteService, mock(FileVersionService.class),
+                mock(RecycleBinService.class), mock(DocumentServiceClient.class),
+                mock(SkillExecutorService.class));
+    }
+
     @Test
     void toolRegistryExposesRequiredSchemaAndRiskLevel() {
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentToolRegistry registry = plainRegistry();
 
-        AgentToolDefinition deleteTool = registry.get("file-delete");
-        AgentToolDefinition restoreTool = registry.get("file-restore");
+        AgentToolDefinition deleteTool = registry.get("file-delete").definition();
+        AgentToolDefinition restoreTool = registry.get("file-restore").definition();
 
         assertThat(deleteTool).isNotNull();
         assertThat(deleteTool.isDestructive()).isFalse();
@@ -58,9 +83,9 @@ class AgentExecutionServiceTest {
         assertThat(restoreTool.isDestructive()).isTrue();
         assertThat(registry.get("file-upload")).isNull();
 
-        AgentToolDefinition documentRead = registry.get("document-read");
-        AgentToolDefinition documentWrite = registry.get("document-write");
-        AgentToolDefinition textToFile = registry.get("text-to-file");
+        AgentToolDefinition documentRead = registry.get("document-read").definition();
+        AgentToolDefinition documentWrite = registry.get("document-write").definition();
+        AgentToolDefinition textToFile = registry.get("text-to-file").definition();
         assertThat(documentRead).isNotNull();
         assertThat(documentRead.getParameterSchema().get("documentId").isRequired()).isTrue();
         assertThat(documentWrite).isNotNull();
@@ -75,8 +100,8 @@ class AgentExecutionServiceTest {
 
     @Test
     void executeReturnsActionRequiredWhenRequiredToolParameterIsMissing() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
+        AgentToolRegistry registry = plainRegistry();
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
@@ -113,13 +138,13 @@ class AgentExecutionServiceTest {
         @SuppressWarnings("unchecked")
         List<AgentToolResult> toolResults = (List<AgentToolResult>) response.get("toolResults");
         assertThat(toolResults).hasSize(1);
-        assertThat(toolResults.get(0).getToolName()).isEqualTo("file-delete");
-        assertThat(toolResults.get(0).getStatus()).isEqualTo("action_required");
+        assertThat(toolResults.getFirst().getToolName()).isEqualTo("file-delete");
+        assertThat(toolResults.getFirst().getStatus()).isEqualTo("action_required");
 
         @SuppressWarnings("unchecked")
-        List<String> missingParameters = (List<String>) toolResults.get(0).getData().get("missingParameters");
+        List<String> missingParameters = (List<String>) toolResults.getFirst().getData().get("missingParameters");
         assertThat(missingParameters).containsExactly("documentId/objectName");
-        assertThat(toolResults.get(0).getData())
+        assertThat(toolResults.getFirst().getData())
                 .containsEntry("interactionType", "user_input")
                 .containsEntry("resumeMode", "continue_trace");
         assertThat(response).containsKey("pendingUserInput");
@@ -129,8 +154,7 @@ class AgentExecutionServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void continueTraceResumesMissingParameterStepWithoutApprovalToken() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
@@ -138,6 +162,7 @@ class AgentExecutionServiceTest {
         FileDeleteService fileDeleteService = mock(FileDeleteService.class);
         RequestUserContext requestUserContext = mock(RequestUserContext.class);
         AgentTaskRegistry taskRegistry = new AgentTaskRegistry(null);
+        AgentToolRegistry registry = registryWith(fileDeleteService);
 
         when(requestUserContext.getRequiredUserId()).thenReturn("user-1");
         when(requestUserContext.getCurrentRole()).thenReturn("USER");
@@ -156,7 +181,6 @@ class AgentExecutionServiceTest {
         ReflectionTestUtils.setField(service, "contextManager", contextManager);
         ReflectionTestUtils.setField(service, "internalService", internalService);
         ReflectionTestUtils.setField(service, "toolRegistry", registry);
-        ReflectionTestUtils.setField(service, "fileDeleteService", fileDeleteService);
         ReflectionTestUtils.setField(service, "requestUserContext", requestUserContext);
         ReflectionTestUtils.setField(service, "taskRegistry", taskRegistry);
 
@@ -193,8 +217,8 @@ class AgentExecutionServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void executeFreezesCurrentIterationWhenStepRequiresAction() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
+        AgentToolRegistry registry = plainRegistry();
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
@@ -238,11 +262,11 @@ class AgentExecutionServiceTest {
 
         List<AgentToolResult> toolResults = (List<AgentToolResult>) response.get("toolResults");
         assertThat(toolResults).hasSize(1);
-        assertThat(toolResults.get(0).getToolName()).isEqualTo("ask-user");
+        assertThat(toolResults.getFirst().getToolName()).isEqualTo("ask-user");
 
         List<AgentPlanStep> plan = (List<AgentPlanStep>) response.get("plan");
         assertThat(plan).hasSize(2);
-        assertThat(plan.get(0).getStatus()).isEqualTo(AgentStepStatus.WAITING_USER.value());
+        assertThat(plan.getFirst().getStatus()).isEqualTo(AgentStepStatus.WAITING_USER.value());
         assertThat(plan.get(1).getToolName()).isEqualTo("direct-answer");
         assertThat(plan.get(1).getStatus()).isEqualTo(AgentStepStatus.PENDING.value());
     }
@@ -250,8 +274,7 @@ class AgentExecutionServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void confirmApprovalContinuesFrozenPlanInsteadOfReturningSingleToolResult() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
@@ -260,6 +283,11 @@ class AgentExecutionServiceTest {
         RequestUserContext requestUserContext = mock(RequestUserContext.class);
         AgentApprovalService agentApprovalService = mock(AgentApprovalService.class);
         AgentTaskRegistry taskRegistry = new AgentTaskRegistry(null);
+        AgentToolRegistry registry = new AgentToolRegistry(
+                chatService, mock(AIService.class), mock(KnowledgeQueryService.class),
+                mock(FileDownloadService.class), fileDeleteService, mock(FileVersionService.class),
+                mock(RecycleBinService.class), mock(DocumentServiceClient.class),
+                mock(SkillExecutorService.class));
 
         when(requestUserContext.getRequiredUserId()).thenReturn("user-1");
         when(requestUserContext.getCurrentRole()).thenReturn("USER");
@@ -290,7 +318,6 @@ class AgentExecutionServiceTest {
         ReflectionTestUtils.setField(service, "contextManager", contextManager);
         ReflectionTestUtils.setField(service, "internalService", internalService);
         ReflectionTestUtils.setField(service, "toolRegistry", registry);
-        ReflectionTestUtils.setField(service, "fileDeleteService", fileDeleteService);
         ReflectionTestUtils.setField(service, "requestUserContext", requestUserContext);
         ReflectionTestUtils.setField(service, "agentApprovalService", agentApprovalService);
         ReflectionTestUtils.setField(service, "taskRegistry", taskRegistry);
@@ -328,8 +355,7 @@ class AgentExecutionServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void reflectionWithoutRevisedPlanFallsBackToFollowUpPlanner() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
@@ -337,6 +363,13 @@ class AgentExecutionServiceTest {
         RequestUserContext requestUserContext = mock(RequestUserContext.class);
         AgentReflectionService reflectionService = mock(AgentReflectionService.class);
         KnowledgeBase knowledgeBase = mock(KnowledgeBase.class);
+        KnowledgeQueryService knowledgeQueryService = new KnowledgeQueryService(
+                knowledgeBase, mock(PromptEngineeringService.class), chatService);
+        AgentToolRegistry registry = new AgentToolRegistry(
+                chatService, mock(AIService.class), knowledgeQueryService,
+                mock(FileDownloadService.class), mock(FileDeleteService.class),
+                mock(FileVersionService.class), mock(RecycleBinService.class),
+                mock(DocumentServiceClient.class), mock(SkillExecutorService.class));
 
         when(requestUserContext.getRequiredUserId()).thenReturn("user-1");
         when(requestUserContext.getCurrentRole()).thenReturn("USER");
@@ -369,7 +402,6 @@ class AgentExecutionServiceTest {
         ReflectionTestUtils.setField(service, "toolRegistry", registry);
         ReflectionTestUtils.setField(service, "requestUserContext", requestUserContext);
         ReflectionTestUtils.setField(service, "reflectionService", reflectionService);
-        ReflectionTestUtils.setField(service, "knowledgeBase", knowledgeBase);
         ReflectionTestUtils.setField(service, "taskRegistry", new AgentTaskRegistry(null));
 
         AgentExecutionRequest request = new AgentExecutionRequest();
@@ -391,9 +423,9 @@ class AgentExecutionServiceTest {
 
     @Test
     void toolRegistryExposesAskUserToolForClarification() {
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentToolRegistry registry = plainRegistry();
 
-        AgentToolDefinition askUser = registry.get("ask-user");
+        AgentToolDefinition askUser = registry.get("ask-user").definition();
 
         assertThat(askUser).isNotNull();
         assertThat(askUser.isRequiresUserAction()).isTrue();
@@ -433,9 +465,9 @@ class AgentExecutionServiceTest {
 
     @Test
     void toolRegistryExposesEnumAndRangeConstraintsForRagSearch() {
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentToolRegistry registry = plainRegistry();
 
-        AgentToolDefinition ragSearch = registry.get("rag-search");
+        AgentToolDefinition ragSearch = registry.get("rag-search").definition();
 
         assertThat(ragSearch).isNotNull();
         assertThat(ragSearch.getParameterSchema()).containsKey("rerankStrategy");
@@ -450,8 +482,8 @@ class AgentExecutionServiceTest {
 
     @Test
     void plannerPromptsDocumentStructuredFieldsAndPlaceholderContract() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
+        ReflectionTestUtils.setField(service, "toolRegistry", plainRegistry());
 
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("先检索再总结");
@@ -492,26 +524,26 @@ class AgentExecutionServiceTest {
         AgentApprovalService.ApprovalChallenge challenge =
                 approvalService.createChallenge("u", "file-delete", Map.of("objectName", "a"));
         when(ops.get("agent:approval:" + challenge.token()))
-                .thenReturn(extractFingerprint(approvalService, "u", "file-delete", Map.of("objectName", "a")));
+                .thenReturn(extractFingerprint(approvalService));
         when(redisTemplate.delete("agent:approval:" + challenge.token())).thenReturn(true);
         assertThat(approvalService.verifyAndConsumeDetailed(challenge.token(), "u", "file-delete", Map.of("objectName", "a")))
                 .isEqualTo(AgentApprovalService.ApprovalResult.OK);
     }
 
-    private static String extractFingerprint(AgentApprovalService service, String userId, String tool, Map<String, Object> params) {
-        return (String) ReflectionTestUtils.invokeMethod(service, "fingerprint", userId, tool, params);
+    private static String extractFingerprint(AgentApprovalService service) {
+        return ReflectionTestUtils.invokeMethod(service, "fingerprint", "u", "file-delete", Map.of("objectName", "a"));
     }
 
     @Test
     void executeFileDeleteRunsDirectlyWhenObjectNameIsKnown() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        AgentToolRegistry registry = new AgentToolRegistry();
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
         ChatService chatService = mock(ChatService.class);
         ConversationManager conversationManager = mock(ConversationManager.class);
         ContextManager contextManager = mock(ContextManager.class);
         InternalService internalService = mock(InternalService.class);
         FileDeleteService fileDeleteService = mock(FileDeleteService.class);
         RequestUserContext requestUserContext = mock(RequestUserContext.class);
+        AgentToolRegistry registry = registryWith(fileDeleteService);
 
         when(requestUserContext.getRequiredUserId()).thenReturn("user-1");
         when(requestUserContext.getCurrentRole()).thenReturn("USER");
@@ -530,7 +562,6 @@ class AgentExecutionServiceTest {
         ReflectionTestUtils.setField(service, "contextManager", contextManager);
         ReflectionTestUtils.setField(service, "internalService", internalService);
         ReflectionTestUtils.setField(service, "toolRegistry", registry);
-        ReflectionTestUtils.setField(service, "fileDeleteService", fileDeleteService);
         ReflectionTestUtils.setField(service, "requestUserContext", requestUserContext);
         ReflectionTestUtils.setField(service, "taskRegistry", new AgentTaskRegistry(null));
 
@@ -552,21 +583,17 @@ class AgentExecutionServiceTest {
                 eq("agent-approved:user-1"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void fallbackPlanExtractsUnquotedObjectNameForFileDelete() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
-
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("删除文件6d96d090927b45118bd722519dabdce2.pdf");
 
-        List<AgentPlanStep> plan = ReflectionTestUtils.invokeMethod(
-                service, "fallbackPlan", request, Map.of("bucketName", "doc-ai"));
+        List<AgentPlanStep> plan = FallbackPlanner.fallbackPlan(
+                request, Map.of("bucketName", "doc-ai"), plainRegistry());
 
         assertThat(plan).hasSize(1);
-        assertThat(plan.get(0).getToolName()).isEqualTo("file-delete");
-        assertThat(plan.get(0).getParams())
+        assertThat(plan.getFirst().getToolName()).isEqualTo("file-delete");
+        assertThat(plan.getFirst().getParams())
                 .containsEntry("objectName", "6d96d090927b45118bd722519dabdce2.pdf")
                 .containsEntry("bucketName", "doc-ai")
                 .containsEntry("requireConfirmation", false);
@@ -574,8 +601,6 @@ class AgentExecutionServiceTest {
 
     @Test
     void resolvePlaceholdersFillsTaskAndStepValues() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-
         AgentPlanStep step = new AgentPlanStep();
         step.setToolName("text-summarize");
         Map<String, Object> params = new HashMap<>();
@@ -595,7 +620,7 @@ class AgentExecutionServiceTest {
         stepResults.put("s1", snapshot);
         context.put("__stepResults__", stepResults);
 
-        service.resolvePlaceholders(step, request, context);
+        new PlaceholderResolver().resolve(step, request, context);
 
         assertThat(step.getParams().get("content")).isEqualTo("Hello - 总结上一步");
         assertThat(step.getParams().get("static")).isEqualTo("no-template");
@@ -614,7 +639,7 @@ class AgentExecutionServiceTest {
 
     @Test
     void evaluateSuccessCriteriaReportsMissingDataAndContains() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
 
         AgentPlanStep step = new AgentPlanStep();
         step.setSuccessCriteria("contains:报告;data.answer;data.score=90");
@@ -644,18 +669,14 @@ class AgentExecutionServiceTest {
         assertThat(request.getReflectionEnabled()).isFalse();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void fallbackPlanUsesFrontendWritePatchWhenDocumentIdExists() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
-
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("把这个文档进行内容扩写");
         request.setKnowledgeBaseId("kb-1");
 
-        List<AgentPlanStep> plan = ReflectionTestUtils.invokeMethod(
-                service, "fallbackPlan", request, Map.of("documentId", "doc-1", "writeMode", "append"));
+        List<AgentPlanStep> plan = FallbackPlanner.fallbackPlan(
+                request, Map.of("documentId", "doc-1", "writeMode", "append"), plainRegistry());
 
         assertThat(plan).hasSize(2);
         assertThat(plan).extracting(AgentPlanStep::getToolName)
@@ -669,33 +690,26 @@ class AgentExecutionServiceTest {
 
     @Test
     void fallbackPlanUsesDocumentIdForDeleteInsteadOfFrontendWrite() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
-
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("删除当前前端文档对应的文件");
 
-        List<AgentPlanStep> plan = ReflectionTestUtils.invokeMethod(
-                service, "fallbackPlan", request, Map.of("documentId", "doc-1", "userId", "7"));
+        List<AgentPlanStep> plan = FallbackPlanner.fallbackPlan(
+                request, Map.of("documentId", "doc-1", "userId", "7"), plainRegistry());
 
         assertThat(plan).hasSize(1);
-        assertThat(plan.get(0).getToolName()).isEqualTo("file-delete");
-        assertThat(plan.get(0).getParams())
+        assertThat(plan.getFirst().getToolName()).isEqualTo("file-delete");
+        assertThat(plan.getFirst().getParams())
                 .containsEntry("documentId", "doc-1")
                 .containsEntry("requireConfirmation", false);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void fallbackPlanKeepsObjectNameCompatibilityPath() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
-
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("生成一段说明并写入文件");
 
-        List<AgentPlanStep> plan = ReflectionTestUtils.invokeMethod(
-                service, "fallbackPlan", request, Map.of("objectName", "report.txt", "bucketName", "documents"));
+        List<AgentPlanStep> plan = FallbackPlanner.fallbackPlan(
+                request, Map.of("objectName", "report.txt", "bucketName", "documents"), plainRegistry());
 
         assertThat(plan).hasSize(2);
         assertThat(plan).extracting(AgentPlanStep::getToolName)
@@ -708,15 +722,12 @@ class AgentExecutionServiceTest {
 
     @Test
     void fallbackPlanDefaultsCompatibilityFileWriteToUserBucket() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
-
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("生成一段说明并写入文件");
         request.setUserId("42");
 
-        List<AgentPlanStep> plan = ReflectionTestUtils.invokeMethod(
-                service, "fallbackPlan", request, Map.of("objectName", "report.txt"));
+        List<AgentPlanStep> plan = FallbackPlanner.fallbackPlan(
+                request, Map.of("objectName", "report.txt"), plainRegistry());
 
         assertThat(plan).hasSize(2);
         assertThat(plan.get(1).getParams())
@@ -726,15 +737,16 @@ class AgentExecutionServiceTest {
 
     @Test
     void documentWriteMissingGeneratedContentRequiresAction() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        ReflectionTestUtils.setField(service, "toolRegistry", new AgentToolRegistry());
+        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null);
+        AgentToolRegistry registry = plainRegistry();
+        ReflectionTestUtils.setField(service, "toolRegistry", registry);
 
         AgentExecutionRequest request = new AgentExecutionRequest();
         request.setTask("把这个文档进行内容扩写");
         AgentPlanStep step = new AgentPlanStep("step-1", "写回文档", "document-write", new HashMap<>());
         step.getParams().put("documentId", "doc-1");
 
-        ReflectionTestUtils.invokeMethod(service, "fillDefaultParams", step, request, Map.of("documentId", "doc-1"));
+        registry.fillDefaultParams("document-write", step.getParams(), request, Map.of("documentId", "doc-1"));
         AgentToolResult validation = ReflectionTestUtils.invokeMethod(service, "validateToolParameters", step);
 
         assertThat(step.getParams()).doesNotContainKey("content");
@@ -743,22 +755,15 @@ class AgentExecutionServiceTest {
         assertThat(validation.getData()).containsEntry("missingParameters", List.of("content"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void documentWriteReturnsFrontendPatchWithoutPersisting() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-
-        AgentExecutionRequest request = new AgentExecutionRequest();
-        request.setKnowledgeBaseId("kb-1");
-        request.setUserId("user-1");
         Map<String, Object> params = new HashMap<>();
         params.put("documentId", "doc-1");
         params.put("content", "扩写内容");
         params.put("writeMode", "append");
         params.put("knowledgeBaseId", "kb-1");
 
-        AgentToolResult result = ReflectionTestUtils.invokeMethod(
-                service, "executeDocumentWrite", params, request, Map.of("userId", "user-1"));
+        AgentToolResult result = new DocumentWriteTool().execute(params, null, Map.of("userId", "user-1"));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo("success");
@@ -772,17 +777,13 @@ class AgentExecutionServiceTest {
 
     @Test
     void documentWriteParsesStructuredPayloadAndCleansMarkdown() {
-        AgentExecutionService service = new AgentExecutionService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-
-        AgentExecutionRequest request = new AgentExecutionRequest();
         Map<String, Object> params = new HashMap<>();
         params.put("documentId", "doc-1");
         params.put("content", """
                 {"content":"**补充说明**\\n* 设 $P$ 为数域 $\\\\mathbb{C}$ 的子集。","writeMode":"insert","insertAfterText":"**1. 数域**","changeLog":"扩写数域","contentFormat":"plain_text"}
                 """);
 
-        AgentToolResult result = ReflectionTestUtils.invokeMethod(
-                service, "executeDocumentWrite", params, request, Map.of("userId", "user-1"));
+        AgentToolResult result = new DocumentWriteTool().execute(params, null, Map.of("userId", "user-1"));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo("success");

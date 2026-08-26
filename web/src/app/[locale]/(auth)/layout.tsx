@@ -1,8 +1,8 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.12),transparent_55%)]">
-      <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-6">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-box p-8 shadow-sm">
+    <div className="min-vh-100 bg-auth-gradient">
+      <div className="mx-auto d-flex min-vh-100 max-w-5xl align-items-center justify-content-center px-4">
+        <div className="w-100 max-w-md rounded-3 border border-border bg-box p-4 shadow-sm">
           {children}
         </div>
       </div>

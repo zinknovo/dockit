@@ -3,7 +3,6 @@ package com.javaee.documentservice.service;
 import com.javaee.documentservice.dto.DocumentCreateDTO;
 import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
-import com.javaee.documentservice.client.dto.ContractCompareResponse;
 import com.javaee.documentservice.entity.DocumentVersion;
 import com.javaee.documentservice.vo.DocumentVO;
 import com.javaee.documentservice.vo.DocumentVersionVO;
@@ -119,14 +118,14 @@ public interface DocumentService {
     DocumentVersionVO getVersionDetail(String documentId, String versionId, Long userId);
 
     /**
-     * 读取某个版本的文件内容
+     * 读取某个版本的文件内容（原始文件字节）
      *
      * @param documentId 文档ID
      * @param versionId  版本ID
      * @param userId     操作用户ID
-     * @return 文件内容
+     * @return 文件字节
      */
-    String getVersionContent(String documentId, String versionId, Long userId);
+    byte[] getVersionContent(String documentId, String versionId, Long userId);
 
     /**
      * 修改版本备注
@@ -137,14 +136,4 @@ public interface DocumentService {
      */
     void updateVersionNote(String versionId, String note, Long userId);
 
-    /**
-     * 比对文档两个版本的差异（调用 doc-parser）
-     *
-     * @param documentId    文档ID
-     * @param fromVersionId 原始版本ID
-     * @param toVersionId   修改后版本ID
-     * @param userId        操作用户ID
-     * @return 比对结果
-     */
-    ContractCompareResponse diffVersions(String documentId, String fromVersionId, String toVersionId, Long userId);
 }

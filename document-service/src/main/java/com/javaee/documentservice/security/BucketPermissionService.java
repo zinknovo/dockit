@@ -1,6 +1,7 @@
 package com.javaee.documentservice.security;
 
-import com.javaee.common.utils.UserBucketUtils;
+import com.javaee.common.security.BucketPermissionChecker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -8,66 +9,39 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Checks whether the current user's permission groups can access a MinIO bucket.
+ * 存储桶权限适配器：从 SecurityContextHolder 提取用户上下文，委托公共校验器
+ * {@link BucketPermissionChecker}，校验逻辑只存在一份。
  */
 @Service
 public class BucketPermissionService {
 
-    @Value("${minio.bucket-permissions:}")
-    private String bucketPermissions;
+    private final BucketPermissionChecker checker;
 
-    @Value("${minio.bucket-permission-default-allow:false}")
-    private boolean defaultAllow;
+    @Autowired
+    public BucketPermissionService(@Value("${minio.bucket-permissions:}") String bucketPermissions,
+                                   @Value("${minio.bucket-permission-default-allow:false}") boolean defaultAllow) {
+        this.checker = new BucketPermissionChecker(bucketPermissions, defaultAllow);
+    }
 
     public void assertCanAccess(String bucketName) {
-        if (isAdmin()) {
-            return;
-        }
-        if (bucketName == null || bucketName.isBlank()) {
-            throw new SecurityException("存储桶名称不能为空");
-        }
-        if (isCurrentUserBucket(bucketName)) {
-            return;
-        }
-        if (isAllowed(bucketName, currentPermissionGroups())) {
-            return;
-        }
-        throw new SecurityException("无权访问存储桶: " + bucketName);
+        Set<String> groups = currentPermissionGroups();
+        checker.assertCanAccess(bucketName, groups.contains("admin"), groups, currentUserId());
     }
 
-    boolean isAllowed(String bucketName, Set<String> userGroups) {
-        if (bucketPermissions == null || bucketPermissions.isBlank()) {
-            return defaultAllow;
-        }
-        Set<String> allowedGroups = parseGroups(permissionsForBucket(bucketName));
-        if (allowedGroups.isEmpty()) {
-            return defaultAllow;
-        }
-        Set<String> normalizedUserGroups = normalizeGroups(userGroups);
-        return normalizedUserGroups.contains("*") || allowedGroups.contains("*")
-                || allowedGroups.stream().anyMatch(normalizedUserGroups::contains);
-    }
-
-    private boolean isAdmin() {
-        return currentPermissionGroups().contains("admin");
-    }
-
-    private boolean isCurrentUserBucket(String bucketName) {
+    private String currentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken
-                || authentication.getPrincipal() == null) {
-            return false;
+                || !(authentication.getPrincipal() instanceof String principal)) {
+            return null;
         }
-        return UserBucketUtils.isUserBucket(bucketName, authentication.getPrincipal());
+        return principal;
     }
 
     private Set<String> currentPermissionGroups() {
@@ -79,46 +53,7 @@ public class BucketPermissionService {
                 .map(GrantedAuthority::getAuthority)
                 .filter(authority -> authority != null && !authority.isBlank())
                 .map(authority -> authority.replaceFirst("^ROLE_", "").replaceFirst("^GROUP_", ""))
-                .map(this::normalizeGroup)
+                .map(authority -> authority.trim().toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
-    }
-
-    private Set<String> parseGroups(String groups) {
-        if (groups == null || groups.isBlank()) {
-            return Set.of();
-        }
-        return Arrays.stream(groups.split("[,;]"))
-                .map(this::normalizeGroup)
-                .filter(group -> !group.isBlank())
-                .collect(Collectors.toSet());
-    }
-
-    private String permissionsForBucket(String bucketName) {
-        String normalizedBucket = normalizeGroup(bucketName);
-        for (String entry : bucketPermissions.split("[;\\n]")) {
-            String[] parts = entry.split("=", 2);
-            if (parts.length == 2 && normalizedBucket.equals(normalizeGroup(parts[0]))) {
-                return parts[1];
-            }
-        }
-        return "";
-    }
-
-    private Set<String> normalizeGroups(Set<String> groups) {
-        if (groups == null || groups.isEmpty()) {
-            return Set.of();
-        }
-        Set<String> normalized = new HashSet<>();
-        for (String group : groups) {
-            String value = normalizeGroup(group);
-            if (!value.isBlank()) {
-                normalized.add(value);
-            }
-        }
-        return normalized;
-    }
-
-    private String normalizeGroup(String group) {
-        return group == null ? "" : group.trim().toLowerCase(Locale.ROOT);
     }
 }

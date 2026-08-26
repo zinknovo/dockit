@@ -1,8 +1,8 @@
 package com.javaee.aiservice;
 
+import com.javaee.aiservice.agent.ChatProvider;
 import com.javaee.aiservice.agent.ChatService;
 import com.javaee.aiservice.factory.AIServiceFactory;
-import com.javaee.aiservice.model.ModelType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,35 +33,35 @@ public class AllModelsTest {
         log.info("开始测试所有可用模型");
         log.info("========================================");
 
-        Map<ModelType, String> results = new HashMap<>();
-        List<ModelType> failedModels = new ArrayList<>();
+        Map<String, String> results = new HashMap<>();
+        List<String> failedModels = new ArrayList<>();
 
-        // 获取所有可用模型
-        Map<ModelType, com.javaee.aiservice.agent.AIService> services = aiServiceFactory.getAllServices();
-        
-        for (Map.Entry<ModelType, com.javaee.aiservice.agent.AIService> entry : services.entrySet()) {
-            ModelType modelType = entry.getKey();
-            com.javaee.aiservice.agent.AIService service = entry.getValue();
-            
+        // 获取所有可用模型（配置注册表）
+        Map<String, ChatProvider> services = aiServiceFactory.getAllServices();
+
+        for (Map.Entry<String, ChatProvider> entry : services.entrySet()) {
+            String code = entry.getKey();
+            ChatProvider service = entry.getValue();
+
             if (!service.isAvailable()) {
-                log.warn("模型 {} 已禁用，跳过测试", modelType.getName());
+                log.warn("模型 {} 已禁用，跳过测试", service.getModelName());
                 continue;
             }
-            
+
             log.info("----------------------------------------");
-            log.info("测试模型: {} ({})", modelType.getName(), modelType.getCode());
-            
+            log.info("测试模型: {} ({})", service.getModelName(), code);
+
             try {
-                String response = chatService.callChatApiWithModelCode(TEST_PROMPT, modelType.getCode());
-                
-                log.info("✓ 模型 {} 调用成功!", modelType.getName());
+                String response = chatService.callChatApiWithModelCode(TEST_PROMPT, code);
+
+                log.info("✓ 模型 {} 调用成功!", service.getModelName());
                 log.info("响应: {}", response);
-                
-                results.put(modelType, response);
-                
+
+                results.put(code, response);
+
             } catch (Exception e) {
-                log.error("✗ 模型 {} 调用失败!", modelType.getName(), e);
-                failedModels.add(modelType);
+                log.error("✗ 模型 {} 调用失败!", service.getModelName(), e);
+                failedModels.add(code);
             }
         }
 
@@ -69,17 +69,17 @@ public class AllModelsTest {
         log.info("测试总结");
         log.info("========================================");
         log.info("成功模型: {}/{}", results.size(), services.size());
-        
+
         if (!results.isEmpty()) {
             log.info("成功的模型:");
-            results.keySet().forEach(model -> log.info("  - {} ({})", model.getName(), model.getCode()));
+            results.keySet().forEach(code -> log.info("  - {} ({})", services.get(code).getModelName(), code));
         }
-        
+
         if (!failedModels.isEmpty()) {
             log.warn("失败的模型:");
-            failedModels.forEach(model -> log.warn("  - {} ({})", model.getName(), model.getCode()));
+            failedModels.forEach(code -> log.warn("  - {} ({})", services.get(code).getModelName(), code));
         }
-        
+
         log.info("========================================");
     }
 }

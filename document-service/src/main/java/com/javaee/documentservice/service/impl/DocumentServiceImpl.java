@@ -1,11 +1,7 @@
 package com.javaee.documentservice.service.impl;
 
 import com.javaee.common.exception.BusinessException;
-import com.javaee.documentservice.client.DocParserClient;
-import com.javaee.documentservice.client.DocParserException;
 import com.javaee.documentservice.client.FileServiceClient;
-import com.javaee.documentservice.client.dto.ContractCompareResponse;
-import com.javaee.documentservice.client.dto.DocumentLocator;
 import com.javaee.documentservice.dto.DocumentCreateDTO;
 import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
@@ -18,9 +14,6 @@ import com.javaee.documentservice.service.DocumentContentService;
 import com.javaee.documentservice.service.DocumentFileStorageService;
 import com.javaee.documentservice.service.DocumentService;
 import com.javaee.documentservice.util.DocumentParserUtil;
-import com.javaee.documentservice.versioning.Author;
-import com.javaee.documentservice.versioning.VersionControlProperties;
-import com.javaee.documentservice.versioning.VersionControlService;
 import com.javaee.documentservice.vo.DocumentVO;
 import com.javaee.documentservice.vo.DocumentVersionVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,12 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,26 +60,25 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final ObjectMapper objectMapper;
 
-    private final VersionControlService versionControlService;
-
     private final DocumentFileStorageService documentFileStorageService;
 
-    private final VersionControlProperties versionControlProperties;
+    /** 上传文件大小上限（字节），默认 10MB */
+    @Value("${dockit.document.max-file-size:10485760}")
+    private long maxFileSize;
 
-    private final DocParserClient docParserClient;
+    /** 允许上传的扩展名，逗号分隔 */
+    @Value("${dockit.document.allowed-extensions:txt,md,docx,doc,pdf}")
+    private String allowedExtensions;
 
     @Autowired
-    public DocumentServiceImpl(DocumentMapper documentMapper, DocumentVersionMapper documentVersionMapper, DocumentContentService documentContentService, DocumentAccessService documentAccessService, FileServiceClient fileServiceClient, ObjectMapper objectMapper, VersionControlService versionControlService, DocumentFileStorageService documentFileStorageService, VersionControlProperties versionControlProperties, DocParserClient docParserClient) {
+    public DocumentServiceImpl(DocumentMapper documentMapper, DocumentVersionMapper documentVersionMapper, DocumentContentService documentContentService, DocumentAccessService documentAccessService, FileServiceClient fileServiceClient, ObjectMapper objectMapper, DocumentFileStorageService documentFileStorageService) {
         this.documentMapper = documentMapper;
         this.documentVersionMapper = documentVersionMapper;
         this.documentContentService = documentContentService;
         this.documentAccessService = documentAccessService;
         this.fileServiceClient = fileServiceClient;
         this.objectMapper = objectMapper;
-        this.versionControlService = versionControlService;
         this.documentFileStorageService = documentFileStorageService;
-        this.versionControlProperties = versionControlProperties;
-        this.docParserClient = docParserClient;
     }
 
     /**
@@ -352,18 +348,40 @@ public class DocumentServiceImpl implements DocumentService {
 
         documentMapper.updateById(document);
 
-        // 恢复MinIO中的文档内容
-        documentContentService.updateContent(documentId, storageBucketName(document), version.getContent());
+        // 恢复内容：优先版本文本；上传类版本（content 列为空）从 MinIO 原始文件重新解析
+        String restoreContent = resolveVersionContent(version);
+        documentContentService.updateContent(documentId, storageBucketName(document), restoreContent);
 
         DocumentVO vo = convertToVO(document);
-        // 从MinIO获取恢复后的内容
-        vo.setContent(version.getContent());
+        vo.setContent(restoreContent);
         return vo;
     }
 
     /**
+     * 解析恢复用内容：版本文本为空时，从 MinIO 原始文件（fileUrl）取字节并解析为文本
+     */
+    private String resolveVersionContent(DocumentVersion version) {
+        if (version.getContent() != null && !version.getContent().isEmpty()) {
+            return version.getContent();
+        }
+        if (version.getFileUrl() == null) {
+            throw new BusinessException("该版本无内容可恢复");
+        }
+        Document owner = documentMapper.selectById(version.getDocumentId());
+        if (owner == null) {
+            throw new BusinessException("文档不存在");
+        }
+        byte[] bytes = documentFileStorageService.readFile(storageBucketName(owner), version.getFileUrl());
+        String parsed = DocumentParserUtil.parseDocument(bytes, fileNameOf(version.getFileUrl()));
+        if (parsed == null) {
+            throw new BusinessException("无法解析该版本文件内容");
+        }
+        return parsed;
+    }
+
+    /**
      * 上传文档新版本
-     * 校验文件 -> 初始化 git 仓库（首次）-> 上传 MinIO -> git commit -> 写版本表 -> 更新文档主表
+     * 校验文件 -> 上传 MinIO（按版本号分 key）-> 写版本表 -> 更新文档主表
      */
     @Override
     @Transactional
@@ -376,13 +394,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         validateUploadFile(file);
 
-        String scopeId = document.getScopeId() != null ? document.getScopeId() : document.getId();
-        if (!versionControlService.repoExists(scopeId)) {
-            versionControlService.initRepo(scopeId);
-        }
         String fileName = sanitizeFileName(file.getOriginalFilename());
-        String relativePath = document.getFilePath() != null ? document.getFilePath() : scopeId + "/" + fileName;
-
         int nextVersionNumber = Optional.ofNullable(documentVersionMapper.selectMaxVersionNumber(documentId)).orElse(0) + 1;
         String objectKey = "document-files/" + documentId + "/v" + nextVersionNumber + "/" + fileName;
         String bucketName = storageBucketName(document);
@@ -395,19 +407,12 @@ public class DocumentServiceImpl implements DocumentService {
         }
         String fileUrl = documentFileStorageService.saveFile(bucketName, objectKey, content, file.getContentType());
 
-        String commitHash = versionControlService.commitVersion(new VersionControlService.CommitRequest(
-                scopeId, relativePath, content,
-                new Author(versionControlProperties.getDefaultAuthorName(), versionControlProperties.getDefaultAuthorEmail()),
-                note));
-
         DocumentVersion version = new DocumentVersion();
         version.setDocumentId(documentId);
         version.setVersionNumber(nextVersionNumber);
         version.setTitle(document.getTitle());
         version.setChangeLog(note);
         version.setNote(note);
-        version.setCommitHash(commitHash);
-        version.setFilePath(relativePath);
         version.setFileUrl(fileUrl);
         version.setUploadedBy(String.valueOf(userId));
         version.setUploadedAt(LocalDateTime.now());
@@ -416,8 +421,6 @@ public class DocumentServiceImpl implements DocumentService {
         documentVersionMapper.insert(version);
 
         document.setVersion(nextVersionNumber);
-        document.setFilePath(relativePath);
-        document.setScopeId(scopeId);
         document.setUpdateTime(LocalDateTime.now());
         documentMapper.updateById(document);
 
@@ -457,10 +460,10 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
-     * 读取某个版本的文件内容（从 git 历史中取）
+     * 读取某个版本的文件内容（优先从 MinIO 原始文件读，无原始文件时回退版本文本）
      */
     @Override
-    public String getVersionContent(String documentId, String versionId, Long userId) {
+    public byte[] getVersionContent(String documentId, String versionId, Long userId) {
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
             throw new BusinessException("文档不存在");
@@ -470,8 +473,13 @@ public class DocumentServiceImpl implements DocumentService {
         if (version == null || !documentId.equals(version.getDocumentId())) {
             throw new BusinessException("版本不存在");
         }
-        String scopeId = document.getScopeId() != null ? document.getScopeId() : document.getId();
-        return versionControlService.readFileAtVersion(scopeId, version.getCommitHash(), version.getFilePath());
+        if (version.getFileUrl() != null) {
+            return documentFileStorageService.readFile(storageBucketName(document), version.getFileUrl());
+        }
+        if (version.getContent() != null) {
+            return version.getContent().getBytes(StandardCharsets.UTF_8);
+        }
+        throw new BusinessException("该版本无内容");
     }
 
     /**
@@ -491,44 +499,6 @@ public class DocumentServiceImpl implements DocumentService {
         documentAccessService.assertCanWrite(document, userId);
         version.setNote(note);
         documentVersionMapper.updateById(version);
-    }
-
-    /**
-     * 比对文档两个版本
-     * 为两个版本的 MinIO 原始文件生成 presigned 下载链接，调用 doc-parser 比对
-     */
-    @Override
-    public ContractCompareResponse diffVersions(String documentId, String fromVersionId, String toVersionId, Long userId) {
-        Document document = documentMapper.selectById(documentId);
-        if (document == null) {
-            throw new BusinessException("文档不存在");
-        }
-        documentAccessService.assertCanRead(document, userId);
-
-        DocumentVersion fromVersion = documentVersionMapper.selectById(fromVersionId);
-        DocumentVersion toVersion = documentVersionMapper.selectById(toVersionId);
-        if (fromVersion == null || toVersion == null
-                || !documentId.equals(fromVersion.getDocumentId())
-                || !documentId.equals(toVersion.getDocumentId())) {
-            throw new BusinessException("版本不存在");
-        }
-        if (fromVersion.getFileUrl() == null || toVersion.getFileUrl() == null) {
-            throw new BusinessException("该版本未上传文件，无法比对");
-        }
-
-        String bucketName = storageBucketName(document);
-        String fromUrl = documentFileStorageService.getPresignedDownloadUrl(bucketName, fromVersion.getFileUrl());
-        String toUrl = documentFileStorageService.getPresignedDownloadUrl(bucketName, toVersion.getFileUrl());
-        DocumentLocator original = new DocumentLocator(fromUrl, fromVersionId,
-                fileNameOf(fromVersion.getFileUrl()), extractExtension(fromVersion.getFileUrl()));
-        DocumentLocator modified = new DocumentLocator(toUrl, toVersionId,
-                fileNameOf(toVersion.getFileUrl()), extractExtension(toVersion.getFileUrl()));
-
-        try {
-            return docParserClient.compareContracts(original, modified);
-        } catch (DocParserException e) {
-            throw new BusinessException("比对服务暂不可用: " + e.getMessage());
-        }
     }
 
     /**
@@ -639,11 +609,12 @@ public class DocumentServiceImpl implements DocumentService {
         if (file == null || file.isEmpty()) {
             throw new BusinessException("上传文件不能为空");
         }
-        if (file.getSize() > versionControlProperties.getMaxFileSize()) {
-            throw new BusinessException("文件大小超过限制: " + versionControlProperties.getMaxFileSize() + " 字节");
+        if (file.getSize() > maxFileSize) {
+            throw new BusinessException("文件大小超过限制: " + maxFileSize + " 字节");
         }
         String extension = extractExtension(file.getOriginalFilename());
-        if (!versionControlProperties.getAllowedExtensions().contains(extension)) {
+        Set<String> allowed = new HashSet<>(Arrays.asList(allowedExtensions.split(",")));
+        if (!allowed.contains(extension)) {
             throw new BusinessException("不支持的文件类型: " + extension);
         }
     }
@@ -676,7 +647,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
-     * 从路径或对象 key 中取最后一段作为文件名
+     * 从对象 key 中取最后一段作为文件名
      */
     private String fileNameOf(String pathOrKey) {
         if (pathOrKey == null) {

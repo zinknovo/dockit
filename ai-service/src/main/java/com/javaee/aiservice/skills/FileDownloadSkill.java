@@ -23,9 +23,11 @@ public class FileDownloadSkill implements Skill {
         this.requestUserContext = requestUserContext;
     }
 
+    public static final String NAME = "File Download Skill";
+
     @Override
     public String getName() {
-        return "File Download Skill";
+        return NAME;
     }
 
     @Override

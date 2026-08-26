@@ -56,63 +56,69 @@ export default function DepartmentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-g-900">{t('title')}</h2>
+        <h2 className="text-xl fw-semibold text-g-900">{t('title')}</h2>
         <p className="mt-1 text-sm text-g-600">{t('subtitle')}</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-box p-5">
-        <h3 className="text-sm font-semibold text-g-800">{t('addDept')}</h3>
-        <form onSubmit={handleAddDept} className="mt-4 grid gap-3 md:grid-cols-3">
-          <input
-            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm"
-            placeholder={t('deptNamePlaceholder')}
-            value={form.name}
-            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-            required
-          />
-          <input
-            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm"
-            placeholder={t('parentIdPlaceholder')}
-            value={form.parentId}
-            onChange={(event) => setForm((prev) => ({ ...prev, parentId: event.target.value }))}
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-theme px-4 py-2 text-sm font-medium text-white"
-          >
-            {tCommon('submit')}
-          </button>
+      <div className="rounded-3 border border-border bg-box p-4">
+        <h3 className="text-sm fw-semibold text-g-800">{t('addDept')}</h3>
+        <form onSubmit={handleAddDept} className="mt-3 row g-3">
+          <div className="col-12 col-md-4">
+            <input
+              className="form-control"
+              placeholder={t('deptNamePlaceholder')}
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              required
+            />
+          </div>
+          <div className="col-12 col-md-4">
+            <input
+              className="form-control"
+              placeholder={t('parentIdPlaceholder')}
+              value={form.parentId}
+              onChange={(event) => setForm((prev) => ({ ...prev, parentId: event.target.value }))}
+            />
+          </div>
+          <div className="col-12 col-md-4">
+            <button
+              type="submit"
+              className="btn btn-primary fw-medium"
+            >
+              {tCommon('submit')}
+            </button>
+          </div>
         </form>
-        {error ? <p className="mt-3 text-sm text-red-500">{error}</p> : null}
+        {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
       </div>
 
-      <div className="rounded-2xl border border-border bg-box p-5">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-g-600">
+      <div className="rounded-3 border border-border bg-box p-4">
+        <div className="overflow-auto">
+          <table className="table align-middle text-sm">
+            <thead className="text-start text-g-600">
               <tr>
-                <th className="py-2">{t('deptName')}</th>
-                <th className="py-2">{t('parentId')}</th>
+                <th>{t('deptName')}</th>
+                <th>{t('parentId')}</th>
               </tr>
             </thead>
             <tbody className="text-g-800">
               {loading ? (
                 <tr>
-                  <td colSpan={2} className="py-4 text-center text-g-500">
+                  <td colSpan={2} className="text-center text-g-500">
                     {tCommon('loading')}
                   </td>
                 </tr>
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="py-4 text-center text-g-500">
+                  <td colSpan={2} className="text-center text-g-500">
                     {tCommon('noData')}
                   </td>
                 </tr>
               ) : (
                 records.map((item) => (
-                  <tr key={item.id} className="border-t border-border">
-                    <td className="py-3 font-medium">{item.name}</td>
-                    <td className="py-3 text-g-600">{item.parentId ?? '-'}</td>
+                  <tr key={item.id}>
+                    <td className="fw-medium">{item.name}</td>
+                    <td className="text-g-600">{item.parentId ?? '-'}</td>
                   </tr>
                 ))
               )}
@@ -120,20 +126,20 @@ export default function DepartmentsPage() {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-g-600">
+        <div className="mt-3 d-flex align-items-center justify-content-between text-sm text-g-600">
           <span>{tCommon('totalPage', { total, page })}</span>
-          <div className="flex gap-2">
+          <div className="d-flex gap-2">
             <button
               onClick={() => loadDepts(page - 1)}
               disabled={page <= 1}
-              className="rounded-lg border border-border px-3 py-1 disabled:opacity-50"
+              className="btn btn-outline-secondary btn-sm"
             >
               {tCommon('prevPage')}
             </button>
             <button
               onClick={() => loadDepts(page + 1)}
               disabled={page * pageSize >= total}
-              className="rounded-lg border border-border px-3 py-1 disabled:opacity-50"
+              className="btn btn-outline-secondary btn-sm"
             >
               {tCommon('nextPage')}
             </button>

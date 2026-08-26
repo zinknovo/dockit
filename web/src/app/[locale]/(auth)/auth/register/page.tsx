@@ -32,15 +32,15 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-g-900">{t('register')}</h1>
+        <h1 className="text-2xl fw-semibold text-g-900">{t('register')}</h1>
         <p className="mt-2 text-sm text-g-600">{t('registerSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('username')}
           <input
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('usernamePlaceholder')}
             value={form.username}
             onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
@@ -48,11 +48,11 @@ export default function RegisterPage() {
           />
         </label>
 
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('password')}
           <input
             type="password"
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('passwordPlaceholder')}
             value={form.password}
             onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
@@ -60,21 +60,21 @@ export default function RegisterPage() {
           />
         </label>
 
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('email')}
           <input
             type="email"
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('emailPlaceholder')}
             value={form.email}
             onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
           />
         </label>
 
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('phone')}
           <input
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('phonePlaceholder')}
             value={form.phone}
             onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
@@ -82,13 +82,13 @@ export default function RegisterPage() {
         </label>
 
         {msg ? (
-          <p className={`text-sm ${msg.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>{msg.text}</p>
+          <p className={`text-sm ${msg.type === 'success' ? 'text-success' : 'text-danger'}`}>{msg.text}</p>
         ) : null}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-theme px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          className="btn btn-primary w-100 fw-medium"
         >
           {loading ? t('loggingIn') : t('submitRegister')}
         </button>

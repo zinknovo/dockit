@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="flex h-screen items-center justify-center text-sm text-g-600">
+      <div className="d-flex vh-100 align-items-center justify-content-center text-sm text-g-600">
         {tCommon('loading')}
       </div>
     )
@@ -55,21 +55,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-page">
-      <aside className="hidden w-56 flex-col border-r border-border bg-box p-6 md:flex">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-g-500">Dockit</p>
-          <h1 className="mt-2 text-lg font-semibold text-g-900">{t('console')}</h1>
+    <div className="d-flex min-vh-100 bg-page">
+      <aside className="d-none w-56 flex-column border-end border-border bg-box p-4 d-md-flex">
+        <div className="mb-4">
+          <p className="text-xs text-uppercase tracking-02 text-g-500">Dockit</p>
+          <h1 className="mt-2 text-lg fw-semibold text-g-900">{t('console')}</h1>
         </div>
-        <nav className="flex flex-col gap-1">
+        <nav className="d-flex flex-column gap-1">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-lg px-3 py-2 text-sm transition ${
+              className={`rounded-2 px-3 py-2 text-sm transition ${
                 activeHref === item.href
-                  ? 'bg-theme/10 text-theme font-medium'
-                  : 'text-g-700 hover:bg-hover-color'
+                  ? 'bg-theme-10 text-theme fw-medium'
+                  : 'text-g-700 hover-bg-hover-color'
               }`}
             >
               {item.label}
@@ -78,29 +78,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-border bg-box px-6">
-          <div className="flex items-center gap-3">
+      <div className="d-flex flex-grow-1 flex-column">
+        <header className="d-flex h-14 align-items-center justify-content-between border-bottom border-border bg-box px-4">
+          <div className="d-flex align-items-center gap-3">
             <LanguageSwitcher />
             <button
               onClick={() => setSettingsOpen(true)}
-              className="rounded-lg border border-border px-3 py-1 text-xs text-g-700 hover:bg-hover-color"
+              className="rounded-2 border border-border px-3 py-1 text-xs text-g-700 hover-bg-hover-color"
             >
               {t('settingsButton')}
             </button>
           </div>
-          <div className="flex items-center gap-4 text-sm text-g-700">
+          <div className="d-flex align-items-center gap-3 text-sm text-g-700">
             <span>{user?.name || user?.phone || t('currentUser')}</span>
             <button
               onClick={() => { logout(); router.replace('/auth/login') }}
-              className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-hover-color"
+              className="rounded-2 border border-border px-3 py-1 text-xs hover-bg-hover-color"
             >
               {t('logout')}
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-grow-1 p-4">{children}</main>
       </div>
 
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />

@@ -19,9 +19,11 @@ public class FileUploadSkill implements Skill {
         this.requestUserContext = requestUserContext;
     }
 
+    public static final String NAME = "File Upload Skill";
+
     @Override
     public String getName() {
-        return "File Upload Skill";
+        return NAME;
     }
 
     @Override

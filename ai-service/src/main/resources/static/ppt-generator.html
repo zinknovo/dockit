@@ -155,12 +155,7 @@
             
             <div class="form-group">
                 <label for="model">🤖 AI模型</label>
-                <select id="model">
-                    <option value="qwen3.6-plus">通义千问 3.6 Plus</option>
-                    <option value="glm-5">智谱 GLM-5</option>
-                    <option value="kimi-k2.5">月之暗面 Kimi K2.5</option>
-                    <option value="MiniMax-M2.5">MiniMax M2.5</option>
-                </select>
+                <select id="model"></select>
             </div>
             
             <div class="form-group">
@@ -198,7 +193,26 @@
 
     <script>
         const API_BASE = window.location.origin || 'http://localhost:8083';
-        
+
+        // 模型下拉框从 /api/ai/models 动态加载，避免与配置注册表脱节
+        async function loadModels() {
+            const select = document.getElementById('model');
+            try {
+                const resp = await fetch(`${API_BASE}/api/ai/models`);
+                const json = await resp.json();
+                (json.data || []).forEach(m => {
+                    if (!m.available) return;
+                    const opt = document.createElement('option');
+                    opt.value = m.code;
+                    opt.textContent = m.name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                // 后端不可达时留空，服务端会用默认模型
+            }
+        }
+        loadModels();
+
         function getFormData() {
             return {
                 outline: document.getElementById('outline').value,

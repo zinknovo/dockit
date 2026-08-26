@@ -1,26 +1,22 @@
 package com.javaee.aiservice.rag;
 
+import com.javaee.aiservice.aiops.MonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * 知识库：文档切分 → 向量化 → 存入 Qdrant。
+ * 向量、原文内容、元数据、分段映射全部落在 Qdrant 点的 payload 中（命中即取），
+ * 不再依赖 Redis 存储知识库数据。
+ */
 @Component
 public class KnowledgeBase {
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeBase.class);
-    private static final String DOCUMENT_PREFIX = "doc:";
-    private static final String CONTENT_PREFIX = "content:";
-    private static final String SEGMENT_PREFIX = "segment:";
-    private static final String DOC_SEGMENTS_PREFIX = "doc_segments:";
-
-    private final RedisTemplate<String, Object> redisTemplate;
 
     private final DocumentVectorizer vectorizer;
 
@@ -30,13 +26,15 @@ public class KnowledgeBase {
 
     private final DocumentSegmenter documentSegmenter;
 
+    private final MonitoringService monitoringService;
+
     @Autowired
-    public KnowledgeBase(RedisTemplate<String, Object> redisTemplate, DocumentVectorizer vectorizer, VectorStore vectorStore, Reranker reranker, DocumentSegmenter documentSegmenter) {
-        this.redisTemplate = redisTemplate;
+    public KnowledgeBase(DocumentVectorizer vectorizer, VectorStore vectorStore, Reranker reranker, DocumentSegmenter documentSegmenter, MonitoringService monitoringService) {
         this.vectorizer = vectorizer;
         this.vectorStore = vectorStore;
         this.reranker = reranker;
         this.documentSegmenter = documentSegmenter;
+        this.monitoringService = monitoringService;
     }
 
     public void addDocument(String documentId, String content, Map<String, Object> metadata) {
@@ -47,48 +45,61 @@ public class KnowledgeBase {
                                        DocumentSegmenter.StrategyType strategyType) {
         log.info("添加文档到知识库: documentId={}, strategy={}", documentId, strategyType);
 
+        List<String> storedIds = new ArrayList<>();
         try {
-            String docKey = DOCUMENT_PREFIX + documentId;
-            String contentKey = CONTENT_PREFIX + documentId;
-
             Map<String, Object> docMetadata = normalizeMetadata(metadata);
             docMetadata.put("strategy", strategyType.name());
             docMetadata.put("totalLength", content.length());
-
-            redisTemplate.opsForValue().set(contentKey, content);
-            redisTemplate.opsForHash().putAll(docKey, docMetadata);
+            docMetadata.put("type", "document");
 
             List<SegmentStrategy.Segment> segments = documentSegmenter.segment(documentId, content, strategyType);
 
             if (segments.isEmpty()) {
                 log.warn("文档分段结果为空，直接存储完整文档");
+                docMetadata.put("documentId", documentId);
+                docMetadata.put("content", content);
                 float[] vector = vectorizer.vectorize(content);
                 vectorStore.store(documentId, vector, docMetadata);
                 return;
             }
 
-            List<String> segmentIds = new ArrayList<>();
-            for (SegmentStrategy.Segment segment : segments) {
+            String[] segmentContents = new String[segments.size()];
+            for (int i = 0; i < segments.size(); i++) {
+                segmentContents[i] = segments.get(i).getContent();
+            }
+            // 一次请求批量向量化所有分段，避免逐条调用触发账户 QPS 限流
+            float[][] vectors = vectorizer.vectorizeBatch(segmentContents);
+            for (int i = 0; i < segments.size(); i++) {
+                SegmentStrategy.Segment segment = segments.get(i);
                 String segmentId = segment.getSegmentId();
-                segmentIds.add(segmentId);
-
-                String segmentContentKey = SEGMENT_PREFIX + segmentId;
-                redisTemplate.opsForValue().set(segmentContentKey, segment.getContent());
 
                 Map<String, Object> segmentMetadata = new HashMap<>(docMetadata);
                 segmentMetadata.put("documentId", documentId);
                 segmentMetadata.put("segmentIndex", segment.getIndex());
                 segmentMetadata.put("segmentTitle", segment.getTitle());
                 segmentMetadata.put("charCount", segment.getCharCount());
+                segmentMetadata.put("type", "segment");
+                segmentMetadata.put("content", segment.getContent());
 
-                float[] vector = vectorizer.vectorize(segment.getContent());
-                vectorStore.store(segmentId, vector, segmentMetadata);
+                vectorStore.store(segmentId, vectors[i], segmentMetadata);
+                storedIds.add(segmentId);
             }
 
-            redisTemplate.opsForValue().set(DOC_SEGMENTS_PREFIX + documentId, segmentIds);
-
+            // 不建文档级点：分段点 payload 已携带完整文档元数据（documentId/strategy/userId 等），
+            // 文档级查询通过按 documentId 过滤分段点推导；省 1 次整文档向量化 + Qdrant 存储。
             log.info("文档添加成功: documentId={}, 分段数={}", documentId, segments.size());
         } catch (Exception e) {
+            // 回滚已写入的分段点，避免失败后残留孤儿向量
+            for (String storedId : storedIds) {
+                try {
+                    vectorStore.delete(storedId);
+                } catch (Exception cleanup) {
+                    log.warn("回滚分段点失败: id={}", storedId, cleanup);
+                }
+            }
+            if (!storedIds.isEmpty()) {
+                log.warn("添加文档失败，已回滚 {} 个已写入分段点: documentId={}", storedIds.size(), documentId);
+            }
             log.error("添加文档失败", e);
             throw new RuntimeException("添加文档失败: " + e.getMessage(), e);
         }
@@ -104,16 +115,10 @@ public class KnowledgeBase {
 
         try {
             List<String> segmentIds = getSegmentIds(documentId);
-
             for (String segmentId : segmentIds) {
-                redisTemplate.delete(SEGMENT_PREFIX + segmentId);
                 vectorStore.delete(segmentId);
             }
-
-            redisTemplate.delete(DOC_SEGMENTS_PREFIX + documentId);
-            redisTemplate.delete(DOCUMENT_PREFIX + documentId);
-            redisTemplate.delete(CONTENT_PREFIX + documentId);
-
+            vectorStore.delete(documentId);
             log.info("文档移除成功: documentId={}, 删除了{}个分段", documentId, segmentIds.size());
         } catch (Exception e) {
             log.error("移除文档失败", e);
@@ -122,53 +127,52 @@ public class KnowledgeBase {
     }
 
     public String getDocumentContent(String documentId) {
-        try {
-            return (String) redisTemplate.opsForValue().get(CONTENT_PREFIX + documentId);
-        } catch (Exception e) {
-            log.warn("获取文档内容失败", e);
-            return null;
+        List<String> segmentIds = getSegmentIds(documentId);
+        if (segmentIds.isEmpty()) {
+            // 无分段（整篇存储）的文档：内容在文档级点
+            Object content = vectorStore.getPayload(documentId).get("content");
+            return content == null ? null : content.toString();
         }
+        StringBuilder builder = new StringBuilder();
+        for (String segmentId : segmentIds) {
+            Object content = vectorStore.getPayload(segmentId).get("content");
+            if (content != null) {
+                if (!builder.isEmpty()) {
+                    builder.append("\n\n");
+                }
+                builder.append(content);
+            }
+        }
+        return builder.isEmpty() ? null : builder.toString();
     }
 
     public String getSegmentContent(String segmentId) {
-        try {
-            return (String) redisTemplate.opsForValue().get(SEGMENT_PREFIX + segmentId);
-        } catch (Exception e) {
-            log.warn("获取分段内容失败", e);
-            return null;
-        }
+        Object content = vectorStore.getPayload(segmentId).get("content");
+        return content == null ? null : content.toString();
     }
 
     public List<String> getSegmentIds(String documentId) {
-        try {
-            Object segmentIdsObj = redisTemplate.opsForValue().get(DOC_SEGMENTS_PREFIX + documentId);
-            if (segmentIdsObj == null) {
-                return Collections.emptyList();
-            }
-            if (segmentIdsObj instanceof List) {
-                return ((List<?>) segmentIdsObj).stream()
-                        .map(Object::toString)
-                        .collect(Collectors.toList());
-            }
-            return Collections.emptyList();
-        } catch (Exception e) {
-            log.warn("获取文档分段ID列表失败", e);
-            return Collections.emptyList();
-        }
+        return vectorStore.scrollAll(Map.of("type", "segment", "documentId", documentId)).stream()
+                .sorted(Comparator.comparingDouble(p -> ((Number) p.getOrDefault("segmentIndex", -1)).doubleValue()))
+                .map(p -> p.get("rawId").toString())
+                .toList();
     }
 
     public Map<String, Object> getDocumentMetadata(String documentId) {
-        try {
-            Map<Object, Object> hash = redisTemplate.opsForHash().entries(DOCUMENT_PREFIX + documentId);
-            Map<String, Object> metadata = new HashMap<>();
-            for (Map.Entry<Object, Object> entry : hash.entrySet()) {
-                metadata.put(entry.getKey().toString(), entry.getValue());
-            }
-            return metadata;
-        } catch (Exception e) {
-            log.warn("获取文档元数据失败", e);
-            return Collections.emptyMap();
-        }
+        // 文档元数据复制在分段点 payload 上；无分段（短文档）时存在 type=document 的文档点
+        return vectorStore.scrollAll(Map.of("documentId", documentId)).stream()
+                .findFirst()
+                .map(p -> {
+                    Map<String, Object> metadata = new HashMap<>(p);
+                    metadata.remove("content");
+                    metadata.remove("rawId");
+                    metadata.remove("segmentIndex");
+                    metadata.remove("segmentTitle");
+                    metadata.remove("charCount");
+                    metadata.remove("type");
+                    return metadata;
+                })
+                .orElse(Collections.emptyMap());
     }
 
     public List<Map<String, Object>> getDocumentSegments(String documentId) {
@@ -206,33 +210,35 @@ public class KnowledgeBase {
                                             Map<String, Object> filters) {
         log.info("搜索知识库: query={}, topK={}, strategy={}", query, topK, strategyType);
 
+        long start = System.currentTimeMillis();
         try {
+            long t0 = System.currentTimeMillis();
             float[] queryVector = vectorizer.vectorize(query);
-            List<Map<String, Object>> results = vectorStore.search(queryVector, topK, filters);
+            monitoringService.recordTimer("rag.embedding", System.currentTimeMillis() - t0);
 
+            long t1 = System.currentTimeMillis();
+            List<Map<String, Object>> results = vectorStore.search(queryVector, topK, filters);
+            monitoringService.recordTimer("rag.vector-search", System.currentTimeMillis() - t1);
+
+            // payload 已带 content；兜底：缺失时按 id 从 Qdrant 补取
             for (Map<String, Object> result : results) {
-                String id = (String) result.get("id");
-                String content = getSegmentContent(id);
-                if (content == null) {
-                    content = getDocumentContent(id);
+                if (!result.containsKey("content") || result.get("content") == null) {
+                    String id = (String) result.get("id");
+                    String content = getSegmentContent(id);
+                    if (content == null) {
+                        content = getDocumentContent(id);
+                    }
+                    result.put("content", content);
                 }
-                result.put("content", content);
             }
 
             return results;
         } catch (Exception e) {
             log.error("知识库搜索失败", e);
             throw new RuntimeException("知识库搜索失败: " + e.getMessage(), e);
+        } finally {
+            monitoringService.recordTimer("rag.search", System.currentTimeMillis() - start);
         }
-    }
-
-    public List<Map<String, Object>> hybridSearch(String query, int topK) {
-        return hybridSearch(query, topK, DocumentSegmenter.StrategyType.CHAPTER);
-    }
-
-    public List<Map<String, Object>> hybridSearch(String query, int topK,
-                                                   DocumentSegmenter.StrategyType strategyType) {
-        return hybridSearch(query, topK, strategyType, Collections.emptyMap());
     }
 
     public List<Map<String, Object>> hybridSearch(String query, int topK,
@@ -241,8 +247,13 @@ public class KnowledgeBase {
         log.info("混合检索: query={}, topK={}, strategy={}", query, topK, strategyType);
 
         try {
+            long t0 = System.currentTimeMillis();
             float[] queryVector = vectorizer.vectorize(query);
+            monitoringService.recordTimer("rag.embedding", System.currentTimeMillis() - t0);
+
+            long t1 = System.currentTimeMillis();
             List<Map<String, Object>> vectorResults = vectorStore.search(queryVector, topK * 3, filters);
+            monitoringService.recordTimer("rag.vector-search", System.currentTimeMillis() - t1);
 
             List<Map<String, Object>> bm25Results = bm25Search(query, topK * 3, filters);
 
@@ -253,11 +264,9 @@ public class KnowledgeBase {
                 String id = (String) result.get("id");
                 if (!seenIds.contains(id)) {
                     seenIds.add(id);
-                    String content = getSegmentContent(id);
-                    if (content == null) {
-                        content = getDocumentContent(id);
+                    if (!result.containsKey("content")) {
+                        result.put("content", getSegmentContent(id));
                     }
-                    result.put("content", content);
                     result.put("source", "vector");
                     combinedResults.add(result);
                 }
@@ -267,11 +276,7 @@ public class KnowledgeBase {
                 String id = (String) result.get("id");
                 if (!seenIds.contains(id)) {
                     seenIds.add(id);
-                    String content = getSegmentContent(id);
-                    if (content == null) {
-                        content = getDocumentContent(id);
-                    }
-                    result.put("content", content);
+                    result.put("content", getSegmentContent(id));
                     result.put("source", "bm25");
                     combinedResults.add(result);
                 }
@@ -301,18 +306,15 @@ public class KnowledgeBase {
         try {
             List<Map<String, Object>> candidates = hybridSearch(query, topK * 3, strategyType, filters);
 
+            long t0 = System.currentTimeMillis();
             List<Map<String, Object>> results = reranker.rerank(query, candidates, rerankStrategy, topK);
+            monitoringService.recordTimer("rag.rerank", System.currentTimeMillis() - t0);
 
             return results;
         } catch (Exception e) {
             log.error("混合检索加重排序失败", e);
             throw new RuntimeException("混合检索加重排序失败: " + e.getMessage(), e);
         }
-    }
-
-    public List<Map<String, Object>> hybridSearchWithRerank(String query, int topK,
-                                                            Reranker.RerankStrategy rerankStrategy) {
-        return hybridSearchWithRerank(query, topK, rerankStrategy, DocumentSegmenter.StrategyType.CHAPTER);
     }
 
     public List<Map<String, Object>> hybridSearchWithRerank(String query, int topK,
@@ -325,43 +327,36 @@ public class KnowledgeBase {
         return hybridSearchWithRerank(query, topK, rerankStrategy, DocumentSegmenter.StrategyType.CHAPTER, filters);
     }
 
+    /**
+     * BM25 关键词检索：从 Qdrant 全量滚动 payload 文本计算（量级在万级点内可接受）
+     */
     private List<Map<String, Object>> bm25Search(String query, int topK, Map<String, Object> filters) {
         List<Map<String, Object>> results = new ArrayList<>();
-        List<String> contentKeys = scanKeys(CONTENT_PREFIX + "*", 1000);
-        List<String> segmentKeys = scanKeys(SEGMENT_PREFIX + "*", 1000);
 
-        Set<String> allKeys = new LinkedHashSet<>();
-        if (contentKeys != null) allKeys.addAll(contentKeys);
-        if (segmentKeys != null) allKeys.addAll(segmentKeys);
-
-        if (allKeys.isEmpty()) {
-            return results;
-        }
-
-        for (String key : allKeys) {
-            String docId = key.substring(key.lastIndexOf(":") + 1);
-            Map<String, Object> metadata = key.startsWith(SEGMENT_PREFIX)
-                    ? vectorStoreMetadata(docId)
-                    : getDocumentMetadata(docId);
-            if (!matchesFilters(metadata, filters)) {
+        for (Map<String, Object> payload : vectorStore.scrollAll()) {
+            String id = (String) payload.get("rawId");
+            if (id == null || !"segment".equals(payload.get("type"))) {
                 continue;
             }
-            String content = (String) redisTemplate.opsForValue().get(key);
-
-            if (content != null) {
-                float score = computeBM25(query, content);
-                if (score > 0) {
-                    results.add(Map.of(
-                        "id", docId,
+            if (!matchesFilters(payload, filters)) {
+                continue;
+            }
+            String content = payload.get("content") == null ? "" : payload.get("content").toString();
+            if (content.isEmpty()) {
+                continue;
+            }
+            float score = computeBM25(query, content);
+            if (score > 0) {
+                results.add(Map.of(
+                        "id", id,
                         "similarity", score
-                    ));
-                }
+                ));
             }
         }
 
         results.sort((a, b) -> Float.compare(
-            ((Number) b.get("similarity")).floatValue(),
-            ((Number) a.get("similarity")).floatValue()
+                ((Number) b.get("similarity")).floatValue(),
+                ((Number) a.get("similarity")).floatValue()
         ));
 
         return results.subList(0, Math.min(topK, results.size()));
@@ -393,7 +388,7 @@ public class KnowledgeBase {
 
             if (termFreq > 0) {
                 float tf = (float) termFreq / docLength;
-                float bm25 = (float)(tf * (2.2 + 1) / (tf + 2.2));
+                float bm25 = (float) (tf * (2.2 + 1) / (tf + 2.2));
                 score += bm25;
             }
         }
@@ -401,66 +396,58 @@ public class KnowledgeBase {
         return score / queryTerms.length;
     }
 
-    public List<String> getAllDocumentIds() {
-        try {
-            List<String> keys = scanKeys(DOCUMENT_PREFIX + "*", 1000);
-            if (keys == null) {
-                return Collections.emptyList();
-            }
-            return keys.stream()
-                .map(key -> key.substring(DOCUMENT_PREFIX.length()))
-                .toList();
-        } catch (Exception e) {
-            log.warn("获取文档ID列表失败", e);
-            return Collections.emptyList();
-        }
-    }
-
     public List<String> getAllDocumentIds(String userId, String knowledgeBaseId) {
-        return getAllDocumentIds().stream()
-                .filter(documentId -> matchesFilters(getDocumentMetadata(documentId), Map.of(
-                        "userId", userId,
-                        "knowledgeBaseId", knowledgeBaseId
-                )))
-                .toList();
+        return distinctDocumentIds(Map.of(
+                "userId", userId,
+                "knowledgeBaseId", knowledgeBaseId
+        ));
     }
 
-    public void updateDocument(String documentId, String content, Map<String, Object> metadata) {
-        log.info("更新文档: documentId={}", documentId);
-        removeDocument(documentId);
-        addDocumentWithSegment(documentId, content, metadata, DocumentSegmenter.StrategyType.AUTO);
-    }
-
-    public void updateDocument(String documentId, String content, Map<String, Object> metadata,
-                              DocumentSegmenter.StrategyType strategyType) {
-        log.info("更新文档: documentId={}, strategy={}", documentId, strategyType);
-        removeDocument(documentId);
-        addDocumentWithSegment(documentId, content, metadata, strategyType);
-    }
-
-    public Map<String, Object> getStatistics() {
-        return getStatistics(null, null);
+    /**
+     * 文档 = 分段点的 documentId 去重（有分段）+ type=document 的点（短文档无分段）
+     */
+    private List<String> distinctDocumentIds(Map<String, Object> filters) {
+        Set<String> ids = new LinkedHashSet<>();
+        for (Map<String, Object> payload : vectorStore.scrollAll()) {
+            if (!matchesFilters(payload, filters)) {
+                continue;
+            }
+            if ("segment".equals(payload.get("type"))) {
+                Object documentId = payload.get("documentId");
+                if (documentId != null) {
+                    ids.add(documentId.toString());
+                }
+            } else if ("document".equals(payload.get("type"))) {
+                Object rawId = payload.get("rawId");
+                if (rawId != null) {
+                    ids.add(rawId.toString());
+                }
+            }
+        }
+        return new ArrayList<>(ids);
     }
 
     public Map<String, Object> getStatistics(String userId, String knowledgeBaseId) {
         Map<String, Object> stats = new HashMap<>();
 
-        List<String> docIds = (userId == null || knowledgeBaseId == null)
-                ? getAllDocumentIds()
-                : getAllDocumentIds(userId, knowledgeBaseId);
-        stats.put("documentCount", docIds.size());
+        List<Map<String, Object>> all = vectorStore.scrollAll();
+        Map<String, Object> filters = (userId == null || knowledgeBaseId == null)
+                ? Collections.emptyMap()
+                : Map.of("userId", userId, "knowledgeBaseId", knowledgeBaseId);
 
-        int totalSegments = 0;
-        for (String docId : docIds) {
-            totalSegments += getSegmentIds(docId).size();
-        }
-        stats.put("segmentCount", totalSegments);
+        long segmentCount = all.stream()
+                .filter(p -> "segment".equals(p.get("type")))
+                .filter(p -> matchesFilters(p, filters))
+                .count();
+
+        stats.put("documentCount", distinctDocumentIds(filters).size());
+        stats.put("segmentCount", segmentCount);
 
         long totalContentSize = 0;
-        for (String docId : docIds) {
-            String content = getDocumentContent(docId);
+        for (Map<String, Object> p : all) {
+            Object content = p.get("content");
             if (content != null) {
-                totalContentSize += content.length();
+                totalContentSize += content.toString().length();
             }
         }
         stats.put("totalContentSize", totalContentSize);
@@ -473,21 +460,6 @@ public class KnowledgeBase {
         normalized.putIfAbsent("userId", "system");
         normalized.putIfAbsent("knowledgeBaseId", "default");
         return normalized;
-    }
-
-    private List<String> scanKeys(String pattern, int count) {
-        List<String> keys = new ArrayList<>();
-        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(count).build();
-        var connectionFactory = redisTemplate.getConnectionFactory();
-        if (connectionFactory == null) {
-            return keys;
-        }
-        try (var cursor = connectionFactory.getConnection().scan(options)) {
-            while (cursor.hasNext()) {
-                keys.add(new String(cursor.next(), StandardCharsets.UTF_8));
-            }
-        }
-        return keys;
     }
 
     private boolean matchesFilters(Map<String, Object> metadata, Map<String, Object> filters) {
@@ -505,18 +477,5 @@ public class KnowledgeBase {
             }
         }
         return true;
-    }
-
-    private Map<String, Object> vectorStoreMetadata(String id) {
-        try {
-            Map<Object, Object> hash = redisTemplate.opsForHash().entries("metadata:" + id);
-            Map<String, Object> metadata = new HashMap<>();
-            for (Map.Entry<Object, Object> entry : hash.entrySet()) {
-                metadata.put(entry.getKey().toString(), entry.getValue());
-            }
-            return metadata;
-        } catch (Exception e) {
-            return Collections.emptyMap();
-        }
     }
 }

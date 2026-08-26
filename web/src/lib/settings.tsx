@@ -67,6 +67,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         settings.themeMode === 'dark' ||
         (settings.themeMode === 'system' && media.matches)
       root.classList.toggle('dark', isDark)
+      root.setAttribute('data-bs-theme', isDark ? 'dark' : 'light')
     }
 
     root.style.setProperty('--main-color', settings.primaryColor)

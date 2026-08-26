@@ -28,6 +28,12 @@ scrape_configs:
         type: 'A'
         port: 8080
 
+  # 监控 ai-service（AIOps 指标：AI 请求 + RAG 检索分段延迟）
+  - job_name: 'ai-service'
+    metrics_path: '/api/ai/aiops/prometheus'
+    static_configs:
+      - targets: ['ai:8083']
+
   # 监控微服务（每个服务端口不同，用 static_configs 按实际端口列出）
   # gateway=8080 / user=8081 / file=8082 / ai=8083 / document=8084
   - job_name: 'dockit-services'

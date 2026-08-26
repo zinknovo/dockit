@@ -27,9 +27,11 @@ public class HtmlPptSkill implements Skill {
         this.chatService = chatService;
     }
 
+    public static final String NAME = "HTML PPT Skill";
+
     @Override
     public String getName() {
-        return "HTML PPT Skill";
+        return NAME;
     }
 
     @Override

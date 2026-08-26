@@ -3,7 +3,7 @@ spring:
     name: document
 
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:dockit}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -87,19 +87,8 @@ document:
     auto-migration:
       enabled: true
 
-# 文档版本控制配置（git 仓库）
+# 文档上传校验配置
 dockit:
-  versioning:
-    root: ${DOCKIT_VERSIONING_ROOT:/data/dockit-repos}
-    default-author-name: dockit-system
-    default-author-email: system@dockit.local
-    git-quotepath: false
+  document:
     max-file-size: 10485760
     allowed-extensions: txt,md,docx,doc,pdf
-  storage:
-    # presigned 下载链接有效期（秒），供 doc-parser 拉取文件
-    presigned-url-expiry-seconds: 3600
-  doc-parser:
-    # doc-parser 比对服务地址（本地 IDE 用 localhost，Docker 访问宿主用 host.docker.internal）
-    base-url: ${DOC_PARSER_BASE_URL:http://localhost:8080}
-    timeout: 60s

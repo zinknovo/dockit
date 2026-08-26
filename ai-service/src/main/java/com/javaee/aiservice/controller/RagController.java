@@ -1,10 +1,9 @@
 package com.javaee.aiservice.controller;
 
-import com.javaee.aiservice.agent.ChatService;
 import com.javaee.aiservice.rag.DocumentSegmenter;
 import com.javaee.aiservice.rag.KnowledgeBase;
+import com.javaee.aiservice.rag.KnowledgeQueryService;
 import com.javaee.aiservice.rag.Reranker;
-import com.javaee.aiservice.rag.VectorStore;
 import com.javaee.aiservice.security.RequestUserContext;
 import com.javaee.common.model.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,23 +28,21 @@ public class RagController {
 
     private final KnowledgeBase knowledgeBase;
 
-    private final VectorStore vectorStore;
-
     private final Reranker reranker;
 
     private final DocumentSegmenter documentSegmenter;
 
-    private final ChatService chatService;
+    private final KnowledgeQueryService knowledgeQueryService;
 
     private final RequestUserContext requestUserContext;
 
     @Autowired
-    public RagController(KnowledgeBase knowledgeBase, VectorStore vectorStore, Reranker reranker, DocumentSegmenter documentSegmenter, ChatService chatService, RequestUserContext requestUserContext) {
+    public RagController(KnowledgeBase knowledgeBase, Reranker reranker, DocumentSegmenter documentSegmenter,
+                         KnowledgeQueryService knowledgeQueryService, RequestUserContext requestUserContext) {
         this.knowledgeBase = knowledgeBase;
-        this.vectorStore = vectorStore;
         this.reranker = reranker;
         this.documentSegmenter = documentSegmenter;
-        this.chatService = chatService;
+        this.knowledgeQueryService = knowledgeQueryService;
         this.requestUserContext = requestUserContext;
     }
 
@@ -163,26 +161,17 @@ public class RagController {
             return Result.fail("无效的重排序策略: " + strategy);
         }
 
-        // 使用混合检索加重排序获取相关文档
-        List<Map<String, Object>> results = knowledgeBase.hybridSearchWithRerank(question, 3,
-                rerankStrategy, DocumentSegmenter.StrategyType.CHAPTER, userMetadata(knowledgeBaseId));
+        // 问答链（检索→拼上下文→生成）统一走 KnowledgeQueryService
+        Map<String, Object> answer = knowledgeQueryService.ask(question, 3, strategy,
+                requestUserContext.getRequiredUserId(), knowledgeBaseId, null);
 
-        StringBuilder context = new StringBuilder();
-        for (Map<String, Object> result : results) {
-            context.append(result.get("content")).append("\n\n");
-        }
-
-        String answerText = generateAnswer(question, context.toString(), strategy);
-
-        Map<String, Object> answer = Map.of(
-            "question", question,
-            "context", context.toString(),
-            "answer", answerText,
-            "sources", results.stream().map(r -> r.get("id")).toList(),
-            "retrievalStrategy", strategy
-        );
-
-        return Result.success(answer);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("question", answer.get("question"));
+        response.put("context", answer.get("context"));
+        response.put("answer", answer.get("answer"));
+        response.put("sources", answer.get("sources"));
+        response.put("retrievalStrategy", strategy);
+        return Result.success(response);
     }
 
     /**
@@ -262,30 +251,6 @@ public class RagController {
     public Result<Map<String, String>> getSegmentStrategies() {
         Map<String, String> strategies = documentSegmenter.getAvailableStrategies();
         return Result.success(strategies);
-    }
-
-    private String generateAnswer(String question, String context, String strategy) {
-        if (context == null || context.trim().isEmpty()) {
-            return "知识库中未找到相关信息。";
-        }
-
-        String prompt = String.format("""
-                你是Dockit知识库问答助手。请严格基于【知识库片段】回答用户问题。
-                如果片段中没有相关信息，请回答“知识库中未找到相关信息”，不要编造。
-
-                【检索策略】
-                %s
-
-                【知识库片段】
-                %s
-
-                【用户问题】
-                %s
-
-                请给出清晰、准确、结构化的中文回答。
-                """, strategy, context, question);
-
-        return chatService.callChatApi(prompt);
     }
 
     private Map<String, Object> userMetadata(String knowledgeBaseId) {

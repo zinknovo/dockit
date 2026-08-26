@@ -62,7 +62,7 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
 
             if (segmentContent.length() < minChunkSize && segmentIndex > 0) {
                 if (!segments.isEmpty()) {
-                    Segment lastSegment = segments.get(segments.size() - 1);
+                    Segment lastSegment = segments.getLast();
                     String mergedContent = lastSegment.getContent() + "\n" + segmentContent;
                     lastSegment.setContent(mergedContent);
                     lastSegment.setCharCount(mergedContent.length());
@@ -93,19 +93,17 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
 
         String[] lines = content.split("\n");
         StringBuilder currentParagraph = new StringBuilder();
-        int charPosition = 0;
 
         for (String line : lines) {
             line = line.trim();
             if (line.isEmpty()) {
-                if (currentParagraph.length() > 0) {
-                    charPosition += currentParagraph.length() + 1;
+                if (!currentParagraph.isEmpty()) {
                     currentParagraph.setLength(0);
                 }
                 continue;
             }
 
-            if (currentParagraph.length() > 0) {
+            if (!currentParagraph.isEmpty()) {
                 currentParagraph.append(" ");
             }
             currentParagraph.append(line);
@@ -114,14 +112,13 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
                     line.endsWith("。") || line.endsWith("！") || line.endsWith("？") ||
                     line.endsWith(".") || line.endsWith("!") || line.endsWith("?")) {
 
-                sentences.add(new Sentence(currentParagraph.toString(), charPosition));
-                charPosition += currentParagraph.length();
+                sentences.add(new Sentence(currentParagraph.toString()));
                 currentParagraph.setLength(0);
             }
         }
 
-        if (currentParagraph.length() > 0) {
-            sentences.add(new Sentence(currentParagraph.toString(), charPosition));
+        if (!currentParagraph.isEmpty()) {
+            sentences.add(new Sentence(currentParagraph.toString()));
         }
 
         return sentences;
@@ -134,14 +131,21 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
             return groups;
         }
 
-        SentenceGroup currentGroup = new SentenceGroup(sentences.get(0));
+        // 一次批量请求向量化全部句子，避免逐句调用触发账户 QPS 限流；
+        // 组主题向量复用该组首句的句子向量（theme 由首句提取，语义一致）。
+        String[] sentenceTexts = new String[sentences.size()];
+        for (int i = 0; i < sentences.size(); i++) {
+            sentenceTexts[i] = sentences.get(i).getText();
+        }
+        float[][] sentenceVectors = vectorizer.vectorizeBatch(sentenceTexts);
+
+        SentenceGroup currentGroup = new SentenceGroup(sentences.getFirst());
         groups.add(currentGroup);
+        float[] currentVector = sentenceVectors[0];
 
         for (int i = 1; i < sentences.size(); i++) {
             Sentence sentence = sentences.get(i);
-
-            float[] currentVector = vectorizer.vectorize(currentGroup.getTheme());
-            float[] sentenceVector = vectorizer.vectorize(sentence.getText());
+            float[] sentenceVector = sentenceVectors[i];
 
             float similarity = cosineSimilarity(currentVector, sentenceVector);
             int similarityPercent = (int)(similarity * 100);
@@ -153,6 +157,7 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
             } else {
                 currentGroup = new SentenceGroup(sentence);
                 groups.add(currentGroup);
+                currentVector = sentenceVector;
                 log.debug("创建新分组: theme={}", currentGroup.getTheme());
             }
         }
@@ -185,7 +190,7 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
     private String buildSegmentContent(SentenceGroup group) {
         StringBuilder sb = new StringBuilder();
         for (Sentence sentence : group.getSentences()) {
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 sb.append(" ");
             }
             sb.append(sentence.getText());
@@ -202,34 +207,21 @@ public class SemanticSegmentStrategy implements SegmentStrategy {
         return "SEMANTIC";
     }
 
-    public int getTargetChunkSize() {
-        return targetChunkSize;
-    }
-
-    public int getSimilarityThreshold() {
-        return similarityThreshold;
-    }
-
     private static class Sentence {
         private final String text;
-        private final int charPosition;
 
-        Sentence(String text, int charPosition) {
+        Sentence(String text) {
             this.text = text;
-            this.charPosition = charPosition;
         }
 
         String getText() { return text; }
-        int getCharPosition() { return charPosition; }
     }
 
     private static class SentenceGroup {
         private final List<Sentence> sentences = new ArrayList<>();
-        private String theme;
-        private final String initialText;
+        private final String theme;
 
         SentenceGroup(Sentence firstSentence) {
-            this.initialText = firstSentence.getText();
             this.theme = extractTheme(firstSentence.getText());
             this.sentences.add(firstSentence);
         }

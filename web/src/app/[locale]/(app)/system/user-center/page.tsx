@@ -31,33 +31,33 @@ export default function UserCenterPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-g-900">{t('title')}</h2>
+        <h2 className="text-xl fw-semibold text-g-900">{t('title')}</h2>
         <p className="mt-1 text-sm text-g-600">{t('subtitle')}</p>
       </div>
 
       {message ? (
-        <p className="rounded-lg bg-theme/10 px-4 py-2 text-sm text-theme">{message}</p>
+        <p className="rounded-2 bg-theme-10 px-3 py-2 text-sm text-theme">{message}</p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-box p-5">
-          <h3 className="text-sm font-semibold text-g-800">{t('basicSettings')}</h3>
-          <form onSubmit={handleBasicSave} className="mt-4 space-y-4">
-            <label className="block text-sm text-g-700">
+      <div className="row g-4">
+        <section className="col-12 col-lg-6 rounded-3 border border-border bg-box p-4">
+          <h3 className="text-sm fw-semibold text-g-800">{t('basicSettings')}</h3>
+          <form onSubmit={handleBasicSave} className="mt-3 space-y-4">
+            <label className="d-block text-sm text-g-700">
               {tUsers('name')}
               <input
-                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
+                className="form-control mt-2"
                 value={basicForm.name}
                 onChange={(event) =>
                   setBasicForm((prev) => ({ ...prev, name: event.target.value }))
                 }
               />
             </label>
-            <label className="block text-sm text-g-700">
+            <label className="d-block text-sm text-g-700">
               {tUsers('email')}
               <input
                 type="email"
-                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
+                className="form-control mt-2"
                 value={basicForm.email}
                 onChange={(event) =>
                   setBasicForm((prev) => ({ ...prev, email: event.target.value }))
@@ -66,35 +66,35 @@ export default function UserCenterPage() {
             </label>
             <button
               type="submit"
-              className="rounded-lg bg-theme px-4 py-2 text-sm font-medium text-white"
+              className="btn btn-primary fw-medium"
             >
               {tCommon('save')}
             </button>
           </form>
         </section>
 
-        <section className="rounded-2xl border border-border bg-box p-5">
-          <h3 className="text-sm font-semibold text-g-800">{t('changePassword')}</h3>
-          <form onSubmit={handlePasswordChange} className="mt-4 space-y-4">
-            <label className="block text-sm text-g-700">
+        <section className="col-12 col-lg-6 rounded-3 border border-border bg-box p-4">
+          <h3 className="text-sm fw-semibold text-g-800">{t('changePassword')}</h3>
+          <form onSubmit={handlePasswordChange} className="mt-3 space-y-4">
+            <label className="d-block text-sm text-g-700">
               {t('currentPassword')}
               <input
                 type="password"
-                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
+                className="form-control mt-2"
                 placeholder={t('currentPasswordPlaceholder')}
               />
             </label>
-            <label className="block text-sm text-g-700">
+            <label className="d-block text-sm text-g-700">
               {t('newPassword')}
               <input
                 type="password"
-                className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2"
+                className="form-control mt-2"
                 placeholder={t('newPasswordPlaceholder')}
               />
             </label>
             <button
               type="submit"
-              className="rounded-lg border border-border px-4 py-2 text-sm"
+              className="btn btn-outline-secondary"
             >
               {t('submitChange')}
             </button>

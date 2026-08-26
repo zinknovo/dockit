@@ -2,7 +2,6 @@ package com.javaee.aiservice.agent;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.javaee.aiservice.model.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -11,26 +10,25 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OpenAIAIService implements AIService {
+public class OpenAIAIService implements ChatProvider {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAIAIService.class);
 
     private final String apiKey;
     private final String baseUrl;
-    private final ModelType modelType;
+    private final String modelCode;
+    private final String modelName;
     private final String apiModelName;
     private final boolean enabled;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public OpenAIAIService(String apiKey, String baseUrl, ModelType modelType, boolean enabled) {
-        this(apiKey, baseUrl, modelType, null, enabled);
-    }
-
-    public OpenAIAIService(String apiKey, String baseUrl, ModelType modelType, String apiModelName, boolean enabled) {
+    public OpenAIAIService(String apiKey, String baseUrl, String modelCode, String modelName,
+                           String apiModelName, boolean enabled) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
-        this.modelType = modelType;
+        this.modelCode = modelCode;
+        this.modelName = modelName;
         this.apiModelName = apiModelName;
         this.enabled = enabled;
         this.restTemplate = new RestTemplate();
@@ -38,12 +36,17 @@ public class OpenAIAIService implements AIService {
     }
 
     @Override
+    public String getProviderName() {
+        return "openai-compatible";
+    }
+
+    @Override
     public String callChat(String prompt) {
         if (!enabled) {
-            throw new RuntimeException("Model " + modelType.getName() + " is disabled");
+            throw new RuntimeException("Model " + modelName + " is disabled");
         }
 
-        log.info("调用OpenAI兼容接口模型: {}, prompt长度: {}", modelType.getName(), prompt.length());
+        log.info("调用OpenAI兼容接口模型: {}, prompt长度: {}", modelName, prompt.length());
 
         try {
             // 构建请求头
@@ -57,7 +60,7 @@ public class OpenAIAIService implements AIService {
             message.put("content", prompt);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", apiModelName != null && !apiModelName.isEmpty() ? apiModelName : modelType.getCode());
+            requestBody.put("model", apiModelName != null && !apiModelName.isEmpty() ? apiModelName : modelCode);
             requestBody.put("messages", new Object[]{message});
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
@@ -70,11 +73,11 @@ public class OpenAIAIService implements AIService {
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
                 JsonNode choices = root.get("choices");
-                if (choices != null && choices.isArray() && choices.size() > 0) {
+                if (choices != null && choices.isArray() && !choices.isEmpty()) {
                     JsonNode messageNode = choices.get(0).get("message");
                     if (messageNode != null) {
                         String content = messageNode.get("content").asText();
-                        log.info("{}响应成功", modelType.getName());
+                        log.info("{}响应成功", modelName);
                         return content;
                     }
                 }
@@ -83,14 +86,14 @@ public class OpenAIAIService implements AIService {
             throw new RuntimeException("API返回结果为空或格式不正确");
 
         } catch (Exception e) {
-            log.error("调用{}失败", modelType.getName(), e);
-            throw new RuntimeException("调用" + modelType.getName() + "失败: " + e.getMessage(), e);
+            log.error("调用{}失败", modelName, e);
+            throw new RuntimeException("调用" + modelName + "失败: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public ModelType getModelType() {
-        return modelType;
+    public String getModelName() {
+        return modelName;
     }
 
     @Override

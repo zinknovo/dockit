@@ -4,19 +4,17 @@ import com.javaee.common.exception.BusinessException;
 import com.javaee.documentservice.security.BucketPermissionService;
 import com.javaee.documentservice.service.DocumentFileStorageService;
 import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import io.minio.http.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.util.concurrent.TimeUnit;
+import java.io.InputStream;
 
 /**
  * 文档原始文件存储实现，基于 MinIO
@@ -35,10 +33,6 @@ public class DocumentFileStorageServiceImpl implements DocumentFileStorageServic
         this.minioClient = minioClient;
         this.bucketPermissionService = bucketPermissionService;
     }
-
-    /** presigned URL 有效期（秒），默认 1 小时 */
-    @Value("${dockit.storage.presigned-url-expiry-seconds:3600}")
-    private long presignedUrlExpirySeconds;
 
     @Override
     public String saveFile(String bucketName, String objectKey, byte[] content, String contentType) {
@@ -60,17 +54,18 @@ public class DocumentFileStorageServiceImpl implements DocumentFileStorageServic
     }
 
     @Override
-    public String getPresignedDownloadUrl(String bucketName, String objectKey) {
+    public byte[] readFile(String bucketName, String objectKey) {
         try {
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(Method.GET)
+            InputStream stream = minioClient.getObject(GetObjectArgs.builder()
                     .bucket(bucketName)
                     .object(objectKey)
-                    .expiry((int) presignedUrlExpirySeconds, TimeUnit.SECONDS)
                     .build());
+            try (stream) {
+                return stream.readAllBytes();
+            }
         } catch (Exception e) {
-            log.error("生成 presigned 下载链接失败, bucket={}, key={}", bucketName, objectKey, e);
-            throw new BusinessException("生成下载链接失败: " + e.getMessage());
+            log.error("读取文件失败, bucket={}, key={}", bucketName, objectKey, e);
+            throw new BusinessException("读取文件失败: " + e.getMessage());
         }
     }
 

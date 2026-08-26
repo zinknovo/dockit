@@ -26,16 +26,16 @@ export function SettingsForm() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-g-800">{t('themeMode')}</h3>
-        <div className="flex gap-2">
+        <h3 className="text-sm fw-semibold text-g-800">{t('themeMode')}</h3>
+        <div className="d-flex gap-2">
           {(['light', 'dark', 'system'] as const).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setThemeMode(mode)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+              className={`rounded-pill border px-3 py-1 text-xs fw-medium transition ${
                 settings.themeMode === mode
-                  ? 'border-theme bg-theme/10 text-theme'
+                  ? 'border-theme bg-theme-10 text-theme'
                   : 'border-border text-g-700'
               }`}
             >
@@ -46,27 +46,27 @@ export function SettingsForm() {
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-g-800">{t('themeColor')}</h3>
-        <div className="flex items-center gap-3">
+        <h3 className="text-sm fw-semibold text-g-800">{t('themeColor')}</h3>
+        <div className="d-flex align-items-center gap-3">
           <input
             type="color"
             value={settings.primaryColor}
             onChange={(event) => setPrimaryColor(event.target.value)}
-            className="h-8 w-12 cursor-pointer rounded border border-border bg-transparent"
+            className="h-8 w-12 cursor-pointer rounded-1 border border-border bg-transparent"
           />
           <span className="text-xs text-g-600">{settings.primaryColor}</span>
         </div>
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-g-800">{t('font')}</h3>
+        <h3 className="text-sm fw-semibold text-g-800">{t('font')}</h3>
         <div className="space-y-2">
           {FONT_OPTIONS.map((option) => (
             <label
               key={option.label}
-              className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
+              className={`d-flex cursor-pointer align-items-center justify-content-between rounded-2 border px-3 py-2 text-sm transition ${
                 settings.fontFamily === option.value
-                  ? 'border-theme bg-theme/10 text-theme'
+                  ? 'border-theme bg-theme-10 text-theme'
                   : 'border-border text-g-700'
               }`}
               style={{ fontFamily: option.value }}
@@ -85,8 +85,8 @@ export function SettingsForm() {
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-g-800">{t('fontSize')}</h3>
-        <div className="flex items-center gap-3">
+        <h3 className="text-sm fw-semibold text-g-800">{t('fontSize')}</h3>
+        <div className="d-flex align-items-center gap-3">
           <input
             type="range"
             min={12}
@@ -94,15 +94,15 @@ export function SettingsForm() {
             step={1}
             value={settings.fontSize}
             onChange={(event) => setFontSize(Number(event.target.value))}
-            className="w-full"
+            className="w-100"
           />
           <span className="text-xs text-g-600">{settings.fontSize}px</span>
         </div>
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-g-800">{t('radius')}</h3>
-        <div className="flex items-center gap-3">
+        <h3 className="text-sm fw-semibold text-g-800">{t('radius')}</h3>
+        <div className="d-flex align-items-center gap-3">
           <input
             type="range"
             min={0.25}
@@ -110,7 +110,7 @@ export function SettingsForm() {
             step={0.05}
             value={settings.radius}
             onChange={(event) => setRadius(Number(event.target.value))}
-            className="w-full"
+            className="w-100"
           />
           <span className="text-xs text-g-600">{settings.radius.toFixed(2)}rem</span>
         </div>
@@ -119,7 +119,7 @@ export function SettingsForm() {
       <button
         type="button"
         onClick={reset}
-        className="w-full rounded-lg border border-border px-4 py-2 text-sm font-medium text-g-700 hover:bg-hover-color"
+        className="w-100 rounded-2 border border-border px-4 py-2 text-sm fw-medium text-g-700 hover-bg-hover-color"
       >
         {t('reset')}
       </button>

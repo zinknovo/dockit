@@ -1,7 +1,6 @@
 package com.javaee.aiservice.agent;
 
 import com.javaee.aiservice.factory.AIServiceFactory;
-import com.javaee.aiservice.model.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * 自定义Chat服务
- * 支持多模型选择
+ * 支持多模型选择（模型清单由 spring.ai.models.list 配置驱动）
  */
 @Service
 public class ChatService {
@@ -24,42 +23,26 @@ public class ChatService {
     }
 
     /**
-     * 调用默认模型（qwen-plus）
+     * 调用默认模型
      * @param prompt 用户提示词
      * @return 响应内容
      */
     public String callChatApi(String prompt) {
-        return callChatApiWithModelType(prompt, null);
+        return callChatApiWithModelCode(prompt, null);
     }
 
     /**
      * 调用指定模型
      * @param prompt 用户提示词
-     * @param modelType 模型类型
-     * @return 响应内容
-     */
-    public String callChatApiWithModelType(String prompt, ModelType modelType) {
-        AIService aiService;
-        if (modelType != null) {
-            aiService = aiServiceFactory.getService(modelType);
-        } else {
-            aiService = aiServiceFactory.getDefaultService();
-        }
-        
-        log.info("使用模型: {}", aiService.getModelType().getName());
-        return aiService.callChat(prompt);
-    }
-
-    /**
-     * 调用指定模型（通过模型代码）
-     * @param prompt 用户提示词
-     * @param modelCode 模型代码
+     * @param modelCode 模型代码（spring.ai.models.list 的 key，null 时用默认模型）
      * @return 响应内容
      */
     public String callChatApiWithModelCode(String prompt, String modelCode) {
-        if (modelCode == null || modelCode.isEmpty()) {
-            return callChatApiWithModelType(prompt, null);
-        }
-        return callChatApiWithModelType(prompt, ModelType.fromCode(modelCode));
+        ChatProvider aiService = (modelCode == null || modelCode.isEmpty())
+                ? aiServiceFactory.getDefaultService()
+                : aiServiceFactory.getService(modelCode);
+
+        log.info("使用模型: {}", aiService.getModelName());
+        return aiService.callChat(prompt);
     }
 }

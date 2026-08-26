@@ -3,9 +3,6 @@ package com.javaee.aiservice.agent.execution;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaee.aiservice.agent.ChatService;
-import com.javaee.aiservice.agent.KnowledgeIndexAgent;
-import com.javaee.aiservice.agent.PromptEngineeringService;
-import com.javaee.aiservice.client.DocumentServiceClient;
 import com.javaee.aiservice.agent.execution.approval.AgentApprovalService;
 import com.javaee.aiservice.agent.execution.event.AgentProgressBroadcaster;
 import com.javaee.aiservice.agent.execution.event.AgentProgressEvent;
@@ -16,45 +13,27 @@ import com.javaee.aiservice.agent.execution.model.AgentToolResult;
 import com.javaee.aiservice.agent.execution.reflection.AgentReflection;
 import com.javaee.aiservice.agent.execution.reflection.AgentReflectionService;
 import com.javaee.aiservice.agent.execution.task.AgentTaskRegistry;
+import com.javaee.aiservice.agent.execution.tool.AgentTool;
 import com.javaee.aiservice.agent.execution.tool.AgentToolDefinition;
 import com.javaee.aiservice.agent.execution.tool.AgentToolParameterDefinition;
 import com.javaee.aiservice.agent.execution.tool.AgentToolRegistry;
+import com.javaee.aiservice.agent.execution.tool.AgentToolSupport;
 import com.javaee.aiservice.conversation.ContextManager;
 import com.javaee.aiservice.conversation.ConversationManager;
-import com.javaee.aiservice.dto.FileDeleteDTO;
-import com.javaee.aiservice.dto.FileDownloadDTO;
-import com.javaee.aiservice.dto.FileRestoreDTO;
-import com.javaee.aiservice.dto.FileVersionDTO;
-import com.javaee.aiservice.dto.FileVersionSwitchDTO;
-import com.javaee.aiservice.dto.KeywordExtractDTO;
-import com.javaee.aiservice.dto.TextAnalyzeDTO;
-import com.javaee.aiservice.dto.TextSummarizeDTO;
 import com.javaee.aiservice.internal.InternalService;
-import com.javaee.aiservice.rag.KnowledgeBase;
-import com.javaee.aiservice.rag.Reranker;
-import com.javaee.aiservice.security.BucketPermissionService;
 import com.javaee.aiservice.security.RequestUserContext;
-import com.javaee.aiservice.service.AIService;
-import com.javaee.aiservice.service.FileDeleteService;
-import com.javaee.aiservice.service.FileDownloadService;
-import com.javaee.aiservice.service.FileVersionService;
-import com.javaee.aiservice.service.MinIOService;
-import com.javaee.aiservice.service.RecycleBinService;
-import com.javaee.aiservice.skills.SkillExecutorService;
-import com.javaee.common.utils.UserBucketUtils;
+import com.javaee.common.utils.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -73,35 +52,11 @@ public class AgentExecutionService {
 
     private final ChatService chatService;
 
-    private final PromptEngineeringService promptEngineeringService;
-
-    private final AIService aiService;
-
-    private final KnowledgeBase knowledgeBase;
-
-    private final KnowledgeIndexAgent knowledgeIndexAgent;
-
     private final ConversationManager conversationManager;
 
     private final ContextManager contextManager;
 
     private final InternalService internalService;
-
-    private final FileDownloadService fileDownloadService;
-
-    private final FileDeleteService fileDeleteService;
-
-    private final FileVersionService fileVersionService;
-
-    private final RecycleBinService recycleBinService;
-
-    private final MinIOService minIOService;
-
-    private final BucketPermissionService bucketPermissionService;
-
-    private final DocumentServiceClient documentServiceClient;
-
-    private final SkillExecutorService skillExecutorService;
 
     private final AgentToolRegistry toolRegistry;
 
@@ -115,24 +70,18 @@ public class AgentExecutionService {
 
     private final AgentReflectionService reflectionService;
 
+    private final PlaceholderResolver placeholderResolver = new PlaceholderResolver();
+
     @Autowired
-    public AgentExecutionService(ChatService chatService, PromptEngineeringService promptEngineeringService, AIService aiService, KnowledgeBase knowledgeBase, KnowledgeIndexAgent knowledgeIndexAgent, ConversationManager conversationManager, ContextManager contextManager, InternalService internalService, FileDownloadService fileDownloadService, FileDeleteService fileDeleteService, FileVersionService fileVersionService, RecycleBinService recycleBinService, MinIOService minIOService, BucketPermissionService bucketPermissionService, DocumentServiceClient documentServiceClient, SkillExecutorService skillExecutorService, AgentToolRegistry toolRegistry, AgentApprovalService agentApprovalService, RequestUserContext requestUserContext, AgentTaskRegistry taskRegistry, AgentProgressBroadcaster progressBroadcaster, AgentReflectionService reflectionService) {
+    public AgentExecutionService(ChatService chatService, ConversationManager conversationManager,
+                                 ContextManager contextManager, InternalService internalService,
+                                 AgentToolRegistry toolRegistry, AgentApprovalService agentApprovalService,
+                                 RequestUserContext requestUserContext, AgentTaskRegistry taskRegistry,
+                                 AgentProgressBroadcaster progressBroadcaster, AgentReflectionService reflectionService) {
         this.chatService = chatService;
-        this.promptEngineeringService = promptEngineeringService;
-        this.aiService = aiService;
-        this.knowledgeBase = knowledgeBase;
-        this.knowledgeIndexAgent = knowledgeIndexAgent;
         this.conversationManager = conversationManager;
         this.contextManager = contextManager;
         this.internalService = internalService;
-        this.fileDownloadService = fileDownloadService;
-        this.fileDeleteService = fileDeleteService;
-        this.fileVersionService = fileVersionService;
-        this.recycleBinService = recycleBinService;
-        this.minIOService = minIOService;
-        this.bucketPermissionService = bucketPermissionService;
-        this.documentServiceClient = documentServiceClient;
-        this.skillExecutorService = skillExecutorService;
         this.toolRegistry = toolRegistry;
         this.agentApprovalService = agentApprovalService;
         this.requestUserContext = requestUserContext;
@@ -206,7 +155,7 @@ public class AgentExecutionService {
             context.putAll(userSupplement);
             context.put("traceId", traceId);
             context.put("userId", userId);
-            context.putIfAbsent("bucketName", UserBucketUtils.bucketNameForUser(userId));
+            context.putIfAbsent("bucketName", AgentToolSupport.bucketNameForUser(userId));
 
             log.info("续接Agent任务: traceId={}, startIteration={}, supplement={}", traceId, startIteration, request.getTask());
             publishTaskEvent("task_continued", traceId, userId, "running", progressOf(toolCallCount, Math.max(1, intValue(request.getMaxToolCalls(), 8))),
@@ -219,7 +168,7 @@ public class AgentExecutionService {
             context.put("role", requestUserContext.getCurrentRole());
             context.put("traceId", traceId);
             context.put("knowledgeBaseId", valueOrDefault(request.getKnowledgeBaseId(), "default"));
-            context.putIfAbsent("bucketName", UserBucketUtils.bucketNameForUser(userId));
+            context.putIfAbsent("bucketName", AgentToolSupport.bucketNameForUser(userId));
 
             log.info("开始执行Agent链路: traceId={}, conversationId={}, task={}", traceId, conversationId, request.getTask());
             publishTaskEvent("task_started", traceId, userId, "running", 0, "Agent 任务开始", Map.of("task", request.getTask()));
@@ -236,8 +185,9 @@ public class AgentExecutionService {
             stoppedReason = "completed";
         }
 
-        int maxIterations = Math.max(1, Math.min(intValue(request.getMaxIterations(), 3), 5));
-        int maxToolCalls = Math.max(1, Math.min(intValue(request.getMaxToolCalls(), 8), 20));
+        int maxIterations = Math.clamp(intValue(request.getMaxIterations(), 3), 1, 5);
+        int maxToolCalls = Math.clamp(intValue(request.getMaxToolCalls(), 8), 1, 20);
+        boolean simpleTask = false;
         List<AgentPlanStep> reflectionPlan = List.of();
 
         for (int iteration = startIteration; iteration <= maxIterations; iteration++) {
@@ -331,7 +281,8 @@ public class AgentExecutionService {
                 break;
             }
 
-            AgentReflection reflection = reflectAfterIteration(request, plan, toolResults, context,
+            simpleTask = isSimpleTask(plan, request);
+            AgentReflection reflection = simpleTask ? null : reflectAfterIteration(request, plan, toolResults, context,
                     iteration, maxIterations, traceId, userId);
             if (reflection != null) {
                 reflections.add(reflection);
@@ -343,8 +294,7 @@ public class AgentExecutionService {
                 if (reflection != null && !reflection.isComplete()) {
                     stoppedReason = "max_iterations";
                 } else if (!"tool_error".equals(stoppedReason)
-                        && !"dependency_failed".equals(stoppedReason)
-                        && !"tool_call_limit".equals(stoppedReason)) {
+                        && !"dependency_failed".equals(stoppedReason)) {
                     stoppedReason = "completed";
                 }
                 break;
@@ -363,7 +313,7 @@ public class AgentExecutionService {
                     }
                     break;
                 }
-                reflectionPlan = normalizePlan(reflection.getRevisedPlan(), request, context);
+                reflectionPlan = toolRegistry.normalizePlan(reflection.getRevisedPlan(), request, context);
                 if (reflectionPlan.isEmpty()) {
                     stoppedReason = "follow_up_replan";
                     continue;
@@ -381,7 +331,7 @@ public class AgentExecutionService {
             }
         }
 
-        String finalAnswer = synthesizeAnswer(request, plan, toolResults, context, requiresAction);
+        String finalAnswer = synthesizeAnswer(request, plan, toolResults, context, requiresAction, simpleTask);
         conversationManager.addMessageForUser(conversationId, userId, request.getTask(), finalAnswer);
         context.put("lastAnswer", finalAnswer);
         context.put("lastToolResults", toolResults);
@@ -500,7 +450,7 @@ public class AgentExecutionService {
         if (toolResults == null || toolResults.isEmpty()) {
             return Map.of();
         }
-        AgentToolResult last = toolResults.get(toolResults.size() - 1);
+        AgentToolResult last = toolResults.getLast();
         if (!last.isRequiresAction() || last.getData() == null || !last.getData().containsKey("agentApprovalToken")) {
             return Map.of();
         }
@@ -522,7 +472,7 @@ public class AgentExecutionService {
         if (toolResults == null || toolResults.isEmpty()) {
             return Map.of();
         }
-        AgentToolResult last = toolResults.get(toolResults.size() - 1);
+        AgentToolResult last = toolResults.getLast();
         if (!last.isRequiresAction() || last.getData() == null || last.getData().containsKey("agentApprovalToken")) {
             return Map.of();
         }
@@ -573,26 +523,12 @@ public class AgentExecutionService {
             return;
         }
         Map<String, Object> params = step.getParams();
-        for (String key : approvalContextOverrideKeys(step.getToolName())) {
+        for (String key : toolRegistry.contextOverrideKeys(step.getToolName())) {
             Object value = context.get(key);
             if (!isValueMissing(value)) {
                 params.put(key, value);
             }
         }
-    }
-
-    private Set<String> approvalContextOverrideKeys(String toolName) {
-        return switch (valueOrDefault(toolName, "")) {
-            case "file-download-url", "file-version-list" ->
-                    Set.of("objectName", "bucketName");
-            case "file-delete" ->
-                    Set.of("objectName", "bucketName", "documentId");
-            case "file-version-switch" ->
-                    Set.of("objectName", "bucketName", "targetVersionId");
-            case "file-restore" ->
-                    Set.of("recycleId", "bucketName", "newObjectName");
-            default -> Set.of();
-        };
     }
 
     private void assertSnapshotOwner(Map<String, Object> snapshot, String userId, String message) {
@@ -640,7 +576,7 @@ public class AgentExecutionService {
 
     private int progressOf(int current, int total) {
         int safeTotal = Math.max(1, total);
-        return Math.max(0, Math.min(95, (int) Math.round((current * 100.0) / safeTotal)));
+        return Math.clamp((int) Math.round((current * 100.0) / safeTotal), 0, 95);
     }
 
     private Map<String, Object> reflectionTimelineEvent(int iteration, AgentReflection reflection) {
@@ -704,12 +640,7 @@ public class AgentExecutionService {
         Map<String, Object> ctx = snapshot.get("context") instanceof Map<?, ?> raw
                 ? new HashMap<>((Map<String, Object>) raw)
                 : new HashMap<>();
-        long started = System.currentTimeMillis();
-        target.setStatus(AgentStepStatus.RUNNING.value());
-        AgentToolResult result = executeStep(target, request, ctx);
-        decorateResult(result, target, started);
-        target.setStatus(normalizeStatus(result, target));
-        target.setObservation(result.getMessage());
+        AgentToolResult result = runStepOnce(target, request, ctx);
         target.setAttempts(target.getAttempts() + 1);
 
         Map<String, Object> retryInfo = new LinkedHashMap<>();
@@ -819,7 +750,7 @@ public class AgentExecutionService {
                     request.getModel());
             List<AgentPlanStep> plan = parsePlan(raw);
             if (!plan.isEmpty()) {
-                return normalizePlan(plan, request, context);
+                return toolRegistry.normalizePlan(plan, request, context);
             }
         } catch (Exception e) {
             log.warn("模型补充规划失败，结束自动重规划: {}", e.getMessage());
@@ -881,7 +812,7 @@ public class AgentExecutionService {
         if (iteration >= maxIterations || results.isEmpty()) {
             return false;
         }
-        AgentToolResult last = results.get(results.size() - 1);
+        AgentToolResult last = results.getLast();
         if ("error".equals(last.getStatus()) || last.isRequiresAction()) {
             return false;
         }
@@ -916,7 +847,7 @@ public class AgentExecutionService {
                     """.formatted(request.getTask(), safeJson(plan), safeJson(results), safeJson(context));
             String raw = chatService.callChatApiWithModelCode(prompt, request.getModel());
             Map<String, Object> decision = objectMapper.readValue(stripObjectJson(raw), new TypeReference<>() {});
-            return booleanValue(decision.get("continue"), false);
+            return booleanValue(decision.get("continue"));
         } catch (Exception e) {
             log.debug("完成度评估失败，默认结束当前Agent循环: {}", e.getMessage());
             return false;
@@ -996,6 +927,19 @@ public class AgentExecutionService {
         }
     }
 
+    /**
+     * 简单任务判定：单步计划、非 autoReplan 且步骤已成功。
+     * 简单任务跳过反思与完成度评估，直接汇总工具结果，减少一次模型往返。
+     */
+    private boolean isSimpleTask(List<AgentPlanStep> plan, AgentExecutionRequest request) {
+        if (Boolean.TRUE.equals(request.getAutoReplan())) {
+            return false;
+        }
+        return plan != null && plan.size() == 1
+                && plan.getFirst() != null
+                && AgentStepStatus.isSuccess(plan.getFirst().getStatus());
+    }
+
     private String ensureConversation(String conversationId, String userId) {
         if (!isBlank(conversationId)) {
             conversationManager.assertOwner(conversationId, userId);
@@ -1013,23 +957,23 @@ public class AgentExecutionService {
     }
 
     private List<AgentPlanStep> buildPlan(AgentExecutionRequest request, Map<String, Object> context) {
-        if (!isBlank(asString(context.get("documentId"))) && isDeleteIntent(request.getTask())) {
-            return fallbackPlan(request, context);
+        if (!isBlank(asString(context.get("documentId"))) && AgentToolSupport.isDeleteIntent(request.getTask())) {
+            return FallbackPlanner.fallbackPlan(request, context, toolRegistry);
         }
-        if (booleanValue(context.get("frontendDocumentWrite"), false) || !isBlank(asString(context.get("objectName")))) {
-            return fallbackPlan(request, context);
+        if (booleanValue(context.get("frontendDocumentWrite")) || !isBlank(asString(context.get("objectName")))) {
+            return FallbackPlanner.fallbackPlan(request, context, toolRegistry);
         }
         try {
             String prompt = buildPlannerPrompt(request, context);
             String raw = chatService.callChatApiWithModelCode(prompt, request.getModel());
             List<AgentPlanStep> plan = parsePlan(raw);
             if (!plan.isEmpty()) {
-                return normalizePlan(plan, request, context);
+                return toolRegistry.normalizePlan(plan, request, context);
             }
         } catch (Exception e) {
             log.warn("模型规划失败，使用规则兜底规划: {}", e.getMessage());
         }
-        return fallbackPlan(request, context);
+        return FallbackPlanner.fallbackPlan(request, context, toolRegistry);
     }
 
     private String plannerJsonContract() {
@@ -1108,19 +1052,14 @@ public class AgentExecutionService {
         AgentToolResult lastResult = null;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             step.setAttempts(attempt);
-            long stepStartedAt = System.currentTimeMillis();
-            step.setStatus(AgentStepStatus.RUNNING.value());
-            AgentToolResult result = executeStep(step, request, context);
-            decorateResult(result, step, stepStartedAt);
-            step.setStatus(normalizeStatus(result, step));
-            step.setObservation(result.getMessage());
+            AgentToolResult result = runStepOnce(step, request, context);
 
             if (AgentStepStatus.SUCCESS.value().equals(result.getStatus()) && !isBlank(step.getSuccessCriteria())) {
                 String unmet = evaluateSuccessCriteria(step, result);
                 if (unmet != null) {
                     AgentToolResult downgraded = AgentToolResult.error(step.getToolName(), "未满足 successCriteria: " + unmet);
                     downgraded.setData(result.getData());
-                    decorateResult(downgraded, step, stepStartedAt);
+                    decorateResult(downgraded, step, result.getStartedAt());
                     step.setStatus(AgentStepStatus.ERROR.value());
                     step.setObservation(downgraded.getMessage());
                     step.setThought("结果未达到 successCriteria，准备重试或 replan: " + unmet);
@@ -1200,11 +1139,9 @@ public class AgentExecutionService {
         return null;
     }
 
-    private String normalizeStatus(AgentToolResult result, AgentPlanStep step) {
+    private String normalizeStatus(AgentToolResult result) {
         if (result.isRequiresAction()) {
-            return "ask-user".equals(step.getToolName())
-                    ? AgentStepStatus.WAITING_USER.value()
-                    : AgentStepStatus.WAITING_USER.value();
+            return AgentStepStatus.WAITING_USER.value();
         }
         return result.getStatus();
     }
@@ -1274,7 +1211,7 @@ public class AgentExecutionService {
             }
             Object params = item.get("params");
             if (params instanceof Map<?, ?> map) {
-                step.setParams(toStringObjectMap(map));
+                step.setParams(MapUtils.toStringObjectMap(map));
             }
             steps.add(step);
             index++;
@@ -1282,346 +1219,47 @@ public class AgentExecutionService {
         return steps;
     }
 
-    private List<AgentPlanStep> normalizePlan(List<AgentPlanStep> plan, AgentExecutionRequest request, Map<String, Object> context) {
-        List<AgentPlanStep> normalized = new ArrayList<>();
-        int index = 1;
-        for (AgentPlanStep step : plan) {
-            if (!toolRegistry.contains(step.getToolName())) {
-                step.setToolName("direct-answer");
-            }
-            if (isBlank(step.getId())) {
-                step.setId("step-" + index);
-            }
-            if (isBlank(step.getDescription())) {
-                step.setDescription(request.getTask());
-            }
-            AgentToolDefinition definition = toolRegistry.get(step.getToolName());
-            if (definition != null) {
-                if (isBlank(step.getRiskLevel()) || "low".equals(step.getRiskLevel())) {
-                    step.setRiskLevel(definition.getRiskLevel());
-                }
-                step.setRequiresApproval(definition.isDestructive());
-            }
-            if (isBlank(step.getRetryPolicy())) {
-                step.setRetryPolicy(definition != null && definition.isDestructive() ? "none" : "exponential");
-            }
-            if (step.getMaxRetries() <= 0) {
-                step.setMaxRetries(definition != null && definition.isDestructive() ? 0 : 1);
-            }
-            fillDefaultParams(step, request, context);
-            normalized.add(step);
-            index++;
-        }
-        return normalized;
-    }
-
-    private List<AgentPlanStep> fallbackPlan(AgentExecutionRequest request, Map<String, Object> context) {
-        String task = request.getTask();
-        String lower = task.toLowerCase(Locale.ROOT);
-        String tool = "direct-answer";
-        boolean fileOperationIntent = isDeleteIntent(task) || containsAny(task, "下载", "恢复", "回收站", "版本");
-        String contextDocumentId = asString(context.get("documentId"));
-
-        if (!isBlank(contextDocumentId) && isDeleteIntent(task)) {
-            AgentPlanStep step = new AgentPlanStep("step-1", "根据前端documentId永久删除对应业务文档", "file-delete", new HashMap<>());
-            step.getParams().put("documentId", contextDocumentId);
-            step.getParams().put("requireConfirmation", false);
-            fillDefaultParams(step, request, context);
-            return List.of(step);
-        }
-
-        if ((booleanValue(context.get("frontendDocumentWrite"), false) || !isBlank(contextDocumentId)) && !fileOperationIntent) {
-            String documentId = contextDocumentId;
-            String writeMode = firstNonBlank(asString(context.get("writeMode")), "append");
-            String knowledgeBaseId = firstNonBlank(asString(context.get("knowledgeBaseId")),
-                    valueOrDefault(request.getKnowledgeBaseId(), "default"));
-
-            AgentPlanStep generate = new AgentPlanStep("step-1", "根据用户要求生成可写入当前前端文档的内容", "direct-answer", new HashMap<>());
-            generate.getParams().put("question", frontendDocumentWritePrompt());
-
-            AgentPlanStep write = new AgentPlanStep("step-2", "将AI生成内容返回给前端编辑器待写入: " + valueOrDefault(documentId, "current-editor"), "document-write", new HashMap<>());
-            write.getParams().put("documentId", documentId);
-            write.getParams().put("content", "${answer}");
-            write.getParams().put("writeMode", writeMode);
-            write.getParams().put("changeLog", "AI Agent根据任务生成前端文档增量内容");
-            write.getParams().put("knowledgeBaseId", knowledgeBaseId);
-            write.getParams().put("selectionText", asString(context.get("selectedText")));
-            write.getParams().put("insertAfterText", "");
-            write.getParams().put("contentFormat", "plain_text");
-            return normalizePlan(List.of(generate, write), request, context);
-        } else if (!fileOperationIntent && !isBlank(asString(context.get("objectName")))) {
-            String objectName = asString(context.get("objectName"));
-            String bucketName = firstNonBlank(asString(context.get("bucketName")), defaultUserBucketName(request, context));
-            String writeMode = firstNonBlank(asString(context.get("writeMode")), "append");
-
-            AgentPlanStep generate = new AgentPlanStep("step-1", "生成文本内容", "direct-answer", new HashMap<>());
-            generate.getParams().put("question", task);
-
-            AgentPlanStep write = new AgentPlanStep("step-2", "将内容返回给前端编辑器待写入: " + objectName, "text-to-file", new HashMap<>());
-            write.getParams().put("content", "${answer}");
-            write.getParams().put("objectName", objectName);
-            write.getParams().put("bucketName", bucketName);
-            write.getParams().put("writeMode", writeMode);
-            write.getParams().put("contentType", "text/plain");
-            return normalizePlan(List.of(generate, write), request, context);
-        } else if (containsAny(task, "知识库", "文档库", "问答", "查询", "检索", "根据文档")) {
-            tool = Boolean.FALSE.equals(request.getRagEnabled()) ? "direct-answer" : "rag-answer";
-        } else if (containsAny(task, "总结", "摘要")) {
-            tool = "text-summarize";
-        } else if (containsAny(task, "关键词", "关键字")) {
-            tool = "keyword-extract";
-        } else if (containsAny(task, "统计", "分析")) {
-            tool = "text-analyze";
-        } else if (containsAny(task, "纠错", "润色", "改写", "优化")) {
-            tool = "text-correct";
-        } else if (lower.contains("ppt") || containsAny(task, "演示文稿", "幻灯片")) {
-            tool = "html-ppt-generate";
-        } else if (containsAny(task, "下载")) {
-            tool = "file-download-url";
-        } else if (containsAny(task, "删除")) {
-            tool = "file-delete";
-        } else if (containsAny(task, "恢复")) {
-            tool = "file-restore";
-        } else if (containsAny(task, "回收站")) {
-            tool = "recycle-list";
-        } else if (containsAny(task, "版本")) {
-            tool = containsAny(task, "切换", "恢复到") ? "file-version-switch" : "file-version-list";
-        }
-
-        AgentPlanStep step = new AgentPlanStep("step-1", task, tool, new HashMap<>());
-        fillDefaultParams(step, request, context);
-        return List.of(step);
-    }
-
-    private String frontendDocumentWritePrompt() {
-        return """
-                请根据下面的当前前端文档内容完成用户任务，输出一个JSON对象，不要输出Markdown、代码块或额外说明。
-                JSON格式:
-                {"content":"要写入文档的干净正文","writeMode":"insert","insertAfterText":"从原文中复制的一小段锚点文本","changeLog":"本次修改说明","contentFormat":"plain_text"}
-
-                正文格式要求:
-                - content 里不要出现 Markdown 符号，例如 **、* 列表符号、# 标题符号、```。
-                - 数学表达不要用 $ 包裹，尽量使用普通文本或 Unicode 符号，例如 P、C、Q、R、∈、∑。
-                - 不要输出“以下是”“已完成”等聊天回复，只输出可以放进文档的内容。
-
-                插入位置要求:
-                - 如果用户要求扩写、补充、续写文档中已有的某一部分，请将 writeMode 设为 insert。
-                - insertAfterText 必须从原文中复制一个稳定片段，优先选择该部分最后一句或最后一段；前端会把 content 插入到这段后面。
-                - 如果用户选中了文本并要求润色/纠错/替换，请将 writeMode 设为 replace-selection，insertAfterText 留空。
-                - 如果用户明确要求覆盖全文，writeMode 才设为 overwrite。
-                - 如果无法判断插入位置，insertAfterText 留空，前端会追加到文档末尾。
-
-                用户任务:
-                ${task}
-
-                写入模式:
-                ${writeMode}
-
-                前端选中文本:
-                ${selectedText}
-
-                业务文档原文:
-                ${documentContent}
-                """;
-    }
-
-    private void fillDefaultParams(AgentPlanStep step, AgentExecutionRequest request, Map<String, Object> context) {
-        Map<String, Object> params = step.getParams();
-        String content = firstNonBlank(asString(params.get("content")), asString(context.get("content")), request.getTask());
-        String generatedContent = firstNonBlank(
-                asString(params.get("content")),
-                asString(context.get("answer")),
-                asString(context.get("lastAnswer")),
-                asString(context.get("content"))
-        );
-        String objectName = firstNonBlank(asString(params.get("objectName")), asString(context.get("objectName")),
-                extractQuotedText(request.getTask()), extractObjectNameFromTask(request.getTask()));
-        String documentId = firstNonBlank(asString(params.get("documentId")), asString(context.get("documentId")));
-
-        switch (step.getToolName()) {
-            case "rag-answer" -> {
-                params.putIfAbsent("question", request.getTask());
-                params.putIfAbsent("topK", 3);
-                params.putIfAbsent("rerankStrategy", firstNonBlank(asString(params.get("strategy")), "HYBRID"));
-                params.putIfAbsent("userId", context.get("userId"));
-                params.putIfAbsent("knowledgeBaseId", context.getOrDefault("knowledgeBaseId", "default"));
-            }
-            case "rag-search" -> {
-                params.putIfAbsent("query", request.getTask());
-                params.putIfAbsent("topK", 5);
-                params.putIfAbsent("rerankStrategy", firstNonBlank(asString(params.get("strategy")), "HYBRID"));
-                params.putIfAbsent("userId", context.get("userId"));
-                params.putIfAbsent("knowledgeBaseId", context.getOrDefault("knowledgeBaseId", "default"));
-            }
-            case "text-summarize" -> {
-                params.putIfAbsent("content", content);
-                params.putIfAbsent("maxLength", 300);
-                params.putIfAbsent("model", request.getModel());
-            }
-            case "text-analyze", "keyword-extract", "text-correct" -> {
-                params.putIfAbsent("content", content);
-                params.putIfAbsent("count", 8);
-                params.putIfAbsent("instruction", request.getTask());
-                params.putIfAbsent("model", request.getModel());
-            }
-            case "file-download-url", "file-version-list", "file-version-switch" -> {
-                params.putIfAbsent("objectName", objectName);
-                params.putIfAbsent("bucketName", context.get("bucketName"));
-                params.putIfAbsent("requireConfirmation", true);
-            }
-            case "file-delete" -> {
-                params.putIfAbsent("documentId", documentId);
-                params.putIfAbsent("objectName", objectName);
-                params.putIfAbsent("bucketName", context.get("bucketName"));
-                params.put("requireConfirmation", false);
-            }
-            case "file-restore" -> {
-                params.putIfAbsent("recycleId", context.get("recycleId"));
-                params.putIfAbsent("bucketName", context.get("bucketName"));
-            }
-            case "html-ppt-generate" -> {
-                params.putIfAbsent("outline", content);
-                params.putIfAbsent("title", firstNonBlank(asString(context.get("title")), "演示文稿"));
-                params.putIfAbsent("theme", firstNonBlank(asString(context.get("theme")), "tokyo-night"));
-                params.putIfAbsent("model", request.getModel());
-            }
-            case "document-read" -> params.putIfAbsent("documentId", documentId);
-            case "document-write" -> {
-                Object existingContent = params.get("content");
-                if (!(existingContent instanceof String s && s.startsWith("${")) && !isBlank(generatedContent)) {
-                    params.putIfAbsent("content", generatedContent);
-                }
-                params.putIfAbsent("documentId", documentId);
-                params.putIfAbsent("writeMode", firstNonBlank(asString(context.get("writeMode")), "append"));
-                params.putIfAbsent("changeLog", "AI Agent生成前端文档增量内容");
-                params.putIfAbsent("knowledgeBaseId", valueOrDefault(request.getKnowledgeBaseId(), "default"));
-                params.putIfAbsent("selectionText", asString(context.get("selectedText")));
-                params.putIfAbsent("insertAfterText", asString(context.get("insertAfterText")));
-                params.putIfAbsent("contentFormat", "plain_text");
-            }
-            case "text-to-file" -> {
-                Object existingContent = params.get("content");
-                if (!(existingContent instanceof String s && s.startsWith("${")) && !isBlank(generatedContent)) {
-                    params.putIfAbsent("content", generatedContent);
-                }
-                params.putIfAbsent("objectName", objectName);
-                params.putIfAbsent("bucketName", context.get("bucketName"));
-                params.putIfAbsent("contentType", "text/plain");
-                params.putIfAbsent("writeMode", firstNonBlank(asString(context.get("writeMode")), "append"));
-                params.putIfAbsent("changeLog", "AI Agent生成前端文档增量内容");
-                params.putIfAbsent("selectionText", asString(context.get("selectedText")));
-                params.putIfAbsent("insertAfterText", asString(context.get("insertAfterText")));
-            }
-            default -> params.putIfAbsent("question", request.getTask());
-        }
+    /**
+     * 执行单个步骤一次：计时、状态流转（RUNNING）、结果修饰与状态归一化。
+     * runStepWithRetry 与 retryStep 共用，避免重复的时序样板。
+     */
+    private AgentToolResult runStepOnce(AgentPlanStep step, AgentExecutionRequest request, Map<String, Object> context) {
+        long startedAt = System.currentTimeMillis();
+        step.setStatus(AgentStepStatus.RUNNING.value());
+        AgentToolResult result = executeStep(step, request, context);
+        decorateResult(result, step, startedAt);
+        step.setStatus(normalizeStatus(result));
+        step.setObservation(result.getMessage());
+        return result;
     }
 
     private AgentToolResult executeStep(AgentPlanStep step, AgentExecutionRequest request, Map<String, Object> context) {
-        return executeStep(step, request, context, null);
-    }
-
-    private AgentToolResult executeStep(AgentPlanStep step, AgentExecutionRequest request,
-                                        Map<String, Object> context, Map<String, Object> approvalParams) {
         try {
-            resolvePlaceholders(step, request, context);
+            placeholderResolver.resolve(step, request, context);
             AgentToolResult validationResult = validateToolParameters(step);
             if (validationResult != null) {
                 return validationResult;
             }
-            AgentToolResult approvalResult = enforceDestructiveApproval(step, context, approvalParams);
+            AgentToolResult approvalResult = enforceDestructiveApproval(step, context);
             if (approvalResult != null) {
                 return approvalResult;
             }
             if (!internalService.hasPermission(step.getToolName(), context)) {
                 return AgentToolResult.error(step.getToolName(), "没有执行此工具的权限或缺少服务端确认");
             }
-            return dispatchTool(step, request, context);
+            return toolRegistry.execute(step.getToolName(), step.getParams(), request, context);
         } catch (Exception e) {
             log.error("工具执行失败: tool={}, step={}", step.getToolName(), step.getDescription(), e);
             return AgentToolResult.error(step.getToolName(), e.getMessage());
         }
     }
 
-    /**
-     * 在 ReAct loop 中支持模板变量引用：
-     * ${task}                直接引用用户原始任务
-     * ${context.userId}      引用 context 中的字段
-     * ${steps.<id>.<field>}  引用前序步骤结果（observation/answer/...）
-     */
-    void resolvePlaceholders(AgentPlanStep step, AgentExecutionRequest request, Map<String, Object> context) {
-        Map<String, Object> params = step.getParams();
-        if (params == null || params.isEmpty()) {
-            return;
-        }
-        for (Map.Entry<String, Object> entry : new ArrayList<>(params.entrySet())) {
-            Object value = entry.getValue();
-            if (value instanceof String text && text.contains("${")) {
-                String resolved = renderTemplate(text, request, context);
-                params.put(entry.getKey(), resolved);
-            }
-        }
-    }
-
-    private String renderTemplate(String text, AgentExecutionRequest request, Map<String, Object> context) {
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\$\\{([^}]+)}").matcher(text);
-        StringBuilder buffer = new StringBuilder();
-        while (matcher.find()) {
-            String expression = matcher.group(1).trim();
-            Object resolved = resolveExpression(expression, request, context);
-            matcher.appendReplacement(buffer, java.util.regex.Matcher.quoteReplacement(
-                    resolved == null ? "" : resolved.toString()));
-        }
-        matcher.appendTail(buffer);
-        return buffer.toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object resolveExpression(String expression, AgentExecutionRequest request, Map<String, Object> context) {
-        if ("task".equals(expression)) {
-            return request.getTask();
-        }
-        String[] parts = expression.split("\\.");
-        if (parts.length < 2) {
-            return context.get(expression);
-        }
-        String root = parts[0];
-        if ("context".equals(root)) {
-            return drillInto(context, parts, 1);
-        }
-        if ("steps".equals(root)) {
-            Object steps = context.get("__stepResults__");
-            if (!(steps instanceof Map)) {
-                return null;
-            }
-            String stepId = parts[1];
-            Object stepData = ((Map<String, Object>) steps).get(stepId);
-            if (parts.length == 2) {
-                return stepData;
-            }
-            if (stepData instanceof Map<?, ?> map) {
-                return drillInto((Map<String, Object>) map, parts, 2);
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object drillInto(Map<String, Object> source, String[] parts, int from) {
-        Object current = source;
-        for (int i = from; i < parts.length; i++) {
-            if (!(current instanceof Map<?, ?> map)) {
-                return null;
-            }
-            current = ((Map<String, Object>) map).get(parts[i]);
-        }
-        return current;
-    }
-
     private AgentToolResult validateToolParameters(AgentPlanStep step) {
-        AgentToolDefinition definition = toolRegistry.get(step.getToolName());
-        if (definition == null) {
+        AgentTool tool = toolRegistry.get(step.getToolName());
+        if (tool == null) {
             return null;
         }
+        AgentToolDefinition definition = tool.definition();
 
         Map<String, Object> params = step.getParams();
         if ("file-delete".equals(definition.getName())
@@ -1727,382 +1365,16 @@ public class AgentExecutionService {
         return value == null || value.toString().trim().isEmpty() || "null".equalsIgnoreCase(value.toString().trim());
     }
 
-    private AgentToolResult dispatchTool(AgentPlanStep step, AgentExecutionRequest request, Map<String, Object> context) {
-        Map<String, Object> params = step.getParams();
-        String tool = step.getToolName();
-
-        return switch (tool) {
-            case "direct-answer" -> executeDirectAnswer(request, params);
-            case "ask-user" -> executeAskUser(params);
-            case "rag-answer" -> executeRagAnswer(params, request.getModel());
-            case "rag-search" -> executeRagSearch(params);
-            case "text-summarize" -> executeSummarize(params);
-            case "text-analyze" -> executeAnalyze(params);
-            case "keyword-extract" -> executeKeywords(params);
-            case "text-correct" -> executeTextCorrect(params);
-            case "file-download-url" -> executeFileDownloadUrl(params);
-            case "file-delete" -> executeFileDelete(params, request.getUserId());
-            case "file-restore" -> executeFileRestore(params);
-            case "recycle-list" -> AgentToolResult.success(tool, "回收站查询完成",
-                    toMap(recycleBinService.listRecycleBin(asString(params.get("bucketName")), request.getUserId())));
-            case "file-version-list" -> executeFileVersionList(params);
-            case "file-version-switch" -> executeFileVersionSwitch(params);
-            case "html-ppt-generate" -> executeHtmlPpt(params);
-            case "document-read" -> executeDocumentRead(params);
-            case "document-write" -> executeDocumentWrite(params, request, context);
-            case "text-to-file" -> executeTextToFile(params, request, context);
-            default -> AgentToolResult.error(tool, "未知工具: " + tool);
-        };
-    }
-
-    private AgentToolResult executeDirectAnswer(AgentExecutionRequest request, Map<String, Object> params) {
-        String question = firstNonBlank(asString(params.get("question")), request.getTask());
-        String answer = chatService.callChatApiWithModelCode(question, request.getModel());
-        return AgentToolResult.success("direct-answer", "直接回答完成", Map.of("answer", answer));
-    }
-
-    private AgentToolResult executeAskUser(Map<String, Object> params) {
-        String question = firstNonBlank(asString(params.get("question")), "请补充更多信息以便继续。");
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("question", question);
-        String missing = asString(params.get("missingFields"));
-        if (!isBlank(missing)) {
-            data.put("missingFields", List.of(missing.split("[,，;；]")));
-        }
-        String options = asString(params.get("options"));
-        if (!isBlank(options)) {
-            data.put("options", List.of(options.split("[;；]")));
-        }
-        data.put("interactionType", "user_input");
-        data.put("resumeMode", "continue_trace");
-        data.put("resumeEndpointTemplate", "/api/ai/agent/tasks/{traceId}/continue");
-        return AgentToolResult.actionRequired("ask-user", question, data);
-    }
-
-    private AgentToolResult executeRagAnswer(Map<String, Object> params, String model) {
-        String question = firstNonBlank(asString(params.get("question")), asString(params.get("query")));
-        List<Map<String, Object>> results = searchKnowledge(question, intValue(params.get("topK"), 3),
-                firstNonBlank(asString(params.get("rerankStrategy")), asString(params.get("strategy"))),
-                asString(params.get("userId")), asString(params.get("knowledgeBaseId")));
-        String context = buildKnowledgeContext(results);
-        String prompt = promptEngineeringService.createRagAnswerPrompt(question, context);
-        String answer = chatService.callChatApiWithModelCode(prompt, model);
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("question", question);
-        data.put("answer", answer);
-        data.put("sources", results.stream().map(r -> r.get("id")).toList());
-        data.put("retrieved", results);
-        return AgentToolResult.success("rag-answer", "知识库问答完成", data);
-    }
-
-    private AgentToolResult executeRagSearch(Map<String, Object> params) {
-        String query = firstNonBlank(asString(params.get("query")), asString(params.get("question")));
-        List<Map<String, Object>> results = searchKnowledge(query, intValue(params.get("topK"), 5),
-                firstNonBlank(asString(params.get("rerankStrategy")), asString(params.get("strategy"))),
-                asString(params.get("userId")), asString(params.get("knowledgeBaseId")));
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("query", query);
-        data.put("results", results);
-        data.put("sources", results.stream().map(r -> r.get("id")).toList());
-        return AgentToolResult.success("rag-search", "知识库检索完成", data);
-    }
-
-    private AgentToolResult executeSummarize(Map<String, Object> params) {
-        TextSummarizeDTO dto = new TextSummarizeDTO();
-        dto.setContent(firstNonBlank(asString(params.get("content")), ""));
-        dto.setMaxLength(intValue(params.get("maxLength"), 300));
-        return AgentToolResult.success("text-summarize", "摘要完成", toMap(aiService.summarize(dto, asString(params.get("model")))));
-    }
-
-    private AgentToolResult executeAnalyze(Map<String, Object> params) {
-        TextAnalyzeDTO dto = new TextAnalyzeDTO();
-        dto.setContent(firstNonBlank(asString(params.get("content")), ""));
-        return AgentToolResult.success("text-analyze", "文本分析完成", toMap(aiService.analyze(dto)));
-    }
-
-    private AgentToolResult executeKeywords(Map<String, Object> params) {
-        KeywordExtractDTO dto = new KeywordExtractDTO();
-        dto.setContent(firstNonBlank(asString(params.get("content")), ""));
-        dto.setCount(intValue(params.get("count"), 8));
-        return AgentToolResult.success("keyword-extract", "关键词提取完成", toMap(aiService.extractKeywords(dto, asString(params.get("model")))));
-    }
-
-    private AgentToolResult executeTextCorrect(Map<String, Object> params) {
-        String content = firstNonBlank(asString(params.get("content")), "");
-        String instruction = firstNonBlank(asString(params.get("instruction")), "请对文本进行纠错和润色");
-        String prompt = """
-                %s
-                
-                文本:
-                %s
-                
-                请返回修改后的文本、问题说明和修改建议。
-                """.formatted(instruction, content);
-        String result = chatService.callChatApiWithModelCode(prompt, asString(params.get("model")));
-        return AgentToolResult.success("text-correct", "文本处理完成", Map.of("result", result));
-    }
-
-    private AgentToolResult executeFileDownloadUrl(Map<String, Object> params) {
-        FileDownloadDTO dto = new FileDownloadDTO();
-        dto.setBucketName(asString(params.get("bucketName")));
-        dto.setObjectName(requireParam(params, "objectName"));
-        dto.setDirectDownload(false);
-        return AgentToolResult.success("file-download-url", "下载地址生成完成", toMap(fileDownloadService.getFileUrl(dto)));
-    }
-
-    private AgentToolResult executeFileDelete(Map<String, Object> params, String userId) {
-        FileDeleteDTO dto = new FileDeleteDTO();
-        dto.setBucketName(asString(params.get("bucketName")));
-        dto.setObjectName(asString(params.get("objectName")));
-        dto.setDocumentId(asString(params.get("documentId")));
-        if (isBlank(dto.getObjectName()) && isBlank(dto.getDocumentId())) {
-            return AgentToolResult.actionRequired("file-delete", "请提供前端documentId或MinIO对象名称objectName",
-                    Map.of("missingParameters", List.of("documentId/objectName")));
-        }
-        dto.setRequireConfirmation(false);
-        dto.setConfirmationToken(null);
-        String deleter = "agent-approved:" + valueOrDefault(userId, "agent");
-        return AgentToolResult.success("file-delete", "删除请求处理完成", toMap(fileDeleteService.deleteFile(dto, deleter)));
-    }
-
-    private AgentToolResult executeFileRestore(Map<String, Object> params) {
-        FileRestoreDTO dto = new FileRestoreDTO();
-        dto.setRecycleId(requireParam(params, "recycleId"));
-        dto.setBucketName(asString(params.get("bucketName")));
-        dto.setNewObjectName(asString(params.get("newObjectName")));
-        return AgentToolResult.success("file-restore", "文件恢复完成", toMap(fileDeleteService.restoreFile(dto)));
-    }
-
-    private AgentToolResult executeFileVersionList(Map<String, Object> params) {
-        FileVersionDTO dto = new FileVersionDTO();
-        dto.setBucketName(asString(params.get("bucketName")));
-        dto.setObjectName(requireParam(params, "objectName"));
-        dto.setVersionId(asString(params.get("versionId")));
-        return AgentToolResult.success("file-version-list", "文件版本查询完成", toMap(fileVersionService.getVersions(dto)));
-    }
-
-    private AgentToolResult executeFileVersionSwitch(Map<String, Object> params) {
-        FileVersionSwitchDTO dto = new FileVersionSwitchDTO();
-        dto.setBucketName(asString(params.get("bucketName")));
-        dto.setObjectName(requireParam(params, "objectName"));
-        dto.setTargetVersionId(requireParam(params, "targetVersionId"));
-        return AgentToolResult.success("file-version-switch", "文件版本切换完成", toMap(fileVersionService.switchVersion(dto)));
-    }
-
-    private AgentToolResult executeHtmlPpt(Map<String, Object> params) {
-        Object result = skillExecutorService.executeSkill(
-                "HTML PPT Skill",
-                firstNonBlank(asString(params.get("outline")), ""),
-                firstNonBlank(asString(params.get("theme")), "tokyo-night"),
-                firstNonBlank(asString(params.get("title")), "演示文稿"),
-                asString(params.get("model"))
-        );
-        return AgentToolResult.success("html-ppt-generate", "HTML PPT生成完成", toMap(result));
-    }
-
-    private AgentToolResult executeDocumentRead(Map<String, Object> params) {
-        String documentId = requireParam(params, "documentId");
-        Map<String, Object> document = documentServiceClient.getDocument(documentId);
-        String content = Objects.requireNonNullElse(firstNonBlank(asString(document.get("content")), ""), "");
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("documentId", firstNonBlank(asString(document.get("id")), documentId));
-        data.put("documentTitle", document.get("title"));
-        data.put("documentContent", content);
-        data.put("documentVersion", document.get("version"));
-        data.put("document", document);
-        data.put("contentLength", content.length());
-        return AgentToolResult.success("document-read", "业务文档读取完成: " + documentId, data);
-    }
-
-    private AgentToolResult executeDocumentWrite(Map<String, Object> params, AgentExecutionRequest request, Map<String, Object> context) {
-        String documentId = firstNonBlank(asString(params.get("documentId")), asString(context.get("documentId")));
-        String content = firstNonBlank(asString(params.get("content")), asString(context.get("answer")), asString(context.get("lastAnswer")));
-        if (isBlank(content)) {
-            return AgentToolResult.error("document-write", "缺少要写回文档的文本内容，请先执行 direct-answer 生成内容");
-        }
-
-        Map<String, Object> writePayload = parseFrontendWritePayload(content);
-        String payloadContent = firstNonBlank(asString(writePayload.get("content")), content);
-        String contentFormat = firstNonBlank(asString(writePayload.get("contentFormat")), asString(params.get("contentFormat")), "plain_text");
-
-        return createFrontendWriteResult(
-                "document-write",
-                payloadContent,
-                normalizeFrontendWriteMode(firstNonBlank(asString(writePayload.get("writeMode")), asString(params.get("writeMode")))),
-                documentId,
-                null,
-                null,
-                firstNonBlank(asString(writePayload.get("changeLog")), asString(params.get("changeLog")), "AI Agent生成前端文档增量内容"),
-                firstNonBlank(asString(params.get("selectionText")), asString(context.get("selectedText"))),
-                firstNonBlank(asString(writePayload.get("insertAfterText")), asString(writePayload.get("anchorText")),
-                        asString(writePayload.get("insertionAnchor")), asString(params.get("insertAfterText")),
-                        asString(context.get("insertAfterText"))),
-                contentFormat
-        );
-    }
-
-    private AgentToolResult executeTextToFile(Map<String, Object> params, AgentExecutionRequest request, Map<String, Object> context) {
-        String content = firstNonBlank(asString(params.get("content")), asString(context.get("answer")), asString(context.get("lastAnswer")));
-        if (isBlank(content)) {
-            return AgentToolResult.error("text-to-file", "缺少要写入的文本内容，请先执行 direct-answer 生成内容");
-        }
-
-        String objectName = asString(params.get("objectName"));
-        String bucketName = firstNonBlank(asString(params.get("bucketName")), defaultUserBucketName(request, context));
-        String contentType = firstNonBlank(asString(params.get("contentType")), "text/plain");
-        Map<String, Object> writePayload = parseFrontendWritePayload(content);
-        String payloadContent = firstNonBlank(asString(writePayload.get("content")), content);
-
-        return createFrontendWriteResult(
-                "text-to-file",
-                payloadContent,
-                normalizeFrontendWriteMode(firstNonBlank(asString(writePayload.get("writeMode")), asString(params.get("writeMode")))),
-                firstNonBlank(asString(params.get("documentId")), asString(context.get("documentId"))),
-                bucketName,
-                objectName,
-                firstNonBlank(asString(writePayload.get("changeLog")), asString(params.get("changeLog")), "AI Agent生成前端文档增量内容"),
-                firstNonBlank(asString(params.get("selectionText")), asString(context.get("selectedText"))),
-                firstNonBlank(asString(writePayload.get("insertAfterText")), asString(writePayload.get("anchorText")),
-                        asString(writePayload.get("insertionAnchor")), asString(params.get("insertAfterText")),
-                        asString(context.get("insertAfterText"))),
-                contentType
-        );
-    }
-
-    private AgentToolResult createFrontendWriteResult(String toolName,
-                                                      String content,
-                                                      String writeMode,
-                                                      String documentId,
-                                                      String bucketName,
-                                                      String objectName,
-                                                      String changeLog,
-                                                      String selectionText,
-                                                      String insertAfterText,
-                                                      String contentFormat) {
-        String normalizedContentFormat = firstNonBlank(contentFormat, "plain_text");
-        String finalContent = "html".equalsIgnoreCase(normalizedContentFormat)
-                ? content
-                : sanitizeGeneratedDocumentContent(content);
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("result", "frontend-document-write");
-        data.put("frontendAction", "apply-document-content");
-        data.put("requiresFrontendWrite", true);
-        data.put("persisted", false);
-        data.put("documentId", firstNonBlank(documentId, "current-editor"));
-        data.put("writeMode", writeMode);
-        data.put("content", finalContent);
-        data.put("contentFormat", normalizedContentFormat);
-        data.put("changeLog", firstNonBlank(changeLog, "AI Agent生成前端文档增量内容"));
-        data.put("selectionText", selectionText);
-        data.put("insertAfterText", sanitizeAnchorText(insertAfterText));
-        data.put("contentLength", finalContent.getBytes(StandardCharsets.UTF_8).length);
-        data.put("nextStep", "前端已收到待写入内容；用户确认后可使用现有保存功能持久化到MinIO。");
-        if (!isBlank(bucketName)) {
-            data.put("bucketName", bucketName);
-        }
-        if (!isBlank(objectName)) {
-            data.put("objectName", objectName);
-        }
-
-        String target = !isBlank(documentId) ? documentId : firstNonBlank(objectName, "current-editor");
-        String message = "%s已生成前端写入内容: %s (%s)，尚未保存到MinIO".formatted(toolName, target, writeMode);
-        return AgentToolResult.success(toolName, message, data);
-    }
-
-    private Map<String, Object> parseFrontendWritePayload(String rawContent) {
-        Map<String, Object> fallback = new LinkedHashMap<>();
-        fallback.put("content", rawContent);
-        if (isBlank(rawContent)) {
-            return fallback;
-        }
-
-        String text = rawContent.trim();
-        if (!text.startsWith("{") && !text.startsWith("```")) {
-            return fallback;
-        }
-
-        try {
-            Map<String, Object> parsed = objectMapper.readValue(stripObjectJson(text), new TypeReference<>() {});
-            if (parsed.containsKey("content")) {
-                return parsed;
-            }
-        } catch (Exception e) {
-            log.debug("前端写入结构化JSON解析失败，按普通正文处理: {}", e.getMessage());
-        }
-        return fallback;
-    }
-
-    private String sanitizeGeneratedDocumentContent(String content) {
-        if (content == null) {
-            return "";
-        }
-        String text = content.replace("\r\n", "\n").replace('\r', '\n');
-        text = text.replaceAll("(?s)^\\s*```[a-zA-Z]*\\s*", "");
-        text = text.replaceAll("(?s)\\s*```\\s*$", "");
-        text = text.replaceAll("(?m)^\\s{0,3}#{1,6}\\s*", "");
-        text = text.replaceAll("(?m)^\\s*>\\s?", "");
-        text = text.replaceAll("(?m)^\\s*[-*+]\\s+", "");
-        text = text.replaceAll("\\*\\*([^*\\n]+)\\*\\*", "$1");
-        text = text.replaceAll("__([^_\\n]+)__", "$1");
-        text = text.replaceAll("`([^`\\n]+)`", "$1");
-        text = text.replaceAll("\\$([^$\\n]{1,200})\\$", "$1");
-        text = text.replace("$", "");
-        text = normalizeLatexMarkers(text);
-        text = text.replaceAll("(?m)[ \\t]+$", "");
-        text = text.replaceAll("\\n{3,}", "\n\n");
-        return text.trim();
-    }
-
-    private String sanitizeAnchorText(String text) {
-        if (isBlank(text)) {
-            return "";
-        }
-        String anchor = sanitizeGeneratedDocumentContent(text);
-        return anchor.length() > 240 ? anchor.substring(0, 240) : anchor;
-    }
-
-    private String normalizeLatexMarkers(String text) {
-        return text
-                .replace("\\mathbb{C}", "C")
-                .replace("\\mathbb{Q}", "Q")
-                .replace("\\mathbb{R}", "R")
-                .replace("\\mathbb{Z}", "Z")
-                .replace("\\mathbb{N}", "N")
-                .replace("\\in", "∈")
-                .replace("\\sum", "∑")
-                .replace("\\cdot", "·")
-                .replace("\\times", "×")
-                .replace("\\leq", "≤")
-                .replace("\\geq", "≥")
-                .replace("\\neq", "≠")
-                .replace("\\mid", "|")
-                .replace("\\(", "")
-                .replace("\\)", "")
-                .replace("\\[", "")
-                .replace("\\]", "");
-    }
-
-    private String normalizeFrontendWriteMode(String writeMode) {
-        String mode = Objects.requireNonNullElse(firstNonBlank(writeMode, "append"), "append").toLowerCase(Locale.ROOT);
-        return switch (mode) {
-            case "overwrite", "append", "insert", "replace-selection" -> mode;
-            default -> "append";
-        };
-    }
-
-    private AgentToolResult enforceDestructiveApproval(AgentPlanStep step, Map<String, Object> context,
-                                                       Map<String, Object> approvalParams) {
-        AgentToolDefinition definition = toolRegistry.get(step.getToolName());
-        if (definition == null || !definition.isDestructive()) {
+    private AgentToolResult enforceDestructiveApproval(AgentPlanStep step, Map<String, Object> context) {
+        AgentTool tool = toolRegistry.get(step.getToolName());
+        if (tool == null || !tool.definition().isDestructive()) {
             context.remove("confirmedAction");
             return null;
         }
 
         String userId = String.valueOf(context.get("userId"));
         String token = asString(step.getParams().get("agentApprovalToken"));
-        Map<String, Object> paramsForApproval = approvalParams == null ? step.getParams() : approvalParams;
-        AgentApprovalService.ApprovalResult result = agentApprovalService.verifyAndConsumeDetailed(token, userId, step.getToolName(), paramsForApproval);
+        AgentApprovalService.ApprovalResult result = agentApprovalService.verifyAndConsumeDetailed(token, userId, step.getToolName(), step.getParams());
         if (result == AgentApprovalService.ApprovalResult.OK) {
             context.put("confirmedAction", true);
             step.getParams().put("requireConfirmation", false);
@@ -2122,7 +1394,6 @@ public class AgentExecutionService {
         data.put("resumeMode", "approval_token");
         data.put("resumeEndpoint", "/api/ai/agent/approvals/confirm");
         String message = switch (result) {
-            case MISSING -> "危险操作需要服务端二次确认";
             case EXPIRED_OR_USED -> "审批令牌已过期或已使用，请重新确认";
             case PARAMS_MISMATCH -> "审批令牌与当前参数不匹配，请重新确认";
             default -> "危险操作需要服务端二次确认";
@@ -2130,30 +1401,29 @@ public class AgentExecutionService {
         return AgentToolResult.actionRequired(step.getToolName(), message, data);
     }
 
-    private List<Map<String, Object>> searchKnowledge(String query, int topK, String strategy, String userId, String knowledgeBaseId) {
-        Reranker.RerankStrategy rerankStrategy = parseRerankStrategy(strategy);
-        int limitedTopK = Math.max(1, Math.min(topK, 20));
-        return knowledgeBase.hybridSearchWithRerank(query, limitedTopK, rerankStrategy, userId, valueOrDefault(knowledgeBaseId, "default"));
-    }
-
-    private Reranker.RerankStrategy parseRerankStrategy(String strategy) {
-        try {
-            return Reranker.RerankStrategy.valueOf(valueOrDefault(strategy, "HYBRID").toUpperCase(Locale.ROOT));
-        } catch (Exception e) {
-            return Reranker.RerankStrategy.HYBRID;
-        }
-    }
-
     private String synthesizeAnswer(AgentExecutionRequest request, List<AgentPlanStep> plan,
-                                    List<AgentToolResult> results, Map<String, Object> context, boolean requiresAction) {
-        if (!results.isEmpty() && "direct-answer".equals(results.get(results.size() - 1).getToolName())) {
-            Object answer = results.get(results.size() - 1).getData().get("answer");
+                                    List<AgentToolResult> results, Map<String, Object> context,
+                                    boolean requiresAction, boolean simpleTask) {
+        if (!results.isEmpty() && "direct-answer".equals(results.getLast().getToolName())) {
+            Object answer = results.getLast().getData().get("answer");
             if (answer != null) {
                 return answer.toString();
             }
         }
+        if (simpleTask && !results.isEmpty()) {
+            AgentToolResult last = results.getLast();
+            if (AgentStepStatus.isSuccess(last.getStatus())) {
+                String direct = firstNonBlank(
+                        asString(last.getData().get("answer")),
+                        asString(last.getData().get("result")),
+                        asString(last.getData().get("summary")));
+                if (!isBlank(direct)) {
+                    return direct;
+                }
+            }
+        }
         if (!results.isEmpty()) {
-            AgentToolResult last = results.get(results.size() - 1);
+            AgentToolResult last = results.getLast();
             Object frontendWrite = last.getData().get("requiresFrontendWrite");
             if (Boolean.TRUE.equals(frontendWrite) || "true".equalsIgnoreCase(String.valueOf(frontendWrite))) {
                 String changeLog = firstNonBlank(asString(last.getData().get("changeLog")), "AI内容已写入当前页面文档");
@@ -2191,7 +1461,7 @@ public class AgentExecutionService {
         if (results.isEmpty()) {
             return "任务已规划，但没有执行任何工具。";
         }
-        AgentToolResult last = results.get(results.size() - 1);
+        AgentToolResult last = results.getLast();
         if (requiresAction) {
             return last.getMessage();
         }
@@ -2205,187 +1475,54 @@ public class AgentExecutionService {
         return results.stream().anyMatch(r -> "error".equals(r.getStatus())) ? "error" : "success";
     }
 
-    private String buildKnowledgeContext(List<Map<String, Object>> results) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < results.size(); i++) {
-            Map<String, Object> result = results.get(i);
-            builder.append("来源").append(i + 1).append(" ID=").append(result.get("id")).append("\n")
-                    .append(result.getOrDefault("content", "")).append("\n\n");
-        }
-        return builder.toString();
-    }
-
     private String stripJson(String raw) {
-        String text = raw.trim();
-        if (text.startsWith("```")) {
-            text = text.replaceFirst("^```[a-zA-Z]*\\s*", "");
-            text = text.replaceFirst("\\s*```$", "");
-        }
-        int start = text.indexOf('[');
-        int end = text.lastIndexOf(']');
-        if (start >= 0 && end > start) {
-            return text.substring(start, end + 1);
-        }
-        return text;
+        return stripFencedJson(raw, '[', ']');
     }
 
     private String stripObjectJson(String raw) {
+        return stripFencedJson(raw, '{', '}');
+    }
+
+    /** 去掉 Markdown 代码围栏，并把首尾配对括号之间的内容截取出来。 */
+    private String stripFencedJson(String raw, char open, char close) {
         String text = raw.trim();
         if (text.startsWith("```")) {
             text = text.replaceFirst("^```[a-zA-Z]*\\s*", "");
             text = text.replaceFirst("\\s*```$", "");
         }
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
+        int start = text.indexOf(open);
+        int end = text.lastIndexOf(close);
         if (start >= 0 && end > start) {
             return text.substring(start, end + 1);
         }
         return text;
     }
 
-    private Map<String, Object> toMap(Object value) {
-        if (value == null) {
-            return new HashMap<>();
-        }
-        return objectMapper.convertValue(value, new TypeReference<>() {});
-    }
-
-    private Map<String, Object> toStringObjectMap(Map<?, ?> map) {
-        Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (entry.getKey() != null) {
-                result.put(entry.getKey().toString(), entry.getValue());
-            }
-        }
-        return result;
-    }
-
     private String safeJson(Object value) {
-        try {
-            return objectMapper.writeValueAsString(value);
-        } catch (Exception e) {
-            return String.valueOf(value);
-        }
-    }
-
-    private String requireParam(Map<String, Object> params, String key) {
-        String value = asString(params.get(key));
-        if (isBlank(value)) {
-            throw new IllegalArgumentException("缺少必要参数: " + key);
-        }
-        return value;
-    }
-
-    private String extractQuotedText(String task) {
-        if (task == null) {
-            return null;
-        }
-        int left = Math.max(task.lastIndexOf('“'), task.lastIndexOf('"'));
-        int right = Math.max(task.lastIndexOf('”'), task.lastIndexOf('"'));
-        if (left >= 0 && right > left) {
-            return task.substring(left + 1, right);
-        }
-        return null;
-    }
-
-    private String extractObjectNameFromTask(String task) {
-        if (task == null) {
-            return null;
-        }
-        String normalized = task.trim().replaceAll("\\s+\\.", ".").replaceAll("\\.\\s+", ".");
-        String extensionPattern = "[^\\s，。；;、]+\\.[A-Za-z0-9]{1,8}";
-        String keywordPattern = "(?:objectName|对象名|文件名|删除文件|下载文件|恢复文件|切换文件|文件|删除|下载|版本|恢复)(?:为|是|:|：|\\s)*(" + extensionPattern + ")";
-        java.util.regex.Matcher keywordMatcher = java.util.regex.Pattern.compile(keywordPattern, java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(normalized);
-        if (keywordMatcher.find()) {
-            return stripObjectNamePunctuation(keywordMatcher.group(1));
-        }
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(" + extensionPattern + ")", java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(normalized);
-        return matcher.find() ? stripObjectNamePunctuation(matcher.group(1)) : null;
-    }
-
-    private String stripObjectNamePunctuation(String value) {
-        if (value == null) {
-            return null;
-        }
-        String result = value.trim();
-        while (!result.isEmpty() && "，。；;、,.\"'“”‘’）)]}".indexOf(result.charAt(result.length() - 1)) >= 0) {
-            result = result.substring(0, result.length() - 1).trim();
-        }
-        while (!result.isEmpty() && "\"'“”‘’（([{".indexOf(result.charAt(0)) >= 0) {
-            result = result.substring(1).trim();
-        }
-        return isBlank(result) ? null : result;
-    }
-
-    private String defaultUserBucketName(AgentExecutionRequest request, Map<String, Object> context) {
-        String userId = firstNonBlank(
-                asString(context == null ? null : context.get("userId")),
-                request == null ? null : request.getUserId(),
-                requestUserContext == null ? null : requestUserContext.getCurrentUserId().orElse(null)
-        );
-        return isBlank(userId) ? null : UserBucketUtils.bucketNameForUser(userId);
-    }
-
-    private boolean containsAny(String text, String... words) {
-        if (text == null) {
-            return false;
-        }
-        for (String word : words) {
-            if (text.contains(word)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isDeleteIntent(String text) {
-        if (text == null) {
-            return false;
-        }
-        String lower = text.toLowerCase(Locale.ROOT);
-        return containsAny(text, "删除", "删掉", "移除", "清除")
-                || lower.contains("delete")
-                || lower.contains("remove");
+        return AgentToolSupport.safeJson(value);
     }
 
     private int intValue(Object value, int defaultValue) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        try {
-            return value != null ? Integer.parseInt(value.toString()) : defaultValue;
-        } catch (Exception e) {
-            return defaultValue;
-        }
+        return AgentToolSupport.intValue(value, defaultValue);
     }
 
-    private boolean booleanValue(Object value, boolean defaultValue) {
-        if (value instanceof Boolean bool) {
-            return bool;
-        }
-        return value != null ? Boolean.parseBoolean(value.toString()) : defaultValue;
+    private boolean booleanValue(Object value) {
+        return AgentToolSupport.booleanValue(value);
     }
 
     private String asString(Object value) {
-        return value == null ? null : value.toString();
+        return AgentToolSupport.asString(value);
     }
 
     private String valueOrDefault(String value, String defaultValue) {
-        return isBlank(value) ? defaultValue : value;
+        return AgentToolSupport.valueOrDefault(value, defaultValue);
     }
 
     private String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (!isBlank(value)) {
-                return value;
-            }
-        }
-        return null;
+        return AgentToolSupport.firstNonBlank(values);
     }
 
     private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
+        return AgentToolSupport.isBlank(value);
     }
 }

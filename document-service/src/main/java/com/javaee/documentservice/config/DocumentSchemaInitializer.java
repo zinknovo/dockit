@@ -113,9 +113,9 @@ public class DocumentSchemaInitializer implements ApplicationRunner {
             addColumnIfMissing(connection, statement, "document", "update_time",
                     "ALTER TABLE `document` ADD COLUMN `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'");
             addColumnIfMissing(connection, statement, "document", "file_path",
-                    "ALTER TABLE `document` ADD COLUMN `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径'");
+                    "ALTER TABLE `document` ADD COLUMN `file_path` VARCHAR(512) COMMENT '历史遗留：git 仓库内相对路径（已弃用）'");
             addColumnIfMissing(connection, statement, "document", "scope_id",
-                    "ALTER TABLE `document` ADD COLUMN `scope_id` VARCHAR(64) COMMENT 'git 仓库 scope，默认等于文档 id'");
+                    "ALTER TABLE `document` ADD COLUMN `scope_id` VARCHAR(64) COMMENT '历史遗留：git 仓库 scope（已弃用）'");
             addIndexIfMissing(connection, statement, "document", "idx_user_id",
                     "ALTER TABLE `document` ADD INDEX `idx_user_id` (`user_id`)");
             addIndexIfMissing(connection, statement, "document", "idx_bucket_name",
@@ -187,9 +187,9 @@ public class DocumentSchemaInitializer implements ApplicationRunner {
             addColumnIfMissing(connection, statement, "document_version", "create_time",
                     "ALTER TABLE `document_version` ADD COLUMN `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'");
             addColumnIfMissing(connection, statement, "document_version", "commit_hash",
-                    "ALTER TABLE `document_version` ADD COLUMN `commit_hash` VARCHAR(64) COMMENT 'git commit hash'");
+                    "ALTER TABLE `document_version` ADD COLUMN `commit_hash` VARCHAR(64) COMMENT '历史遗留：git commit hash（已弃用）'");
             addColumnIfMissing(connection, statement, "document_version", "file_path",
-                    "ALTER TABLE `document_version` ADD COLUMN `file_path` VARCHAR(512) COMMENT 'git 仓库内相对路径'");
+                    "ALTER TABLE `document_version` ADD COLUMN `file_path` VARCHAR(512) COMMENT '历史遗留：git 仓库内相对路径（已弃用）'");
             addColumnIfMissing(connection, statement, "document_version", "note",
                     "ALTER TABLE `document_version` ADD COLUMN `note` TEXT COMMENT '用户备注'");
             addColumnIfMissing(connection, statement, "document_version", "uploaded_by",
@@ -197,7 +197,7 @@ public class DocumentSchemaInitializer implements ApplicationRunner {
             addColumnIfMissing(connection, statement, "document_version", "uploaded_at",
                     "ALTER TABLE `document_version` ADD COLUMN `uploaded_at` DATETIME COMMENT '上传时间'");
             addColumnIfMissing(connection, statement, "document_version", "file_url",
-                    "ALTER TABLE `document_version` ADD COLUMN `file_url` VARCHAR(1024) COMMENT 'MinIO 对象 key，diff 时生成 presigned URL'");
+                    "ALTER TABLE `document_version` ADD COLUMN `file_url` VARCHAR(1024) COMMENT 'MinIO 对象 key（原始文件存储位置）'");
             addIndexIfMissing(connection, statement, "document_version", "idx_document_id",
                     "ALTER TABLE `document_version` ADD INDEX `idx_document_id` (`document_id`)");
             addIndexIfMissing(connection, statement, "document_version", "idx_version_number",

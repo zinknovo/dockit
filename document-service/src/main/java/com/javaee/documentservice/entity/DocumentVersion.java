@@ -31,10 +31,10 @@ public class DocumentVersion {
 
     private String changeLog;
 
-    /** git commit hash */
+    /** 历史遗留：git commit hash（已弃用，保留兼容） */
     private String commitHash;
 
-    /** git 仓库内相对路径 */
+    /** 历史遗留：git 仓库内相对路径（已弃用，保留兼容） */
     private String filePath;
 
     /** 用户备注（可修改，与 changeLog 区分） */
@@ -46,7 +46,7 @@ public class DocumentVersion {
     /** 上传时间 */
     private LocalDateTime uploadedAt;
 
-    /** MinIO 对象 key，diff 时生成 presigned URL 供 doc-parser 下载 */
+    /** MinIO 对象 key（原始文件存储位置） */
     private String fileUrl;
 
     private String createdBy;

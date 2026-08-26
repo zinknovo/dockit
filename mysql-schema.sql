@@ -233,13 +233,13 @@ FLUSH PRIVILEGES;
 
 
 /******************************************/
-/*   业务数据库 = doc_ai                   */
+/*   业务数据库 = dockit                   */
 /******************************************/
-CREATE DATABASE IF NOT EXISTS `doc_ai`
+CREATE DATABASE IF NOT EXISTS `dockit`
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE `doc_ai`;
+USE `dockit`;
 
 -- 用户表（对应 com.javaee.user.entity.User）
 CREATE TABLE IF NOT EXISTS `user` (

@@ -1,11 +1,9 @@
 package com.javaee.documentservice.controller;
 
 import com.javaee.common.model.Result;
-import com.javaee.documentservice.client.dto.ContractCompareResponse;
 import com.javaee.documentservice.dto.DocumentCreateDTO;
 import com.javaee.documentservice.dto.DocumentQueryDTO;
 import com.javaee.documentservice.dto.DocumentUpdateDTO;
-import com.javaee.documentservice.dto.VersionDiffRequest;
 import com.javaee.documentservice.security.RequestUserContext;
 import com.javaee.documentservice.service.DocumentService;
 import com.javaee.documentservice.vo.DocumentVO;
@@ -207,15 +205,15 @@ public class DocumentController {
      * 获取版本文件内容
      * @param id 文档ID
      * @param versionId 版本ID
-     * @return 文件内容
+     * @return 文件原始字节（直接从响应体输出）
      */
     @GetMapping("/{id}/versions/{versionId}/content")
-    @Operation(summary = "获取版本文件内容", description = "读取文档某个版本的文件内容（从 git 历史中取）")
-    public Result<String> getVersionContent(
+    @Operation(summary = "获取版本文件内容", description = "读取文档某个版本的原始文件字节")
+    public byte[] getVersionContent(
             @Parameter(description = "文档ID") @PathVariable String id,
             @Parameter(description = "版本ID") @PathVariable String versionId) {
         Long userId = requestUserContext.getRequiredUserId();
-        return Result.success(documentService.getVersionContent(id, versionId, userId));
+        return documentService.getVersionContent(id, versionId, userId);
     }
 
     /**
@@ -234,21 +232,6 @@ public class DocumentController {
         Long userId = requestUserContext.getRequiredUserId();
         documentService.updateVersionNote(versionId, note, userId);
         return Result.success();
-    }
-
-    /**
-     * 比对两个版本
-     * @param id 文档ID
-     * @param request 比对请求（fromVersionId / toVersionId）
-     * @return 比对结果
-     */
-    @PostMapping("/{id}/diff")
-    @Operation(summary = "比对两个版本", description = "调用 doc-parser 比对文档两个版本的差异")
-    public Result<ContractCompareResponse> diffVersions(
-            @Parameter(description = "文档ID") @PathVariable String id,
-            @RequestBody VersionDiffRequest request) {
-        Long userId = requestUserContext.getRequiredUserId();
-        return Result.success(documentService.diffVersions(id, request.fromVersionId(), request.toVersionId(), userId));
     }
 
     /**

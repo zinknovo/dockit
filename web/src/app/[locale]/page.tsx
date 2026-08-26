@@ -16,7 +16,7 @@ export default function HomePage() {
   }, [ready, token, router])
 
   return (
-    <div className="flex h-screen items-center justify-center text-sm text-g-600">
+    <div className="d-flex vh-100 align-items-center justify-content-center text-sm text-g-600">
       {t('redirecting')}
     </div>
   )

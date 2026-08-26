@@ -1,0 +1,115 @@
+{
+  "groups": [
+    {
+      "name": "spring.ai.models",
+      "type": "com.javaee.aiservice.config.MultiModelConfig",
+      "sourceType": "com.javaee.aiservice.config.MultiModelConfig",
+      "description": "多模型注册表：模型清单完全配置驱动，加模型只加配置。"
+    },
+    {
+      "name": "spring.ai.models.list",
+      "type": "java.util.Map<java.lang.String,com.javaee.aiservice.config.MultiModelConfig$ModelConfig>",
+      "sourceType": "com.javaee.aiservice.config.MultiModelConfig",
+      "description": "模型注册表：code -> 模型配置（provider/name/端点/api-model-name）。"
+    },
+    {
+      "name": "spring.ai.dashscope",
+      "type": "java.util.Map<java.lang.String,java.lang.Object>",
+      "description": "DashScope 客户端配置（rerank 走 DashScope 原生 API）。"
+    },
+    {
+      "name": "spring.ai.dashscope.rerank",
+      "type": "java.util.Map<java.lang.String,java.lang.Object>",
+      "description": "Rerank 配置，可单独覆盖 api-key。"
+    },
+    {
+      "name": "spring.ai.embedding",
+      "type": "java.util.Map<java.lang.String,java.lang.Object>",
+      "description": "向量化 embedding 客户端（OpenAI 兼容端点）。"
+    }
+  ],
+  "properties": [
+    {
+      "name": "spring.ai.models.default",
+      "type": "java.lang.String",
+      "description": "默认对话模型 code，必须存在于 list 中。"
+    },
+    {
+      "name": "spring.ai.models.list.provider",
+      "type": "java.lang.String",
+      "defaultValue": "openai-compatible",
+      "description": "provider 名称，对应 AIServiceProvider 的 name()。"
+    },
+    {
+      "name": "spring.ai.models.list.name",
+      "type": "java.lang.String",
+      "description": "模型显示名（前端模型列表展示），为空时回退到 code。"
+    },
+    {
+      "name": "spring.ai.models.list.api-key",
+      "type": "java.lang.String",
+      "description": "调用模型端点的 API key（env 注入，如 ${OPENAI_API_KEY}）。"
+    },
+    {
+      "name": "spring.ai.models.list.base-url",
+      "type": "java.lang.String",
+      "description": "OpenAI 兼容端点 base url（/chat/completions 前缀）。"
+    },
+    {
+      "name": "spring.ai.models.list.api-model-name",
+      "type": "java.lang.String",
+      "description": "端点实际模型名；为空回退到 model，再为空回退到 code。"
+    },
+    {
+      "name": "spring.ai.models.list.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "是否启用该模型。"
+    },
+    {
+      "name": "spring.ai.embedding.api-key",
+      "type": "java.lang.String",
+      "description": "embedding 端点的 API key。"
+    },
+    {
+      "name": "spring.ai.embedding.base-url",
+      "type": "java.lang.String",
+      "defaultValue": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "description": "embedding 端点 base url（OpenAI 兼容）。"
+    },
+    {
+      "name": "spring.ai.embedding.model",
+      "type": "java.lang.String",
+      "defaultValue": "doubao-embedding-vision",
+      "description": "embedding 模型名。"
+    },
+    {
+      "name": "spring.ai.dashscope.api-key",
+      "type": "java.lang.String",
+      "description": "DashScope API key（env 注入，如 ${DASHSCOPE_API_KEY}）。"
+    },
+    {
+      "name": "spring.ai.dashscope.rerank.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "是否启用 rerank。"
+    },
+    {
+      "name": "spring.ai.dashscope.rerank.model",
+      "type": "java.lang.String",
+      "defaultValue": "gte-rerank-v2",
+      "description": "rerank 模型名。"
+    },
+    {
+      "name": "spring.ai.dashscope.rerank.timeout-ms",
+      "type": "java.lang.Long",
+      "defaultValue": 10000,
+      "description": "rerank 请求超时（毫秒）。"
+    },
+    {
+      "name": "spring.ai.dashscope.rerank.api-key",
+      "type": "java.lang.String",
+      "description": "rerank 专用 API key，为空回退到 spring.ai.dashscope.api-key。"
+    }
+  ]
+}

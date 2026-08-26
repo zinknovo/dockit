@@ -1,9 +1,9 @@
 -- 用户模块数据库初始化脚本
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS `doc_ai` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `dockit` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 使用数据库
-USE `doc_ai`;
+USE `dockit`;
 
 -- 创建用户表
 CREATE TABLE IF NOT EXISTS `user` (

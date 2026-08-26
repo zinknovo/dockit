@@ -3,6 +3,9 @@ package com.javaee.aiservice.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.javaee.aiservice.dto.HtmlPptRequest;
+import com.javaee.aiservice.skills.FileDownloadSkill;
+import com.javaee.aiservice.skills.FileUploadSkill;
+import com.javaee.aiservice.skills.HtmlPptSkill;
 import com.javaee.aiservice.skills.SkillExecutorService;
 import com.javaee.common.model.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,7 +50,7 @@ public class SkillController {
             @Parameter(description = "存储桶名称（可选）") @RequestParam(required = false) String bucketName,
             @Parameter(description = "文件名称（可选）") @RequestParam(required = false) String objectName) {
         // 直接使用文件上传，不使用JSON格式
-        Object result = skillExecutorService.executeSkill("File Upload Skill", file, bucketName, objectName);
+        Object result = skillExecutorService.executeSkill(FileUploadSkill.NAME, file, bucketName, objectName);
         return Result.success(result);
     }
 
@@ -69,7 +72,7 @@ public class SkillController {
         try {
             log.info("开始执行文件下载技能...");
             // 执行技能获取文件流和元数据
-            Object result = skillExecutorService.executeSkill("File Download Skill", objectName, bucketName);
+            Object result = skillExecutorService.executeSkill(FileDownloadSkill.NAME, objectName, bucketName);
             log.info("执行技能成功，获取到结果");
             
             // 检查结果类型
@@ -200,7 +203,7 @@ public class SkillController {
     }
     
     @PostMapping(value = "/html-ppt/generate")
-    @Operation(summary = "生成HTML PPT（返回JSON）", description = "生成HTML PPT，支持选择不同AI模型：qwen3.6-plus, glm-5, kimi-k2.5, MiniMax-M2.5")
+    @Operation(summary = "生成HTML PPT（返回JSON）", description = "生成HTML PPT，模型代码可选，清单见 /api/ai/models")
     public Result<java.util.Map<String, Object>> generateHtmlPpt(@RequestBody HtmlPptRequest request) {
         String outline = request.getOutline();
         String theme = request.getTheme();
@@ -208,7 +211,7 @@ public class SkillController {
         String model = request.getModel();
         
         try {
-            Object result = skillExecutorService.executeSkill("HTML PPT Skill", outline, theme, title, model);
+            Object result = skillExecutorService.executeSkill(HtmlPptSkill.NAME, outline, theme, title, model);
             if (result instanceof java.util.Map) {
                 java.util.Map<?, ?> map = (java.util.Map<?, ?>) result;
                 String htmlContent = (String) map.get("htmlContent");
@@ -263,7 +266,7 @@ public class SkillController {
         String model = request.getModel();
         
         try {
-            Object result = skillExecutorService.executeSkill("HTML PPT Skill", outline, theme, title, model);
+            Object result = skillExecutorService.executeSkill(HtmlPptSkill.NAME, outline, theme, title, model);
             if (result instanceof java.util.Map) {
                 java.util.Map<?, ?> map = (java.util.Map<?, ?>) result;
                 String htmlContent = (String) map.get("htmlContent");

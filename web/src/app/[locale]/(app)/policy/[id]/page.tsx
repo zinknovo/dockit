@@ -58,7 +58,7 @@ export default function PolicyDetailPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-danger">{error}</p>
         <Link href="/policy" className="text-theme">
           {tCommon('backToList')}
         </Link>
@@ -79,9 +79,9 @@ export default function PolicyDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="d-flex align-items-center justify-content-between">
         <div>
-          <h2 className="text-xl font-semibold text-g-900">{detail.name}</h2>
+          <h2 className="text-xl fw-semibold text-g-900">{detail.name}</h2>
           <p className="mt-1 text-sm text-g-600">
             {t('policyCode')}{detail.code}
           </p>
@@ -91,44 +91,44 @@ export default function PolicyDetailPage() {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-box p-5">
-          <h3 className="text-sm font-semibold text-g-800">{t('basicInfo')}</h3>
-          <dl className="mt-4 space-y-2 text-sm text-g-700">
-            <div className="flex justify-between">
+      <div className="row g-4">
+        <div className="col-12 col-md-6 rounded-3 border border-border bg-box p-4">
+          <h3 className="text-sm fw-semibold text-g-800">{t('basicInfo')}</h3>
+          <dl className="mt-3 space-y-2 text-sm text-g-700">
+            <div className="d-flex justify-content-between">
               <dt>{t('type')}</dt>
               <dd>{detail.typeText || detail.type}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('status')}</dt>
               <dd>{detail.statusText || detail.status}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('ownerDept')}</dt>
               <dd>{detail.ownerDeptName}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('currentVersion')}</dt>
               <dd>{detail.currentVersion}</dd>
             </div>
           </dl>
         </div>
-        <div className="rounded-2xl border border-border bg-box p-5">
-          <h3 className="text-sm font-semibold text-g-800">{t('timeInfo')}</h3>
-          <dl className="mt-4 space-y-2 text-sm text-g-700">
-            <div className="flex justify-between">
+        <div className="col-12 col-md-6 rounded-3 border border-border bg-box p-4">
+          <h3 className="text-sm fw-semibold text-g-800">{t('timeInfo')}</h3>
+          <dl className="mt-3 space-y-2 text-sm text-g-700">
+            <div className="d-flex justify-content-between">
               <dt>{t('effectiveDate')}</dt>
               <dd>{detail.effectiveDate || '-'}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('expiryDate')}</dt>
               <dd>{detail.expiryDate || '-'}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('creator')}</dt>
               <dd>{detail.creator}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="d-flex justify-content-between">
               <dt>{t('updatedAt')}</dt>
               <dd>{detail.updatedAt}</dd>
             </div>
@@ -136,32 +136,32 @@ export default function PolicyDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-box p-5">
-        <h3 className="text-sm font-semibold text-g-800">{t('versionHistory')}</h3>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-g-600">
+      <div className="rounded-3 border border-border bg-box p-4">
+        <h3 className="text-sm fw-semibold text-g-800">{t('versionHistory')}</h3>
+        <div className="mt-3 overflow-auto">
+          <table className="table align-middle text-sm">
+            <thead className="text-start text-g-600">
               <tr>
-                <th className="py-2">{t('version')}</th>
-                <th className="py-2">{t('status')}</th>
-                <th className="py-2">{t('creator')}</th>
-                <th className="py-2">{t('createdAt')}</th>
+                <th>{t('version')}</th>
+                <th>{t('status')}</th>
+                <th>{t('creator')}</th>
+                <th>{t('createdAt')}</th>
               </tr>
             </thead>
             <tbody className="text-g-800">
               {versions.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center text-g-500">
+                  <td colSpan={4} className="text-center text-g-500">
                     {t('noVersionRecord')}
                   </td>
                 </tr>
               ) : (
                 versions.map((item) => (
-                  <tr key={item.id} className="border-t border-border">
-                    <td className="py-3">{item.version}</td>
-                    <td className="py-3">{item.statusText || item.status}</td>
-                    <td className="py-3">{item.creator}</td>
-                    <td className="py-3">{item.createdAt}</td>
+                  <tr key={item.id}>
+                    <td>{item.version}</td>
+                    <td>{item.statusText || item.status}</td>
+                    <td>{item.creator}</td>
+                    <td>{item.createdAt}</td>
                   </tr>
                 ))
               )}

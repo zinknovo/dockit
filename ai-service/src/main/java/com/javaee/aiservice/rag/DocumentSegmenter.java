@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Component
 public class DocumentSegmenter {
@@ -48,7 +49,7 @@ public class DocumentSegmenter {
         this.semanticStrategy = semanticStrategy;
     }
 
-    private StrategyType defaultStrategy = StrategyType.CHAPTER;
+    private final StrategyType defaultStrategy = StrategyType.CHAPTER;
 
     public List<SegmentStrategy.Segment> segment(String documentId, String content) {
         return segment(documentId, content, defaultStrategy);
@@ -140,15 +141,16 @@ public class DocumentSegmenter {
         return segment(documentId, content, selectedStrategy);
     }
 
-    private boolean detectChapterMarkers(String content) {
-        String[] chapterPatterns = {
-            "第1章", "第2章", "第1节", "第2节",
-            "第1篇", "第2篇", "第1部", "第2部",
-            "Chapter", "Section", "第[一二三四五六七八九十]"
-        };
+    private static final Pattern[] CHAPTER_MARKER_PATTERNS = {
+            Pattern.compile("^第[一二三四五六七八九十百千\\d]+[章节篇部]\\s*[:：]?"),
+            Pattern.compile("^Chapter\\s+\\d+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^Section\\s+\\d+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^#+\\s+"),
+    };
 
-        for (String pattern : chapterPatterns) {
-            if (content.contains(pattern)) {
+    private boolean detectChapterMarkers(String content) {
+        for (Pattern pattern : CHAPTER_MARKER_PATTERNS) {
+            if (pattern.matcher(content).find()) {
                 return true;
             }
         }
@@ -156,24 +158,11 @@ public class DocumentSegmenter {
     }
 
     private SegmentStrategy getSingleStrategy(StrategyType strategyType) {
-        switch (strategyType) {
-            case FIXED_LENGTH:
-                return fixedLengthStrategy;
-            case CHAPTER:
-                return chapterStrategy;
-            case SEMANTIC:
-                return semanticStrategy;
-            default:
-                return chapterStrategy;
-        }
-    }
-
-    public void setDefaultStrategy(StrategyType strategyType) {
-        this.defaultStrategy = strategyType;
-    }
-
-    public StrategyType getDefaultStrategy() {
-        return defaultStrategy;
+        return switch (strategyType) {
+            case FIXED_LENGTH -> fixedLengthStrategy;
+            case SEMANTIC -> semanticStrategy;
+            default -> chapterStrategy;
+        };
     }
 
     public Map<String, String> getAvailableStrategies() {

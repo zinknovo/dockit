@@ -39,7 +39,7 @@ class AsyncAIJobListenerTest {
         AsyncAIJobMessage message = new AsyncAIJobMessage();
         message.setJobId("job-1");
         message.setType("agent");
-        message.setModel("qwen3.6-plus");
+        message.setModel("deepseek-v4-pro");
         message.setUserId("user-1");
         message.setPayload(Map.of(
                 "task", "总结当前文档",
@@ -54,7 +54,7 @@ class AsyncAIJobListenerTest {
         verify(agentExecutionService).execute(requestCaptor.capture());
         AgentExecutionRequest request = requestCaptor.getValue();
         assertThat(request.getTask()).isEqualTo("总结当前文档");
-        assertThat(request.getModel()).isEqualTo("qwen3.6-plus");
+        assertThat(request.getModel()).isEqualTo("deepseek-v4-pro");
         assertThat(request.getUserId()).isEqualTo("user-1");
         assertThat(request.getConversationId()).isEqualTo("conv-1");
         assertThat(request.getContext()).containsEntry("documentId", "doc-1");

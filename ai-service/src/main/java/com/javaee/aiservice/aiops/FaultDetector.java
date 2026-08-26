@@ -67,21 +67,26 @@ public class FaultDetector {
     }
 
     private void detectPerformanceIssues(List<FaultRecord> issues) {
-        String fingerprint = "PERFORMANCE_DEGRADED:ai.request";
-        TimerStats stats = monitoringService.getTimerStatsObject("ai.request", detectionWindowMs);
+        // 监控的 timer 指标：HTTP 请求层 + RAG 检索链路
+        String[] monitoredTimers = {"ai.request", "rag.search"};
 
-        if (stats.getCount() >= minRequestCount && stats.getP95() > latencyP95ThresholdMs) {
-            FaultRecord fault = createOrUpdateFault(
-                    "PERFORMANCE_DEGRADED",
-                    fingerprint,
-                    "AI请求 P95 响应时间超过阈值: p95=" + stats.getP95()
-                            + "ms, threshold=" + latencyP95ThresholdMs + "ms, windowMs=" + detectionWindowMs
-            );
-            issues.add(fault);
-            return;
+        for (String timerName : monitoredTimers) {
+            String fingerprint = "PERFORMANCE_DEGRADED:" + timerName;
+            TimerStats stats = monitoringService.getTimerStatsObject(timerName, detectionWindowMs);
+
+            if (stats.getCount() >= minRequestCount && stats.getP95() > latencyP95ThresholdMs) {
+                FaultRecord fault = createOrUpdateFault(
+                        "PERFORMANCE_DEGRADED",
+                        fingerprint,
+                        timerName + " P95 响应时间超过阈值: p95=" + stats.getP95()
+                                + "ms, threshold=" + latencyP95ThresholdMs + "ms, windowMs=" + detectionWindowMs
+                );
+                issues.add(fault);
+                return;
+            }
+
+            autoResolve(fingerprint);
         }
-
-        autoResolve(fingerprint);
     }
 
     private void detectThresholdBreaches(List<FaultRecord> issues) {

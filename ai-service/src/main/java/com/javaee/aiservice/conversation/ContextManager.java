@@ -1,18 +1,21 @@
 package com.javaee.aiservice.conversation;
 
+import com.javaee.common.utils.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.Map;
 
 /**
  * 上下文管理器
  * 管理对话上下文和状态
  * 支持上下文的保存、更新和清理
+ * 上下文与 Conversation 共享同一生命周期（ai.conversation.expiry-hours），每次写入刷新 TTL。
  */
 @Component
 public class ContextManager {
@@ -21,6 +24,9 @@ public class ContextManager {
     private static final String CONTEXT_PREFIX = "ctx:";
 
     private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${ai.conversation.expiry-hours:24}")
+    private int expiryHours;
 
     @Autowired
     public ContextManager(RedisTemplate<String, Object> redisTemplate) {
@@ -34,13 +40,10 @@ public class ContextManager {
      */
     public Map<String, Object> getContext(String conversationId) {
         String key = CONTEXT_PREFIX + conversationId;
-        
+
         Map<Object, Object> hash = redisTemplate.opsForHash().entries(key);
-        Map<String, Object> context = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : hash.entrySet()) {
-            context.put(entry.getKey().toString(), entry.getValue());
-        }
-        
+        Map<String, Object> context = MapUtils.toStringObjectMap(hash);
+
         log.debug("获取上下文: conversationId={}, size={}", conversationId, context.size());
         return context;
     }
@@ -57,7 +60,8 @@ public class ContextManager {
 
         String key = CONTEXT_PREFIX + conversationId;
         redisTemplate.opsForHash().putAll(key, updates);
-        
+        redisTemplate.expire(key, Duration.ofHours(expiryHours));
+
         log.debug("更新上下文: conversationId={}, updates={}", conversationId, updates.size());
     }
 
@@ -70,7 +74,8 @@ public class ContextManager {
     public void setContextValue(String conversationId, String key, Object value) {
         String contextKey = CONTEXT_PREFIX + conversationId;
         redisTemplate.opsForHash().put(contextKey, key, value);
-        
+        redisTemplate.expire(contextKey, Duration.ofHours(expiryHours));
+
         log.debug("设置上下文字段: conversationId={}, key={}", conversationId, key);
     }
 
@@ -112,7 +117,8 @@ public class ContextManager {
         String key = CONTEXT_PREFIX + conversationId;
         redisTemplate.delete(key);
         redisTemplate.opsForHash().putAll(key, currentContext);
-        
+        redisTemplate.expire(key, Duration.ofHours(expiryHours));
+
         log.debug("合并上下文: conversationId={}, size={}", conversationId, currentContext.size());
     }
 }

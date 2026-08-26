@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -151,6 +152,16 @@ public class MonitoringService {
         redisTemplate.opsForHash().putAll(key, getAllMetrics());
         redisTemplate.expire(key, Duration.ofHours(24));
         log.debug("指标已保存: key={}", key);
+    }
+
+    /** 全部计数器名（供 Prometheus 导出） */
+    public Set<String> getCounterNames() {
+        return new java.util.HashSet<>(counters.keySet());
+    }
+
+    /** 全部 timer 名（供 Prometheus 导出） */
+    public Set<String> getTimerNames() {
+        return new java.util.HashSet<>(timers.keySet());
     }
 
     public void resetMetrics() {

@@ -48,6 +48,25 @@ class DocumentSegmenterTest {
         assertThat(segments.get(0).getContent()).isEqualTo("fixed content");
     }
 
+    /**
+     * 回归：中文数字章节（"第一章"）此前被当字面量 contains 匹配（正则串原样查找），
+     * 永远检测不到章节结构，长文档被误判走语义分段。
+     */
+    @Test
+    void autoStrategyDetectsChineseNumeralChapterMarkers() {
+        DocumentSegmenter segmenter = new DocumentSegmenter(null, null, null);
+        ReflectionTestUtils.setField(segmenter, "chapterStrategy",
+                new StubChapterSegmentStrategy(List.of(segment("doc-1", "chapter content", 0, "第一章"))));
+
+        List<SegmentStrategy.Segment> segments = segmenter.segment(
+                "doc-1",
+                "第一章 引言\n这是第一章的正文内容，足够长以确保不会误走固定长度。",
+                DocumentSegmenter.StrategyType.AUTO);
+
+        assertThat(segments).hasSize(1);
+        assertThat(segments.get(0).getTitle()).isEqualTo("第一章");
+    }
+
     private static SegmentStrategy.Segment segment(String documentId, String content, int index) {
         return new SegmentStrategy.Segment(documentId, content, index);
     }

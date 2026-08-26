@@ -72,9 +72,9 @@ public class AIController {
         java.util.List<Map<String, Object>> models = aiServiceFactory.getAllServices().entrySet().stream()
             .map(entry -> {
                 Map<String, Object> model = new HashMap<>();
-                model.put("code", entry.getKey().getCode());
-                model.put("name", entry.getKey().getName());
-                model.put("provider", entry.getKey().getProvider());
+                model.put("code", entry.getKey());
+                model.put("name", entry.getValue().getModelName());
+                model.put("provider", entry.getValue().getProviderName());
                 model.put("available", entry.getValue().isAvailable());
                 return model;
             })
@@ -89,13 +89,10 @@ public class AIController {
      * @return 摘要结果
      */
     @PostMapping("/summarize")
-    @Operation(summary = "文档摘要", description = "对文档进行智能摘要，支持选择不同模型：qwen3.6-plus, glm-5, kimi-k2.5, MiniMax-M2.5")
+    @Operation(summary = "文档摘要", description = "对文档进行智能摘要，模型代码可选，清单见 /api/ai/models")
     public Result<TextSummarizeVO> summarize(
             @RequestBody TextSummarizeDTO dto,
-            @Parameter(description = "选择AI模型（可选，默认qwen3.6-plus）", 
-                      in = ParameterIn.QUERY,
-                      schema = @Schema(allowableValues = {"qwen3.6-plus", "glm-5", "kimi-k2.5", "MiniMax-M2.5"}, 
-                                        defaultValue = "qwen3.6-plus"))
+            @Parameter(description = "模型代码（可选，默认见 spring.ai.models.default）", in = ParameterIn.QUERY)
             @RequestParam(required = false) String model) {
         TextSummarizeVO vo = aiService.summarize(dto, model);
         return Result.success(vo);
@@ -108,13 +105,10 @@ public class AIController {
      * @return 关键词结果
      */
     @PostMapping("/keywords")
-    @Operation(summary = "关键词提取", description = "从文档中提取关键词，支持选择不同模型：qwen3.6-plus, glm-5, kimi-k2.5, MiniMax-M2.5")
+    @Operation(summary = "关键词提取", description = "从文档中提取关键词，模型代码可选，清单见 /api/ai/models")
     public Result<KeywordExtractVO> extractKeywords(
             @RequestBody KeywordExtractDTO dto,
-            @Parameter(description = "选择AI模型（可选，默认qwen3.6-plus）", 
-                      in = ParameterIn.QUERY,
-                      schema = @Schema(allowableValues = {"qwen3.6-plus", "glm-5", "kimi-k2.5", "MiniMax-M2.5"}, 
-                                        defaultValue = "qwen3.6-plus"))
+            @Parameter(description = "模型代码（可选，默认见 spring.ai.models.default）", in = ParameterIn.QUERY)
             @RequestParam(required = false) String model) {
         KeywordExtractVO vo = aiService.extractKeywords(dto, model);
         return Result.success(vo);

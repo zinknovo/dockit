@@ -45,10 +45,8 @@ public class AsyncAIController {
     @Operation(summary = "异步文档摘要", description = "提交摘要任务到RabbitMQ，立即返回jobId")
     public Result<AsyncAIJobVO> submitSummarize(
             @RequestBody TextSummarizeDTO dto,
-            @Parameter(description = "选择AI模型（可选，默认qwen3.6-plus）",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(allowableValues = {"qwen3.6-plus", "glm-5", "kimi-k2.5", "MiniMax-M2.5"},
-                            defaultValue = "qwen3.6-plus"))
+            @Parameter(description = "模型代码（可选，默认见 spring.ai.models.default）",
+                    in = ParameterIn.QUERY)
             @RequestParam(required = false) String model) {
         return Result.success(asyncAIJobService.submit("summarize", dto, model, requestUserContext.getRequiredUserId()));
     }
@@ -57,10 +55,8 @@ public class AsyncAIController {
     @Operation(summary = "异步关键词提取", description = "提交关键词提取任务到RabbitMQ，立即返回jobId")
     public Result<AsyncAIJobVO> submitKeywords(
             @RequestBody KeywordExtractDTO dto,
-            @Parameter(description = "选择AI模型（可选，默认qwen3.6-plus）",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(allowableValues = {"qwen3.6-plus", "glm-5", "kimi-k2.5", "MiniMax-M2.5"},
-                            defaultValue = "qwen3.6-plus"))
+            @Parameter(description = "模型代码（可选，默认见 spring.ai.models.default）",
+                    in = ParameterIn.QUERY)
             @RequestParam(required = false) String model) {
         return Result.success(asyncAIJobService.submit("keywords", dto, model, requestUserContext.getRequiredUserId()));
     }
@@ -75,10 +71,8 @@ public class AsyncAIController {
     @Operation(summary = "异步通用模型调用", description = "提交通用prompt到RabbitMQ，后台调用模型并写回结果")
     public Result<AsyncAIJobVO> submitChat(
             @RequestBody AsyncChatDTO dto,
-            @Parameter(description = "选择AI模型（可选，默认qwen3.6-plus）",
-                    in = ParameterIn.QUERY,
-                    schema = @Schema(allowableValues = {"qwen3.6-plus", "glm-5", "kimi-k2.5", "MiniMax-M2.5"},
-                            defaultValue = "qwen3.6-plus"))
+            @Parameter(description = "模型代码（可选，默认见 spring.ai.models.default）",
+                    in = ParameterIn.QUERY)
             @RequestParam(required = false) String model) {
         return Result.success(asyncAIJobService.submit("chat", dto, model, requestUserContext.getRequiredUserId()));
     }

@@ -82,16 +82,16 @@ export default function AgentPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="d-flex flex-column h-main">
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-g-900">AI Agent</h2>
+        <h2 className="text-xl fw-semibold text-g-900">AI Agent</h2>
         <p className="mt-1 text-sm text-g-600">智能规划执行 · 自动调用工具 · 多轮对话</p>
       </div>
 
       {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+      <div className="flex-grow-1 overflow-auto space-y-4 pr-2">
         {messages.length === 0 && (
-          <div className="text-center text-sm text-g-400 mt-20">
+          <div className="text-center text-sm text-g-400 mt-5">
             <p className="text-lg mb-2">🤖</p>
             <p>输入任务，Agent 自动规划并执行</p>
             <p className="mt-1 text-xs">例如：&quot;帮我总结知识库里关于文档处理的资料&quot;</p>
@@ -99,40 +99,40 @@ export default function AgentPage() {
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+          <div key={i} className={`d-flex ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
+            <div className={`max-w-80p rounded-3 px-3 py-3 text-sm ${
               msg.role === 'user'
                 ? 'bg-theme text-white'
                 : 'bg-box border border-border text-g-800'
             }`}>
-              <pre className="whitespace-pre-wrap wrap-break-word font-sans">{msg.content}</pre>
+              <pre className="text-pre-wrap wrap-break-word font-sans">{msg.content}</pre>
 
               {msg.plan && msg.plan.length > 0 && (
                 <button
                   onClick={() => toggleExpand(i)}
-                  className="mt-2 text-xs text-g-400 hover:text-g-600"
+                  className="mt-2 text-xs text-g-400 hover-text-g-600"
                 >
                   {expanded[i] ? '收起执行详情 ▲' : '查看执行详情 ▼'}
                 </button>
               )}
 
               {expanded[i] && msg.plan && (
-                <div className="mt-2 space-y-2 border-t border-g-100 pt-2">
-                  <p className="text-xs font-medium text-g-500">执行计划</p>
+                <div className="mt-2 space-y-2 border-top border-g-100 pt-2">
+                  <p className="text-xs fw-medium text-g-500">执行计划</p>
                   {msg.plan.map((step: PlanStep, si: number) => (
-                    <div key={si} className="text-xs bg-g-50 rounded-lg p-2">
-                      <span className="font-medium">{step.toolName}</span>
-                      <span className={`ml-2 px-1 rounded text-white text-[10px] ${
-                        step.status === 'success' ? 'bg-green-500' :
-                        step.status === 'error' ? 'bg-red-500' :
-                        step.status === 'skipped' ? 'bg-gray-400' : 'bg-yellow-500'
+                    <div key={si} className="text-xs bg-g-50 rounded-2 p-2">
+                      <span className="fw-medium">{step.toolName}</span>
+                      <span className={`ml-2 px-1 rounded-1 text-white text-10px ${
+                        step.status === 'success' ? 'bg-success' :
+                        step.status === 'error' ? 'bg-danger' :
+                        step.status === 'skipped' ? 'bg-secondary' : 'bg-warning'
                       }`}>{step.status || 'pending'}</span>
-                      <p className="text-g-500 mt-0.5">{step.description}</p>
-                      {step.observation && <p className="text-g-600 mt-0.5">→ {step.observation}</p>}
+                      <p className="text-g-500 mt-1">{step.description}</p>
+                      {step.observation && <p className="text-g-600 mt-1">→ {step.observation}</p>}
                     </div>
                   ))}
                   {msg.traceId && (
-                    <p className="text-[10px] text-g-400">Trace ID: {msg.traceId}</p>
+                    <p className="text-10px text-g-400">Trace ID: {msg.traceId}</p>
                   )}
                 </div>
               )}
@@ -141,8 +141,8 @@ export default function AgentPage() {
         ))}
 
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-box border border-border rounded-2xl px-4 py-3">
+          <div className="d-flex justify-content-start">
+            <div className="bg-box border border-border rounded-3 px-4 py-3">
               <p className="text-sm text-g-500 animate-pulse">Agent 思考中...</p>
             </div>
           </div>
@@ -152,9 +152,9 @@ export default function AgentPage() {
       </div>
 
       {/* 输入框 */}
-      <div className="mt-4 flex gap-2">
+      <div className="input-group mt-3">
         <input
-          className="flex-1 rounded-xl border border-border bg-box px-4 py-3 text-sm focus:border-theme focus:outline-none"
+          className="form-control py-2"
           placeholder="输入任务描述..."
           value={input}
           onChange={e => setInput(e.target.value)}
@@ -164,7 +164,7 @@ export default function AgentPage() {
         <button
           onClick={send}
           disabled={loading || !input.trim()}
-          className="rounded-xl bg-theme px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          className="btn btn-primary fw-medium"
         >
           发送
         </button>

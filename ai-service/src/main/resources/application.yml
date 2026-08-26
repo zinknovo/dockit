@@ -10,26 +10,12 @@ spring:
     exclude:
       - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
   
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:doc_ai}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 4
-      minimum-idle: 1
-      idle-timeout: 30000
-      max-lifetime: 300000
-      connection-timeout: 10000
-
   cloud:
     compatibility-verifier:
       enabled: false
     nacos:
       discovery:
         server-addr: ${NACOS_HOST:nacos}:${NACOS_PORT:8848}
-        namespace: public
-      client:
         namespace: public
 
   data:
@@ -48,22 +34,44 @@ spring:
 
   ai:
     models:
-      default: deepseek-v4-pro
+      default: deepseek-v4-flash-vision-exp
+      # 模型注册表：code -> (provider, name, 端点, 实际模型名)。加模型只加配置，无需改代码。
+      list:
+        deepseek-v4-pro:
+          provider: openai-compatible
+          name: DeepSeek V4 Pro
+          api-key: ${OPENAI_API_KEY}
+          base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+          api-model-name: deepseek-v4-pro
+          enabled: true
+        deepseek-v4-flash-vision-exp:
+          provider: openai-compatible
+          name: DeepSeek V4 Flash Vision Exp
+          api-key: ${OPENAI_API_KEY}
+          base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+          api-model-name: deepseek-v4-flash-vision-exp
+          enabled: true
+        ark-code-latest:
+          provider: openai-compatible
+          name: 火山方舟代码模型
+          api-key: ${ARK_API_KEY}
+          base-url: ${ARK_BASE_URL:https://ark.cn-beijing.volces.com/api/plan/v3}
+          api-model-name: auto
+          enabled: true
+    # 向量化 embedding（OpenAI 兼容端点，当前为火山方舟 doubao-embedding-vision）
+    embedding:
+      api-key: ${ARK_API_KEY}
+      base-url: ${ARK_BASE_URL:https://ark.cn-beijing.volces.com/api/plan/v3}
+      model: doubao-embedding-vision
+      # token 速率上限（/秒）：实测账户滑窗限流约 4000 token/s；1000/s 为安全线，可按实测调高
+      tokens-per-second: ${ARK_EMBEDDING_TPS:1000}
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}
-      chat:
-        model: qwen3.6-plus
-      embedding:
-        model: text-embedding-v4
-        api-key: ${DASHSCOPE_API_KEY}
       rerank:
         enabled: true
         model: qwen3-rerank
         timeout-ms: 10000
         api-key: ${DASHSCOPE_API_KEY}
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
 
   rabbitmq:
     host: ${RABBITMQ_HOST:rabbitmq}
@@ -87,12 +95,8 @@ ai:
     reflection:
       enabled: true
   vector:
-    dimension: 1024
-    hnsw:
-      m: 16
-      ef-construction: 200
-      ef: 128
-      max-items: 200000
+    # Docker 部署由 compose 传入 QDRANT_URL=http://qdrant:6333，本地 IDE 默认 localhost
+    qdrant-url: ${QDRANT_URL:http://localhost:6333}
   aiops:
     metrics:
       retention-ms: 900000
@@ -105,32 +109,6 @@ ai:
       min-request-count: 10
     alert:
       cooldown-ms: 300000
-  # 多模型配置
-  models:
-    openai:
-      qwen3.6-plus:
-        api-key: ${OPENAI_API_KEY}
-        base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
-        # 当 OPENAI_BASE_URL 指向 DeepSeek 等第三方端点时，把内部模型名映射到厂商实际模型名
-        api-model-name: deepseek-v4-pro
-        enabled: true
-      deepseek-v4-pro:
-        api-key: ${OPENAI_API_KEY}
-        base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
-        api-model-name: deepseek-v4-pro
-        enabled: true
-      glm-5:
-        api-key: ${OPENAI_API_KEY}
-        base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
-        enabled: true
-      kimi-k2.5:
-        api-key: ${OPENAI_API_KEY}
-        base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
-        enabled: true
-      MiniMax-M2.5:
-        api-key: ${OPENAI_API_KEY}
-        base-url: ${OPENAI_BASE_URL:https://coding.dashscope.aliyuncs.com/v1}
-        enabled: true
 
 # MinIO配置
 minio:

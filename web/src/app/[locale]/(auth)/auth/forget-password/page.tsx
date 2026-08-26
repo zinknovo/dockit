@@ -16,24 +16,24 @@ export default function ForgetPasswordPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-g-900">{t('forgetPasswordTitle')}</h1>
+        <h1 className="text-2xl fw-semibold text-g-900">{t('forgetPasswordTitle')}</h1>
         <p className="mt-2 text-sm text-g-600">{t('forgetPasswordSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('username')}
           <input
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('usernamePlaceholder')}
             required
           />
         </label>
 
-        <label className="block text-sm text-g-700">
+        <label className="d-block text-sm text-g-700">
           {t('verifyCode')}
           <input
-            className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2 focus:border-theme focus:outline-none"
+            className="form-control mt-2"
             placeholder={t('verifyCodePlaceholder')}
             required
           />
@@ -45,7 +45,7 @@ export default function ForgetPasswordPage() {
 
         <button
           type="submit"
-          className="w-full rounded-lg border border-theme bg-transparent px-4 py-2 text-sm font-medium text-theme transition hover:bg-theme/10"
+          className="btn btn-outline-primary w-100 fw-medium"
         >
           {t('submitApply')}
         </button>

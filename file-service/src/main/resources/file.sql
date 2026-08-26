@@ -1,7 +1,7 @@
 -- File service database initialization script.
-CREATE DATABASE IF NOT EXISTS `doc_ai` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `dockit` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE `doc_ai`;
+USE `dockit`;
 
 CREATE TABLE IF NOT EXISTS `file_metadata` (
   `id` VARCHAR(64) NOT NULL COMMENT 'metadata primary key',

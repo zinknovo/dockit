@@ -37,7 +37,7 @@ class DocumentServiceImplTest {
         documentVersionMapper = mock(DocumentVersionMapper.class);
         documentContentService = mock(DocumentContentService.class);
         documentAccessService = mock(DocumentAccessService.class);
-        documentService = new DocumentServiceImpl(null, null, null, null, null, null, null, null, null, null);
+        documentService = new DocumentServiceImpl(null, null, null, null, null, null, null);
         ReflectionTestUtils.setField(documentService, "documentMapper", documentMapper);
         ReflectionTestUtils.setField(documentService, "documentVersionMapper", documentVersionMapper);
         ReflectionTestUtils.setField(documentService, "documentContentService", documentContentService);

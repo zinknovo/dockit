@@ -1,125 +1,64 @@
 package com.javaee.aiservice.rag;
 
-import com.github.jelmerk.knn.DistanceFunctions;
-import com.github.jelmerk.knn.Item;
-import com.github.jelmerk.knn.SearchResult;
-import com.github.jelmerk.knn.hnsw.HnswIndex;
-import jakarta.annotation.PostConstruct;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.time.Duration;
+import java.util.*;
 
 /**
- * 向量存储
- * - 写入：Redis 持久化向量与元数据；HNSW in-memory 索引建立近邻图
- * - 检索：先在 HNSW 中做近似最近邻搜索，再用 Redis 中的元数据做过滤
- * - 启动：从 Redis 灌入历史向量重建索引
+ * 向量存储：基于 Qdrant（独立向量数据库，REST API）。
+ * - collection 首次写入时按向量实际维度创建（Cosine 距离）
+ * - 内部 id 映射为确定性 UUID（UUID.nameUUIDFromBytes），原始 id 存入 payload.rawId
+ * - 检索按 payload 等值过滤（filters 中值为空的键忽略）
  */
 @Component
 public class VectorStore {
 
     private static final Logger log = LoggerFactory.getLogger(VectorStore.class);
-    private static final String VECTOR_PREFIX = "vector:";
-    private static final String METADATA_PREFIX = "metadata:";
+    private static final String COLLECTION = "dockit-docs";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    @Value("${ai.vector.qdrant-url:http://localhost:6333}")
+    private String qdrantUrl;
 
-    @Autowired
-    public VectorStore(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
-    @Value("${ai.vector.dimension:1024}")
-    private int defaultDimension;
-
-    @Value("${ai.vector.hnsw.m:16}")
-    private int hnswM;
-
-    @Value("${ai.vector.hnsw.ef-construction:200}")
-    private int hnswEfConstruction;
-
-    @Value("${ai.vector.hnsw.ef:128}")
-    private int hnswEf;
-
-    @Value("${ai.vector.hnsw.max-items:200000}")
-    private int hnswMaxItems;
-
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private volatile HnswIndex<String, float[], FloatArrayItem, Float> index;
-    private volatile int dimension;
-
-    @PostConstruct
-    public void initialize() {
-        try {
-            warmupFromRedis();
-        } catch (Exception e) {
-            log.warn("HNSW 索引初始化失败，将在首次写入时构建: {}", e.getMessage());
-        }
-    }
-
-    /** 启动时从 Redis 重建 HNSW 索引。 */
-    private void warmupFromRedis() {
-        List<String> keys = scanKeys(VECTOR_PREFIX + "*", 1000);
-        if (keys == null || keys.isEmpty()) {
-            log.info("未发现已有向量数据，HNSW 索引延迟构建");
-            return;
-        }
-        for (String key : keys) {
-            String id = key.substring(VECTOR_PREFIX.length());
-            float[] vector = convertToFloatArray(redisTemplate.opsForValue().get(key));
-            if (vector == null) {
-                continue;
-            }
-            ensureIndex(vector.length);
-            try {
-                index.add(new FloatArrayItem(id, vector));
-            } catch (Exception e) {
-                log.warn("HNSW 索引重建时跳过向量 id={}: {}", id, e.getMessage());
-            }
-        }
-        log.info("HNSW 索引重建完成，载入 {} 个向量", index == null ? 0 : index.size());
-    }
+    /** 首次写入时按实际向量维度创建 collection，之后复用 */
+    private volatile int collectionDimension = -1;
 
     /**
-     * 存储向量
+     * 存储向量（首次写入时自动创建 collection）
      */
     public void store(String id, float[] vector, Map<String, Object> metadata) {
         log.info("存储向量: id={}, dimension={}", id, vector.length);
         try {
-            String vectorKey = VECTOR_PREFIX + id;
-            String metadataKey = METADATA_PREFIX + id;
+            ensureCollection(vector.length);
 
-            List<Float> vectorList = new ArrayList<>(vector.length);
-            for (float v : vector) {
-                vectorList.add(v);
-            }
-            redisTemplate.opsForValue().set(vectorKey, vectorList);
-            redisTemplate.opsForHash().putAll(metadataKey, metadata);
+            Map<String, Object> payload = new HashMap<>(metadata);
+            payload.put("rawId", id);
 
-            ensureIndex(vector.length);
-            lock.writeLock().lock();
-            try {
-                index.remove(id, 0L);
-                index.add(new FloatArrayItem(id, vector));
-            } finally {
-                lock.writeLock().unlock();
-            }
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("id", toUuid(id));
+            point.put("vector", toDoubleList(vector));
+            point.put("payload", payload);
 
-            log.info("向量存储成功: id={}", id);
+            Map<String, Object> body = new HashMap<>();
+            body.put("points", List.of(point));
+
+            String response = put("/collections/" + COLLECTION + "/points?wait=true", body);
+            log.info("向量存储成功: id={}, qdrant响应={}", id, response);
         } catch (Exception e) {
             log.error("向量存储失败", e);
             throw new RuntimeException("向量存储失败: " + e.getMessage(), e);
@@ -132,42 +71,44 @@ public class VectorStore {
 
     public List<Map<String, Object>> search(float[] queryVector, int topK, Map<String, Object> filters) {
         log.info("搜索相似向量: topK={}", topK);
-
-        if (index == null || index.size() == 0) {
-            log.warn("HNSW 索引为空");
-            return Collections.emptyList();
-        }
-
         try {
-            int candidateCount = Math.max(topK * 4, topK + 16);
-            List<SearchResult<FloatArrayItem, Float>> hits;
-            lock.readLock().lock();
-            try {
-                hits = index.findNearest(queryVector, candidateCount);
-            } finally {
-                lock.readLock().unlock();
+            Map<String, Object> body = new HashMap<>();
+            body.put("vector", toDoubleList(queryVector));
+            body.put("limit", Math.max(topK, 1));
+            body.put("with_payload", true);
+            if (filters != null && !filters.isEmpty()) {
+                body.put("filter", buildFilter(filters));
             }
 
-            List<Map<String, Object>> finalResults = new ArrayList<>();
-            for (SearchResult<FloatArrayItem, Float> hit : hits) {
-                if (finalResults.size() >= topK) {
-                    break;
-                }
-                String id = hit.item().id();
-                Map<String, Object> metadata = getMetadata(id);
-                if (!matchesFilters(metadata, filters)) {
+            String response = post("/collections/" + COLLECTION + "/points/search", body);
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode points = root.path("result");
+            if (!points.isArray()) {
+                log.warn("Qdrant 搜索返回异常: {}", response);
+                return Collections.emptyList();
+            }
+
+            List<Map<String, Object>> results = new ArrayList<>();
+            for (JsonNode point : points) {
+                JsonNode payload = point.path("payload");
+                String rawId = payload.path("rawId").asText(null);
+                if (rawId == null) {
                     continue;
                 }
-                float similarity = 1.0f - hit.distance();
+                float similarity = (float) point.path("score").asDouble(0.0);
+
                 Map<String, Object> item = new HashMap<>();
-                item.put("id", id);
+                item.put("id", rawId);
                 item.put("similarity", similarity);
-                item.putAll(metadata);
-                finalResults.add(item);
+                // 与 scrollAll 同一套解析：数字/布尔保持原生类型，不做字符串化
+                Map<String, Object> flat = flattenPayload(payload);
+                flat.remove("rawId");
+                item.putAll(flat);
+                results.add(item);
             }
 
-            log.info("搜索完成，找到{}个结果", finalResults.size());
-            return finalResults;
+            log.info("搜索完成，找到{}个结果", results.size());
+            return results;
         } catch (Exception e) {
             log.error("向量搜索失败", e);
             throw new RuntimeException("向量搜索失败: " + e.getMessage(), e);
@@ -177,16 +118,9 @@ public class VectorStore {
     public void delete(String id) {
         log.info("删除向量: id={}", id);
         try {
-            redisTemplate.delete(VECTOR_PREFIX + id);
-            redisTemplate.delete(METADATA_PREFIX + id);
-            if (index != null) {
-                lock.writeLock().lock();
-                try {
-                    index.remove(id, 0L);
-                } finally {
-                    lock.writeLock().unlock();
-                }
-            }
+            Map<String, Object> body = new HashMap<>();
+            body.put("points", List.of(toUuid(id)));
+            post("/collections/" + COLLECTION + "/points/delete", body);
             log.info("向量删除成功: id={}", id);
         } catch (Exception e) {
             log.error("向量删除失败", e);
@@ -194,124 +128,172 @@ public class VectorStore {
         }
     }
 
-    private void ensureIndex(int vectorDimension) {
-        if (index != null) {
-            return;
-        }
-        lock.writeLock().lock();
-        try {
-            if (index == null) {
-                int dim = vectorDimension > 0 ? vectorDimension : defaultDimension;
-                this.dimension = dim;
-                this.index = HnswIndex
-                        .newBuilder(dim, DistanceFunctions.FLOAT_COSINE_DISTANCE, hnswMaxItems)
-                        .withM(hnswM)
-                        .withEfConstruction(hnswEfConstruction)
-                        .withEf(hnswEf)
-                        .build();
-                log.info("HNSW 索引已创建: dimension={}, M={}, efConstruction={}, ef={}, maxItems={}",
-                        dim, hnswM, hnswEfConstruction, hnswEf, hnswMaxItems);
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
+    /**
+     * 读取向量的 payload（元数据），供 BM25 等非向量检索复用过滤
+     */
+    public Map<String, Object> getMetadata(String id) {
+        return getPayload(id);
     }
 
-    private Map<String, Object> getMetadata(String id) {
+    /**
+     * 读取点的完整 payload（保留字段类型：字符串/数字/数组），供原文与分段映射读取
+     */
+    public Map<String, Object> getPayload(String id) {
         try {
-            Map<Object, Object> hash = redisTemplate.opsForHash().entries(METADATA_PREFIX + id);
-            Map<String, Object> metadata = new HashMap<>();
-            for (Map.Entry<Object, Object> entry : hash.entrySet()) {
-                metadata.put(entry.getKey().toString(), entry.getValue());
+            Map<String, Object> body = new HashMap<>();
+            body.put("ids", List.of(toUuid(id)));
+            body.put("with_payload", true);
+            String response = post("/collections/" + COLLECTION + "/points", body);
+            JsonNode points = objectMapper.readTree(response).path("result");
+            if (points.isArray() && points.size() > 0) {
+                return flattenPayload(points.get(0).path("payload"));
             }
-            return metadata;
+            return Collections.emptyMap();
         } catch (Exception e) {
-            log.warn("获取元数据失败", e);
+            log.warn("读取向量元数据失败: id={}: {}", id, e.getMessage());
             return Collections.emptyMap();
         }
     }
 
-    private List<String> scanKeys(String pattern, int count) {
-        List<String> keys = new ArrayList<>();
-        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(count).build();
-        var connectionFactory = redisTemplate.getConnectionFactory();
-        if (connectionFactory == null) {
-            return keys;
-        }
-        try (var cursor = connectionFactory.getConnection().scan(options)) {
-            while (cursor.hasNext()) {
-                keys.add(new String(cursor.next(), StandardCharsets.UTF_8));
-            }
-        }
-        return keys;
+    /**
+     * 滚动读取全部点的 payload（含 rawId），供 BM25 / 统计等全量扫描场景
+     */
+    public List<Map<String, Object>> scrollAll() {
+        return scrollAll(Collections.emptyMap());
     }
 
-    private boolean matchesFilters(Map<String, Object> metadata, Map<String, Object> filters) {
-        if (filters == null || filters.isEmpty()) {
-            return true;
-        }
-        for (Map.Entry<String, Object> filter : filters.entrySet()) {
-            Object expected = filter.getValue();
-            if (expected == null || expected.toString().isBlank()) {
-                continue;
+    /**
+     * 按 payload 等值过滤全量扫描（服务端过滤，避免拉回全部点再在内存里筛）。
+     */
+    public List<Map<String, Object>> scrollAll(Map<String, Object> filters) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("limit", 10000);
+            body.put("with_payload", true);
+            if (filters != null && !filters.isEmpty()) {
+                body.put("filter", buildFilter(filters));
             }
-            Object actual = metadata.get(filter.getKey());
-            if (actual == null || !expected.toString().equals(actual.toString())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private float[] convertToFloatArray(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        if (obj instanceof float[]) {
-            return (float[]) obj;
-        }
-        if (obj instanceof List<?> list) {
-            float[] result = new float[list.size()];
-            for (int i = 0; i < list.size(); i++) {
-                Object item = list.get(i);
-                if (item instanceof Number number) {
-                    result[i] = number.floatValue();
-                } else {
-                    log.warn("无法转换向量元素: {}", item);
-                    result[i] = 0.0f;
+            String response = post("/collections/" + COLLECTION + "/points/scroll", body);
+            JsonNode points = objectMapper.readTree(response).path("result").path("points");
+            List<Map<String, Object>> all = new ArrayList<>();
+            if (points.isArray()) {
+                for (JsonNode point : points) {
+                    Map<String, Object> payload = flattenPayload(point.path("payload"));
+                    String rawId = point.path("payload").path("rawId").asText(null);
+                    if (rawId != null) {
+                        payload.put("rawId", rawId);
+                        all.add(payload);
+                    }
                 }
             }
-            return result;
+            return all;
+        } catch (Exception e) {
+            log.warn("Qdrant 全量扫描失败: {}", e.getMessage());
+            return Collections.emptyList();
         }
-        log.warn("无法转换向量对象: {}", obj.getClass().getName());
-        return null;
     }
 
-    /** HNSW 索引项实现。 */
-    private static final class FloatArrayItem implements Item<String, float[]>, Serializable {
-        @java.io.Serial
-        private static final long serialVersionUID = 1L;
-        private final String id;
-        private final float[] vector;
-
-        FloatArrayItem(String id, float[] vector) {
-            this.id = id;
-            this.vector = vector;
+    private Map<String, Object> flattenPayload(JsonNode payload) {
+        Map<String, Object> result = new HashMap<>();
+        if (payload == null || !payload.isObject()) {
+            return result;
         }
+        payload.fieldNames().forEachRemaining(field -> {
+            JsonNode value = payload.path(field);
+            if (value.isTextual()) {
+                result.put(field, value.asText());
+            } else if (value.isNumber()) {
+                result.put(field, value.asDouble());
+            } else if (value.isBoolean()) {
+                result.put(field, value.asBoolean());
+            } else if (value.isArray()) {
+                List<String> items = new ArrayList<>();
+                value.forEach(item -> items.add(item.asText()));
+                result.put(field, items);
+            } else if (value.isObject()) {
+                result.put(field, value.toString());
+            }
+        });
+        return result;
+    }
 
-        @Override
-        public String id() {
-            return id;
+    /**
+     * 创建 collection（幂等：已存在则忽略）。Qdrant 需要固定维度，取首次写入向量的实际维度。
+     */
+    private synchronized void ensureCollection(int dimension) {
+        if (collectionDimension == dimension) {
+            return;
         }
+        try {
+            Map<String, Object> vectors = new HashMap<>();
+            vectors.put("size", dimension);
+            vectors.put("distance", "Cosine");
+            Map<String, Object> body = new HashMap<>();
+            body.put("vectors", vectors);
+            put("/collections/" + COLLECTION, body);
+            collectionDimension = dimension;
+            log.info("Qdrant collection 已就绪: {}, dimension={}", COLLECTION, dimension);
+        } catch (Exception e) {
+            // collection 已存在时 Qdrant 返回 409，视为就绪
+            log.info("Qdrant collection 可能已存在: {}", e.getMessage());
+            collectionDimension = dimension;
+        }
+    }
 
-        @Override
-        public float[] vector() {
-            return vector;
+    private Map<String, Object> buildFilter(Map<String, Object> filters) {
+        List<Map<String, Object>> must = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : filters.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null || value.toString().isBlank()) {
+                continue;
+            }
+            Map<String, Object> match = new HashMap<>();
+            match.put("value", value.toString());
+            Map<String, Object> condition = new HashMap<>();
+            condition.put("key", entry.getKey());
+            condition.put("match", match);
+            must.add(condition);
         }
+        Map<String, Object> filter = new HashMap<>();
+        filter.put("must", must);
+        return filter;
+    }
 
-        @Override
-        public int dimensions() {
-            return vector.length;
+    private String toUuid(String id) {
+        return UUID.nameUUIDFromBytes(id.getBytes(StandardCharsets.UTF_8)).toString();
+    }
+
+    private List<Double> toDoubleList(float[] vector) {
+        List<Double> list = new ArrayList<>(vector.length);
+        for (float v : vector) {
+            list.add((double) v);
         }
+        return list;
+    }
+
+    private String put(String path, Object body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(qdrantUrl + path))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                .build();
+        return send(request);
+    }
+
+    private String post(String path, Object body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(qdrantUrl + path))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                .build();
+        return send(request);
+    }
+
+    private String send(HttpRequest request) throws Exception {
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException("Qdrant HTTP " + response.statusCode() + ": " + response.body());
+        }
+        return response.body();
     }
 }

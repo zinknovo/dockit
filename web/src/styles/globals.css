@@ -1,4 +1,4 @@
-@import './tailwind.css';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
 :root {
   --main-color: #4f46e5;
@@ -37,4 +37,392 @@ button {
 
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== Light Mode Variables ==================== */
+:root {
+  /* Base Colors */
+  --art-color: #ffffff;
+  --theme-color: var(--main-color);
+
+  /* Theme Colors - OKLCH Format */
+  --art-primary: oklch(0.7 0.23 260);
+  --art-secondary: oklch(0.72 0.19 231.6);
+  --art-error: oklch(0.73 0.15 25.3);
+  --art-info: oklch(0.58 0.03 254.1);
+  --art-success: oklch(0.78 0.17 166.1);
+  --art-warning: oklch(0.78 0.14 75.5);
+  --art-danger: oklch(0.68 0.22 25.3);
+
+  /* Gray Scale - Light Mode */
+  --art-gray-100: #f9fafb;
+  --art-gray-200: #f2f4f5;
+  --art-gray-300: #e6eaeb;
+  --art-gray-400: #dbdfe1;
+  --art-gray-500: #949eb7;
+  --art-gray-600: #7987a1;
+  --art-gray-700: #4d5875;
+  --art-gray-800: #383853;
+  --art-gray-900: #323251;
+
+  /* Border Colors */
+  --art-card-border: rgba(0, 0, 0, 0.08);
+
+  --default-border: #e2e8ee;
+  --default-border-dashed: #dbdfe9;
+
+  /* Background Colors */
+  --default-bg-color: #fafbfc;
+  --default-box-color: #ffffff;
+
+  /* Hover Color */
+  --art-hover-color: #edeff0;
+
+  /* Active Color */
+  --art-active-color: #f2f4f5;
+
+  /* Element Component Active Color */
+  --art-el-active-color: #f2f4f5;
+
+  /* ============ Bootstrap Variable Mappings ============ */
+  --bs-body-font-family: var(--app-font);
+  --bs-body-font-size: var(--app-font-size);
+  --bs-primary: var(--theme-color);
+  --bs-body-bg: var(--default-bg-color);
+  --bs-body-color: var(--art-gray-800);
+  --bs-border-color: var(--default-border);
+  --bs-border-radius: var(--custom-radius);
+  --bs-border-radius-lg: calc(var(--custom-radius) * 2);
+  --bs-danger: var(--art-danger);
+  --bs-secondary-color: var(--art-gray-600);
+  --bs-secondary-bg: var(--art-gray-100);
+  --bs-link-color: var(--theme-color);
+  --bs-link-hover-color: var(--theme-color);
+  --bs-btn-font-size: var(--app-font-size);
+}
+
+/* ==================== Dark Mode Variables ==================== */
+.dark,
+[data-bs-theme='dark'] {
+  color-scheme: dark;
+
+  /* Base Colors */
+  --art-color: #000000;
+
+  /* Gray Scale - Dark Mode */
+  --art-gray-100: #110f0f;
+  --art-gray-200: #17171c;
+  --art-gray-300: #393946;
+  --art-gray-400: #505062;
+  --art-gray-500: #73738c;
+  --art-gray-600: #8f8fa3;
+  --art-gray-700: #ababba;
+  --art-gray-800: #c7c7d1;
+  --art-gray-900: #e3e3e8;
+
+  /* Border Colors */
+  --art-card-border: rgba(255, 255, 255, 0.08);
+
+  --default-border: rgba(255, 255, 255, 0.1);
+  --default-border-dashed: #363843;
+
+  /* Background Colors */
+  --default-bg-color: #070707;
+  --default-box-color: #161618;
+
+  /* Hover Color */
+  --art-hover-color: #252530;
+
+  /* Active Color */
+  --art-active-color: #202226;
+
+  /* Element Component Active Color */
+  --art-el-active-color: #2e2e38;
+
+  /* Bootstrap Variable Mappings */
+  --bs-body-bg: var(--default-bg-color);
+  --bs-body-color: var(--art-gray-800);
+  --bs-border-color: var(--default-border);
+  --bs-secondary-color: var(--art-gray-600);
+  --bs-secondary-bg: var(--art-gray-200);
+}
+
+/* ==================== App Token Utilities ==================== */
+/* Backgrounds */
+.bg-page {
+  background-color: var(--default-bg-color);
+}
+
+.bg-black-30 {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.bg-theme-5 {
+  background-color: color-mix(in srgb, var(--theme-color) 5%, transparent);
+}
+
+.bg-box {
+  background-color: var(--default-box-color);
+}
+
+.bg-theme {
+  background-color: var(--theme-color);
+}
+
+.bg-theme-10 {
+  background-color: color-mix(in srgb, var(--theme-color) 10%, transparent);
+}
+
+.bg-g-50 {
+  background-color: var(--art-gray-100);
+}
+
+.bg-auth-gradient {
+  background: radial-gradient(circle at top, rgba(79, 70, 229, 0.12), transparent 55%);
+}
+
+/* Text Colors */
+.text-theme {
+  color: var(--theme-color);
+}
+
+.text-g-400 {
+  color: var(--art-gray-400);
+}
+
+.text-g-500 {
+  color: var(--art-gray-500);
+}
+
+.text-g-600 {
+  color: var(--art-gray-600);
+}
+
+.text-g-700 {
+  color: var(--art-gray-700);
+}
+
+.text-g-800 {
+  color: var(--art-gray-800);
+}
+
+.text-g-900 {
+  color: var(--art-gray-900);
+}
+
+/* Border Colors */
+.border-border {
+  border-color: var(--default-border);
+}
+
+.border-theme {
+  border-color: var(--theme-color);
+}
+
+.border-g-100 {
+  border-color: var(--art-gray-100);
+}
+
+/* Hover / Focus States */
+.hover-bg-hover-color:hover {
+  background-color: var(--art-hover-color);
+}
+
+.hover-border-g-400:hover {
+  border-color: var(--art-gray-400);
+}
+
+.hover-text-g-900:hover {
+  color: var(--art-gray-900);
+}
+
+.hover-bg-theme-10:hover {
+  background-color: color-mix(in srgb, var(--theme-color) 10%, transparent);
+}
+
+.hover-opacity-90:hover {
+  opacity: 0.9;
+}
+
+.hover-text-g-600:hover {
+  color: var(--art-gray-600);
+}
+
+.focus-theme:focus {
+  border-color: var(--theme-color);
+  outline: none;
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--theme-color) 20%, transparent);
+}
+
+/* ==================== App Typography Utilities ==================== */
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.text-10px {
+  font-size: 10px;
+}
+
+.tracking-02 {
+  letter-spacing: 0.2em;
+}
+
+.font-sans {
+  font-family: var(--app-font);
+}
+
+.wrap-break-word {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ==================== App Spacing Utilities ==================== */
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.25rem;
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.5rem;
+}
+
+.space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+
+/* ==================== App Sizing Utilities ==================== */
+.h-8 {
+  height: 2rem;
+}
+
+.h-14 {
+  height: 3.5rem;
+}
+
+.h-24 {
+  height: 6rem;
+}
+
+.h-32 {
+  height: 8rem;
+}
+
+.h-main {
+  height: calc(100vh - 8rem);
+}
+
+.w-12 {
+  width: 3rem;
+}
+
+.w-56 {
+  width: 14rem;
+}
+
+.max-w-md {
+  max-width: 28rem;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
+}
+
+.resize-y {
+  resize: vertical;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.max-w-sm {
+  max-width: 24rem;
+}
+
+.max-w-80p {
+  max-width: 80%;
+}
+
+.mb-npx {
+  margin-bottom: -1px;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.translate-x-0 {
+  transform: translateX(0);
+}
+
+.translate-x-full {
+  transform: translateX(100%);
+}
+
+/* ==================== App Radius / Misc ==================== */
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.border-dashed {
+  border-style: dashed;
+}
+
+/* Form controls follow the card background instead of the page background */
+.form-control,
+.form-select,
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--default-box-color);
+}
+
+@keyframes app-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: app-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

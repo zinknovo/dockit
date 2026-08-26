@@ -1,14 +1,13 @@
 package com.javaee.aiservice.internal;
 
+import com.javaee.aiservice.agent.execution.tool.AgentToolRegistry;
 import com.javaee.aiservice.security.RequestUserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 内部服务代理层
@@ -21,16 +20,17 @@ public class InternalService {
     private static final Logger log = LoggerFactory.getLogger(InternalService.class);
 
     private final RequestUserContext requestUserContext;
+    private final AgentToolRegistry toolRegistry;
 
     @Autowired
-    public InternalService(RequestUserContext requestUserContext) {
+    public InternalService(RequestUserContext requestUserContext, AgentToolRegistry toolRegistry) {
         this.requestUserContext = requestUserContext;
+        this.toolRegistry = toolRegistry;
     }
 
-    private static final Set<String> DESTRUCTIVE_SKILLS = Set.of("file-restore", "file-version-switch");
-
     /**
-     * 检查权限
+     * 检查权限。破坏性操作的判定以 AgentToolRegistry 的声明为单一事实源，
+     * 执行时还需 context 中带服务端确认标记 confirmedAction。
      * @param skillName 技能名称
      * @param context 上下文信息
      * @return 是否有权限
@@ -53,7 +53,9 @@ public class InternalService {
             return false;
         }
 
-        if (DESTRUCTIVE_SKILLS.contains(skillName) && !Boolean.TRUE.equals(context.get("confirmedAction"))) {
+        var tool = toolRegistry.get(skillName);
+        boolean destructive = tool != null && tool.definition().isDestructive();
+        if (destructive && !Boolean.TRUE.equals(context.get("confirmedAction"))) {
             log.warn("权限检查失败，危险操作缺少服务端确认: userId={}, skillName={}", contextUserId, skillName);
             return false;
         }
@@ -78,39 +80,5 @@ public class InternalService {
      */
     public void sendAlert(Map<String, Object> alertData) {
         log.warn("发送告警: {}", alertData);
-    }
-
-    /**
-     * 获取技能描述
-     * @param skillName 技能名称
-     * @return 技能描述
-     */
-    public Map<String, Object> getSkillDescription(String skillName) {
-        Map<String, Object> description = new HashMap<>();
-        
-        switch (skillName) {
-            case "file-delete":
-                description.put("name", "文件删除");
-                description.put("description", "根据前端documentId或MinIO对象名删除文件并移入回收站");
-                description.put("parameters", Map.of(
-                    "bucketName", "存储桶名称（可选）",
-                    "objectName", "对象名称（与documentId二选一）",
-                    "documentId", "前端业务文档ID（与objectName二选一）"
-                ));
-                break;
-            case "file-download":
-                description.put("name", "文件下载");
-                description.put("description", "下载指定文件");
-                description.put("parameters", Map.of(
-                    "bucketName", "存储桶名称（可选）",
-                    "objectName", "对象名称（必填）"
-                ));
-                break;
-            default:
-                description.put("name", skillName);
-                description.put("description", "未知技能");
-        }
-        
-        return description;
     }
 }
